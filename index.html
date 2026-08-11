@@ -476,6 +476,25 @@
     .zero-chips{display:flex;position:sticky;top:0;z-index:5;background:var(--bg);
       margin:0 -14px;padding:10px 14px;border-bottom:1px solid var(--line)}
   }
+  .beh-q{border:1px solid var(--line);border-radius:16px;background:var(--panel-2);padding:16px 18px;margin-bottom:12px}
+  .beh-q.done{border-color:rgba(70,214,160,.45)}
+  .beh-h{display:flex;align-items:flex-start;gap:11px;cursor:pointer}
+  .beh-h b{font:700 16px/1.45 var(--sans);flex:1}
+  .beh-h .beh-i{flex:none;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--mut)}
+  .beh-q.done .beh-i{background:var(--good);border-color:var(--good);color:#0b0f19}
+  .beh-body{display:none;margin-top:12px}
+  .beh-q.open .beh-body{display:block}
+  .beh-lab{font:700 10.5px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:var(--mut);margin:12px 0 5px}
+  .beh-w{font-size:13.5px;line-height:1.6;color:var(--txt);border-left:2px solid var(--warn);padding-left:11px}
+  .beh-hint{font-size:13.5px;line-height:1.65;color:var(--txt);border-left:2px solid var(--good);padding-left:11px}
+  .beh-bad{font-size:13px;line-height:1.6;color:var(--mut);border-left:2px solid var(--bad);padding-left:11px}
+  .beh-ta{width:100%;box-sizing:border-box;min-height:96px;resize:vertical;margin-top:6px;
+    font:500 14px/1.6 var(--sans);padding:11px 13px;border-radius:12px;border:1px solid var(--line);
+    background:var(--panel);color:var(--fg);outline:none}
+  .beh-ta:focus{border-color:var(--acc)}
+  .beh-tm{display:flex;align-items:center;gap:10px;margin-top:9px;font-size:12px;color:var(--mut)}
+  .beh-tm b{font:800 15px var(--mono);color:var(--fg)}
   .zero-top{display:flex;align-items:center;gap:12px;margin:6px 0 16px}
   .zero-bar{flex:1;height:8px;border-radius:5px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
   .zero-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--good));transition:width .3s var(--ease)}
@@ -1052,6 +1071,7 @@
         <button id="tabPath" role="tab" aria-selected="false">🗺 Путь в сеньоры</button>
         <button id="tabViz" role="tab" aria-selected="false">🧊 3D-мир</button>
         <button id="tabZero" role="tab" aria-selected="false">🌱 С нуля</button>
+        <button id="tabBeh" role="tab" aria-selected="false">🎤 Поведенческий</button>
         <button id="tabBasics" role="tab" aria-selected="false">🍼 Для чайника</button>
         <button id="tabPrin" role="tab" aria-selected="false">⚙️ Принцип</button>
         <button id="tabSand" role="tab" aria-selected="false">🏗 Песочница</button>
@@ -1142,6 +1162,15 @@
   <div id="pathStage" class="prog-stage"></div>
 </section>
 
+<section id="viewBeh" class="view" hidden>
+  <div class="terms-wrap">
+    <div class="bas-intro">🎤 <b>Поведенческий собес.</b> <span id="behIntro">Техническую часть ты закроешь карточками. Здесь то, что спросят первым и к чему обычно не готовятся. Пиши свои заготовки — они сохраняются.</span></div>
+    <div class="zero-top"><div class="zero-bar"><span id="behBar"></span></div><b id="behPct">0%</b>
+      <span class="mut" style="font-size:12px" id="behCnt"></span></div>
+    <div id="behList" class="beh-list"></div>
+  </div>
+</section>
+
 <section id="viewZero" class="view" hidden>
   <div class="terms-wrap">
     <div class="bas-intro">🌱 <b>С нуля.</b> <span id="zeroIntro">Как код вообще превращается в работу — от транзистора до твоей программы. Читается сверху вниз, каждый шаг опирается на предыдущий.</span></div>
@@ -1199,6 +1228,7 @@
 <script src="tier.js"></script>
 <script src="basics.js"></script>
 <script src="zero.js"></script>
+<script src="behav.js"></script>
 <script src="tricky.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
@@ -1266,6 +1296,32 @@ function Ta(kind,id,field,ruArr){ const e=I18N[kind]&&I18N[kind][id]; if(LANG===
 const CLNAME={"Архитектура":"Architecture"};
 function clName(t){ return LANG==="en"?(CLNAME[t]||t):t; }
 const UITR={
+  "🎤 Поведенческий":"🎤 Behavioural",
+  "Техническую часть ты закроешь карточками. Здесь то, что спросят первым и к чему обычно не готовятся. Пиши свои заготовки — они сохраняются.":"Cards cover the technical part. This is what gets asked first and what people rarely prepare. Write your own answers — they are saved.",
+  "что на самом деле проверяют":"what they are really checking",
+  "каркас ответа":"answer skeleton",
+  "типичные провалы":"common failures",
+  "твоя заготовка":"your answer",
+  "Напиши своими словами — это и будет твой ответ на собесе":"Write it in your own words — this becomes your interview answer",
+  "2 минуты вслух":"2 minutes out loud",
+  "прочитай вслух и уложись":"read it aloud and fit in",
+  "время":"time",
+  "заготовок":"answers ready",
+  "О себе":"About you",
+  "Опыт и проекты":"Experience",
+  "Провалы":"Failures",
+  "Команда":"Team",
+  "Мотивация":"Motivation",
+  "Про деньги":"Money",
+  "Вопросы им":"Ask them",
+  "SOLID":"SOLID",
+  "Паттерны":"Patterns",
+  "Сборка мусора":"Garbage collection",
+  "java.util.concurrent":"java.util.concurrent",
+  "Hibernate и JPA":"Hibernate & JPA",
+  "Транзакции Spring":"Spring transactions",
+  "Как устроен собес":"How interviews work",
+  "Резюме и оффер":"CV and the offer",
   "PostgreSQL":"PostgreSQL",
   "Kafka":"Kafka",
   "Redis":"Redis",
@@ -1587,7 +1643,7 @@ function tr(s){ return (LANG==="en"&&UITR[s]!=null)?UITR[s]:s; }
 function applyChrome(){
   document.documentElement.lang=LANG;
   const lt=$("#langTog"); if(lt)lt.textContent = LANG==="en"?"RU":"EN";
-  [["#tabDrill","🎴 Дрил"],["#tabFp","✋ На пальцах"],["#tabTerms","📖 Термины"],["#tabZero","🌱 С нуля"],["#tabPath","🗺 Путь в сеньоры"],["#tabViz","🧊 3D-мир"],["#tabBasics","🍼 Для чайника"],["#tabPrin","⚙️ Принцип"],["#tabGame","🎮 Игра"],["#tabSand","🏗 Песочница"],["#tabProg","📊 Прогресс"],["#tabMore","⋯ Ещё"]].forEach(([s,ru])=>{const el=$(s);if(el)el.textContent=tr(ru);});
+  [["#tabDrill","🎴 Дрил"],["#tabFp","✋ На пальцах"],["#tabTerms","📖 Термины"],["#tabZero","🌱 С нуля"],["#tabBeh","🎤 Поведенческий"],["#tabPath","🗺 Путь в сеньоры"],["#tabViz","🧊 3D-мир"],["#tabBasics","🍼 Для чайника"],["#tabPrin","⚙️ Принцип"],["#tabGame","🎮 Игра"],["#tabSand","🏗 Песочница"],["#tabProg","📊 Прогресс"],["#tabMore","⋯ Ещё"]].forEach(([s,ru])=>{const el=$(s);if(el)el.textContent=tr(ru);});
   const klab=["🔥 стрик","освоено","повтор"]; document.querySelectorAll(".kpiL").forEach((el,i)=>el.textContent=tr(klab[i]));
   const fps=$("#fpSearch"); if(fps)fps.placeholder=tr("🔍 поиск темы…");
   const tse=$("#termSearch"); if(tse)tse.placeholder=tr("🔍 поиск термина…");
@@ -1827,8 +1883,8 @@ let pendingTerm=null;  /* клик по термину-ссылке → откр
 let pendingBasic=null;  /* глоб.поиск → прокрутить к понятию в «Для чайника» */
 let pendingViz=null;    /* глоб.поиск / карточка → открыть конкретный 3D-мир */
 function setMode(m){mode=m;
-  ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":"Zero"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
-  $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero"].includes(m));
+  ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
+  $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh"].includes(m));
   $("#moreMenu").hidden=true;
   $("#viewDrill").hidden=(m!=="drill");
   $("#viewFp").hidden=(m!=="fp");
@@ -1839,9 +1895,10 @@ function setMode(m){mode=m;
   $("#viewSand").hidden=(m!=="sand");
   $("#viewBasics").hidden=(m!=="basics");
   $("#viewZero").hidden=(m!=="zero");
+  $("#viewBeh").hidden=(m!=="beh");
   $("#viewPath").hidden=(m!=="path");
   $("#viewViz").hidden=(m!=="viz");
-  stopFp(); clearInterval(gTimer); stopArcade(); if(m!=="viz")v3Stop(); if(m!=="game")netClose();
+  stopFp(); clearInterval(gTimer); stopArcade(); if(behTimer){clearInterval(behTimer);behTimer=null;} if(m!=="viz")v3Stop(); if(m!=="game")netClose();
   if(m==="drill")rebuild();
   else if(m==="fp"){buildFpNav($("#fpSearch").value);renderFingers();}
   else if(m==="terms")buildTerms($("#termSearch").value);
@@ -1850,6 +1907,7 @@ function setMode(m){mode=m;
   else if(m==="sand")buildSand();
   else if(m==="basics")buildBasics($("#basSearch").value);
   else if(m==="zero")buildZero();
+  else if(m==="beh")buildBeh();
   else if(m==="path")buildPath();
   else if(m==="viz")buildViz3D();
   else gameMenu();
@@ -1877,6 +1935,7 @@ $("#tabGame").onclick=()=>setMode("game");
 $("#tabProg").onclick=()=>setMode("prog");
 $("#tabSand").onclick=()=>setMode("sand");
 $("#tabZero").onclick=()=>setMode("zero");
+$("#tabBeh").onclick=()=>setMode("beh");
 $("#tabBasics").onclick=()=>setMode("basics");
 $("#tabPath").onclick=()=>setMode("path");
 $("#tabViz").onclick=()=>setMode("viz");
@@ -2008,6 +2067,53 @@ function basCard(b){
   const fk="bs:"+b.id;
   return `<div class="bas-card" data-id="${esc(b.id)}"><div class="bas-t"><span class="bas-ico">${b.icon||"💡"}</span><b>${esc(basF(b,"t"))}</b><button class="fav-btn bas-fav${isFav(fk)?' on':''}" data-id="${esc(b.id)}" title="${tr('★ избранное')}">${isFav(fk)?'★':'☆'}</button></div><div class="bas-plain">${esc(basF(b,"plain"))}</div><div class="bas-an">👉 ${esc(basF(b,"an"))}</div></div>`;
 }
+/* ---------- 🎤 Поведенческий собес ---------- */
+const BEHAV=(window.BEHAV||[]);
+const BANS=(()=>{try{return JSON.parse(localStorage.getItem("jdBehav")||"{}")}catch(e){return{}}})();
+function behSave(){ try{localStorage.setItem("jdBehav",JSON.stringify(BANS))}catch(e){} }
+function behReady(){ return BEHAV.filter((b,i)=>(BANS["q"+i]||"").trim().length>40).length; }
+function behBarUI(){ const p=BEHAV.length?Math.round(behReady()/BEHAV.length*100):0;
+  const b=$("#behBar"), t=$("#behPct"), c=$("#behCnt");
+  if(b)b.style.width=p+"%"; if(t)t.textContent=p+"%";
+  if(c)c.textContent=tr("заготовок")+": "+behReady()+"/"+BEHAV.length; }
+function buildBeh(){
+  const wrap=$("#behList"); if(!wrap)return;
+  if(!BEHAV.length){ wrap.innerHTML='<div class="muted">раздел не загружен</div>'; return; }
+  let html="", g=null;
+  BEHAV.forEach((b,i)=>{
+    if(b.g!==g){ g=b.g; html+=`<div class="zero-g"><span>${esc(tr(g))}</span></div>`; }
+    const ans=BANS["q"+i]||"", done=ans.trim().length>40;
+    html+=`<div class="beh-q${done?" done":""}" data-i="${i}">
+      <div class="beh-h"><span class="beh-i">${done?"✓":i+1}</span><b>${esc(tr(b.q))}</b></div>
+      <div class="beh-body">
+        <div class="beh-lab">${tr("что на самом деле проверяют")}</div><div class="beh-w">${esc(tr(b.w))}</div>
+        <div class="beh-lab">${tr("каркас ответа")}</div><div class="beh-hint">${esc(tr(b.h))}</div>
+        <div class="beh-lab">${tr("типичные провалы")}</div><div class="beh-bad">${esc(tr(b.bad))}</div>
+        <div class="beh-lab">${tr("твоя заготовка")}</div>
+        <textarea class="beh-ta" data-a="${i}" placeholder="${tr("Напиши своими словами — это и будет твой ответ на собесе")}">${esc(ans)}</textarea>
+        <div class="beh-tm"><button class="btn" data-t="${i}" style="flex:none;padding:6px 12px;font-size:12px">⏱ ${tr("2 минуты вслух")}</button>
+          <b id="bt${i}">2:00</b><span>${tr("прочитай вслух и уложись")}</span></div>
+      </div></div>`;
+  });
+  wrap.innerHTML=html;
+  wrap.querySelectorAll(".beh-h").forEach(h=>h.onclick=()=>h.parentNode.classList.toggle("open"));
+  wrap.querySelectorAll("[data-a]").forEach(ta=>{
+    ta.onclick=e=>e.stopPropagation();
+    ta.oninput=()=>{ BANS["q"+ta.dataset.a]=ta.value; behSave();
+      const box=ta.closest(".beh-q"), ok=ta.value.trim().length>40;
+      box.classList.toggle("done",ok);
+      box.querySelector(".beh-i").textContent=ok?"✓":(+ta.dataset.a+1);
+      behBarUI(); }; });
+  wrap.querySelectorAll("[data-t]").forEach(b=>b.onclick=e=>{
+    e.stopPropagation(); const i=b.dataset.t, el=$("#bt"+i);
+    if(behTimer)clearInterval(behTimer);
+    let left=120;
+    behTimer=setInterval(()=>{ left--;
+      if(el)el.textContent=Math.floor(left/60)+":"+String(left%60).padStart(2,"0");
+      if(left<=0){ clearInterval(behTimer); behTimer=null; if(el)el.textContent=tr("время"); } },1000); });
+  behBarUI();
+}
+let behTimer=null;
 /* ---------- 🌱 С нуля: лестница от транзистора до программы ---------- */
 const ZERO=(window.ZERO||[]);
 const ZDONE=(()=>{try{return new Set(JSON.parse(localStorage.getItem("jdZero")||"[]"))}catch(e){return new Set()}})();
