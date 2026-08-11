@@ -1,0 +1,31 @@
+/* Сборка одного самодостаточного файла: инлайнит все <script src="*.js"> прямо в HTML.
+   Запуск: node build.js  →  java-drill.html (один файл, можно скинуть и открыть на телефоне). */
+const fs = require("fs");
+let html = fs.readFileSync("index.html", "utf8");
+let inlined = 0, missing = [];
+html = html.replace(/<script src="([^"]+)"><\/script>/g, (m, src) => {
+  try {
+    let code = fs.readFileSync(src, "utf8");
+    // Защита: любой литерал </script> внутри данных (в JS-строках) разорвал бы
+    // тег при инлайне и сломал бы единый HTML. Экранируем — в JS это тот же текст.
+    code = code.replace(/<\/script/gi, "<\\/script");
+    inlined++;
+    return "<script>\n" + code + "\n</script>";
+  } catch (e) { missing.push(src); return m; }
+});
+// EN-пакет (~2.5МБ). По умолчанию НЕ инлайним — грузится лениво (loadEN) при переключении на EN,
+// что режет стартовый парсинг на ~30%. Флаг --inline-en встраивает его для полностью портативного
+// single-file (EN работает даже если носить только html без папки).
+const inlineEN = process.argv.includes("--inline-en");
+html = html.replace("<!--INLINE-I18N-EN-->", () => {
+  if (!inlineEN) return "<!-- i18n-en.js грузится лениво (loadEN) при переключении на EN -->";
+  try {
+    const code = fs.readFileSync("i18n-en.js", "utf8").replace(/<\/script/gi, "<\\/script");
+    inlined++;
+    return "<script>\n" + code + "\n</script>";
+  } catch (e) { missing.push("i18n-en.js"); return "<!--i18n-en.js НЕ НАЙДЕН-->"; }
+});
+fs.writeFileSync("java-drill.html", html);
+const kb = Math.round(Buffer.byteLength(html) / 1024);
+console.log("✓ java-drill.html собран:", kb + "KB, инлайнено скриптов:", inlined, inlineEN ? "(EN встроен)" : "(EN ленивый — держи i18n-en.js рядом)");
+if (missing.length) console.log("  не найдено (оставлены ссылками):", missing.join(", "));
