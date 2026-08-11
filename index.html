@@ -447,6 +447,16 @@
     display:flex;align-items:center;justify-content:center;font:800 10px var(--mono);color:var(--mut)}
   .zn-item.full .zn-n{background:var(--good);border-color:var(--good);color:#0b0f19}
   .zn-item .zn-c{margin-left:auto;font:700 10px var(--mono);color:var(--mut)}
+  .zn-sub{display:none;margin:2px 0 6px 31px;border-left:1px solid var(--line);padding-left:9px}
+  .zn-item.open+.zn-sub{display:block}
+  .zn-s{display:flex;align-items:flex-start;gap:7px;width:100%;text-align:left;border:0;background:transparent;
+    color:var(--mut);font:500 12px/1.4 var(--sans);padding:5px 7px;border-radius:7px;cursor:pointer;transition:.14s var(--ease)}
+  .zn-s:hover{background:var(--panel);color:var(--txt)}
+  .zn-s.on{color:var(--acc);background:var(--panel)}
+  .zn-s.done{color:var(--good)}
+  .zn-s i{flex:none;font-style:normal;font:700 9px var(--mono);opacity:.7;padding-top:2px;min-width:17px}
+  .zn-item .zn-ar{flex:none;font-size:9px;color:var(--mut);transition:transform .16s var(--ease)}
+  .zn-item.open .zn-ar{transform:rotate(90deg)}
   .zero-main{flex:1;min-width:0}
   .zero-chips{display:none;gap:7px;overflow-x:auto;padding:8px 0 12px;-webkit-overflow-scrolling:touch}
   .zero-chips button{flex:none;border:1px solid var(--line);background:var(--panel-2);color:var(--txt);
@@ -1250,6 +1260,10 @@ function Ta(kind,id,field,ruArr){ const e=I18N[kind]&&I18N[kind][id]; if(LANG===
 const CLNAME={"Архитектура":"Architecture"};
 function clName(t){ return LANG==="en"?(CLNAME[t]||t):t; }
 const UITR={
+  "Docker":"Docker",
+  "Kubernetes":"Kubernetes",
+  "Выкатка":"Delivery",
+  "Наблюдаемость":"Observability",
   "Spring: зачем":"Spring: why",
   "Spring Boot":"Spring Boot",
   "Spring в работе":"Spring in practice",
@@ -1980,6 +1994,7 @@ function zeroSave(){ try{localStorage.setItem("jdZero",JSON.stringify([...ZDONE]
 function zeroPct(){ return ZERO.length?Math.round(ZDONE.size/ZERO.length*100):0; }
 function zeroBarUI(){ const b=$("#zeroBar"), p=$("#zeroPct");
   if(b)b.style.width=zeroPct()+"%"; if(p)p.textContent=zeroPct()+"%"; }
+let V3ZOPEN=null;
 function zeroGroups(){ const g=[];
   ZERO.forEach((z,i)=>{ let last=g[g.length-1];
     if(!last||last.g!==z.g){ last={g:z.g,ids:[],key:"zg"+g.length}; g.push(last); }
@@ -1990,23 +2005,40 @@ function zeroNavUI(){
   const nav=$("#zeroNav"), chips=$("#zeroChips");
   const done=gr=>gr.ids.filter(i=>ZDONE.has(i)).length;
   if(nav)nav.innerHTML=`<h4>${tr("Маршрут")}</h4>`+gs.map((gr,k)=>{
-    const d=done(gr);
-    return `<button class="zn-item${d===gr.ids.length?" full":""}" data-k="${gr.key}">
-      <span class="zn-n">${d===gr.ids.length?"✓":k+1}</span>
-      <span>${esc(tr(gr.g))}</span><span class="zn-c">${d}/${gr.ids.length}</span></button>`; }).join("");
+    const d=done(gr), open=(V3ZOPEN===gr.key);
+    return `<button class="zn-item${d===gr.ids.length?" full":""}${open?" open":""}" data-k="${gr.key}">
+        <span class="zn-n">${d===gr.ids.length?"✓":k+1}</span>
+        <span>${esc(tr(gr.g))}</span><span class="zn-c">${d}/${gr.ids.length}</span>
+        <span class="zn-ar">▶</span></button>
+      <div class="zn-sub">${gr.ids.map((i,j)=>
+        `<button class="zn-s${ZDONE.has(i)?" done":""}" data-s="${i}">
+          <i>${ZDONE.has(i)?"✓":j+1}</i><span>${esc(tr(ZERO[i].t))}</span></button>`).join("")}</div>`; }).join("");
   if(chips)chips.innerHTML=gs.map((gr,k)=>{
     const d=done(gr);
     return `<button class="${d===gr.ids.length?"full":""}" data-k="${gr.key}">${d===gr.ids.length?"✓ ":""}${esc(tr(gr.g))}</button>`; }).join("");
   [nav,chips].forEach(box=>{ if(!box)return;
     box.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{
+      zeroSpy.manual=Date.now();                                     /* клик важнее автоподсветки */
+      V3ZOPEN=(V3ZOPEN===b.dataset.k&&box===nav)?null:b.dataset.k;
+      if(box===nav)zeroNavUI();
       const el=document.getElementById(b.dataset.k);
-      if(el)el.scrollIntoView({behavior:"smooth",block:"start"}); }); });
+      if(el)el.scrollIntoView({behavior:"smooth",block:"start"}); });
+    box.querySelectorAll("[data-s]").forEach(b=>b.onclick=e=>{
+      e.stopPropagation(); zeroSpy.manual=Date.now();
+      const el=document.getElementById("zs"+b.dataset.s);
+      if(el)el.scrollIntoView({behavior:"smooth",block:"center"}); }); });
 }
-function zeroSpy(){                                        /* подсвечиваем группу, до которой долистал */
+function zeroSpy(){                                        /* подсвечиваем тему и подтему, до которых долистал */
   const gs=zeroGroups(); let cur=gs[0]&&gs[0].key;
   for(const gr of gs){ const el=document.getElementById(gr.key);
     if(el&&el.getBoundingClientRect().top<140)cur=gr.key; }
   document.querySelectorAll("#zeroNav .zn-item").forEach(b=>b.classList.toggle("on",b.dataset.k===cur));
+  document.querySelectorAll("#zeroChips button").forEach(b=>b.classList.toggle("on",b.dataset.k===cur));
+  if(cur&&V3ZOPEN!==cur&&Date.now()-(zeroSpy.manual||0)>1400){ V3ZOPEN=cur; zeroNavUI(); }   /* сама раскрывает текущую тему */
+  let si=null;
+  document.querySelectorAll(".zero-step").forEach(st=>{
+    if(st.getBoundingClientRect().top<170)si=st.dataset.i; });
+  document.querySelectorAll("#zeroNav .zn-s").forEach(b=>b.classList.toggle("on",b.dataset.s===si));
 }
 function buildZero(){
   const wrap=$("#zeroList"); if(!wrap)return;
@@ -2017,7 +2049,7 @@ function buildZero(){
     if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
     n++;
     const done=ZDONE.has(i);
-    html+=`<div class="zero-step${done?" done":""}" data-i="${i}">
+    html+=`<div class="zero-step${done?" done":""}" id="zs${i}" data-i="${i}">
       <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
       <div class="zero-b">
         <div class="zero-t">${esc(tr(z.t))}</div>
