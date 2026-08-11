@@ -1,0 +1,17 @@
+{
+  "name": "Java Drill — тренажёр к собесу",
+  "short_name": "Java Drill",
+  "description": "Офлайн-тренажёр для подготовки к сеньорским собеседованиям по Java: карточки, 3D-миры, аркада.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "lang": "ru",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

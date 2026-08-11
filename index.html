@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b0f19">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Java Drill">
 <title>JavaDrill — под капотом</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -8065,6 +8071,14 @@ if(!localStorage.getItem("jdSeen")){
   ob.innerHTML=`<span>👋 ${tr("Начни с 🎴 Дрил (Space — ответ, 1/2/3 — оценка). 🔍 или «/» — поиск по всему. В ⋯ Ещё: 🧊 3D-мир (прогулка по концепциям), 🗺 Путь в сеньоры, 🍼 Для чайника, ⚙️ Принцип, 📊 Прогресс.")}</span><button id="onbX" aria-label="close">✕</button>`;
   document.body.appendChild(ob);
   $("#onbX").onclick=()=>{ ob.remove(); localStorage.setItem("jdSeen","1"); };
+}
+</script>
+<script>
+/* PWA: офлайн и установка на рабочий стол. На file:// service worker недоступен — там и не пытаемся. */
+if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
 }
 </script>
 </body>
