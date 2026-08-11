@@ -435,6 +435,31 @@
   .hlp-t td:first-child{white-space:nowrap;color:var(--fg);font-weight:600}
   .hlp-warn{border:1px solid rgba(255,207,110,.35);background:rgba(255,207,110,.06);
     border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--mut);margin-top:10px}
+  .zero-wrap{display:flex;gap:26px;align-items:flex-start}
+  .zero-nav{flex:0 0 232px;position:sticky;top:72px;max-height:calc(100vh - 96px);overflow:auto;
+    border:1px solid var(--line);border-radius:16px;background:var(--panel-2);padding:12px}
+  .zero-nav h4{margin:0 0 10px;font:800 11px var(--mono);letter-spacing:1.2px;text-transform:uppercase;color:var(--mut)}
+  .zn-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:transparent;
+    color:var(--txt);font:600 13px var(--sans);padding:7px 9px;border-radius:9px;cursor:pointer;transition:.14s var(--ease)}
+  .zn-item:hover{background:var(--panel)}
+  .zn-item.on{background:var(--panel);color:var(--acc)}
+  .zn-item .zn-n{flex:none;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font:800 10px var(--mono);color:var(--mut)}
+  .zn-item.full .zn-n{background:var(--good);border-color:var(--good);color:#0b0f19}
+  .zn-item .zn-c{margin-left:auto;font:700 10px var(--mono);color:var(--mut)}
+  .zero-main{flex:1;min-width:0}
+  .zero-chips{display:none;gap:7px;overflow-x:auto;padding:8px 0 12px;-webkit-overflow-scrolling:touch}
+  .zero-chips button{flex:none;border:1px solid var(--line);background:var(--panel-2);color:var(--txt);
+    font:600 12px var(--sans);padding:7px 13px;border-radius:20px;white-space:nowrap;cursor:pointer}
+  .zero-chips button.full{border-color:var(--good);color:var(--good)}
+  .zero-code{margin-top:9px;font:600 12.5px/1.6 var(--mono);background:#0b1020;border:1px solid var(--line);
+    border-radius:10px;padding:11px 13px;overflow-x:auto;white-space:pre;color:#c9d3ea}
+  @media(max-width:980px){
+    .zero-wrap{display:block}
+    .zero-nav{display:none}
+    .zero-chips{display:flex;position:sticky;top:0;z-index:5;background:var(--bg);
+      margin:0 -14px;padding:10px 14px;border-bottom:1px solid var(--line)}
+  }
   .zero-top{display:flex;align-items:center;gap:12px;margin:6px 0 16px}
   .zero-bar{flex:1;height:8px;border-radius:5px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
   .zero-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--good));transition:width .3s var(--ease)}
@@ -1106,7 +1131,13 @@
     <div class="bas-intro">🌱 <b>С нуля.</b> <span id="zeroIntro">Как код вообще превращается в работу — от транзистора до твоей программы. Читается сверху вниз, каждый шаг опирается на предыдущий.</span></div>
     <div class="zero-top"><div class="zero-bar"><span id="zeroBar"></span></div><b id="zeroPct">0%</b>
       <button class="btn" id="zeroReset" style="flex:none;padding:6px 12px;font-size:12px">↻ сбросить</button></div>
-    <div id="zeroList" class="zero-list"></div>
+    <div class="zero-wrap">
+      <aside class="zero-nav" id="zeroNav"><h4>Маршрут</h4></aside>
+      <div class="zero-main">
+        <div class="zero-chips" id="zeroChips"></div>
+        <div id="zeroList" class="zero-list"></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1219,6 +1250,17 @@ function Ta(kind,id,field,ruArr){ const e=I18N[kind]&&I18N[kind][id]; if(LANG===
 const CLNAME={"Архитектура":"Architecture"};
 function clName(t){ return LANG==="en"?(CLNAME[t]||t):t; }
 const UITR={
+  "Маршрут":"Route",
+  "Java: как исполняется":"Java: how it runs",
+  "Java: первая строка":"Java: first line",
+  "Java: типы":"Java: types",
+  "Java: объекты":"Java: objects",
+  "Java: коллекции":"Java: collections",
+  "Java: исключения":"Java: exceptions",
+  "Java: современное":"Java: modern",
+  "Многопоточность":"Concurrency",
+  "Базы данных":"Databases",
+  "На собесе":"At the interview",
   "🌱 С нуля":"🌱 From zero",
   "Как код вообще превращается в работу — от транзистора до твоей программы. Читается сверху вниз, каждый шаг опирается на предыдущий.":"How code actually turns into work — from a transistor to your program. Read top to bottom; each step builds on the previous one.",
   "отметить, что понял":"mark as understood",
@@ -1934,12 +1976,41 @@ function zeroSave(){ try{localStorage.setItem("jdZero",JSON.stringify([...ZDONE]
 function zeroPct(){ return ZERO.length?Math.round(ZDONE.size/ZERO.length*100):0; }
 function zeroBarUI(){ const b=$("#zeroBar"), p=$("#zeroPct");
   if(b)b.style.width=zeroPct()+"%"; if(p)p.textContent=zeroPct()+"%"; }
+function zeroGroups(){ const g=[];
+  ZERO.forEach((z,i)=>{ let last=g[g.length-1];
+    if(!last||last.g!==z.g){ last={g:z.g,ids:[],key:"zg"+g.length}; g.push(last); }
+    last.ids.push(i); });
+  return g; }
+function zeroNavUI(){
+  const gs=zeroGroups();
+  const nav=$("#zeroNav"), chips=$("#zeroChips");
+  const done=gr=>gr.ids.filter(i=>ZDONE.has(i)).length;
+  if(nav)nav.innerHTML=`<h4>${tr("Маршрут")}</h4>`+gs.map((gr,k)=>{
+    const d=done(gr);
+    return `<button class="zn-item${d===gr.ids.length?" full":""}" data-k="${gr.key}">
+      <span class="zn-n">${d===gr.ids.length?"✓":k+1}</span>
+      <span>${esc(tr(gr.g))}</span><span class="zn-c">${d}/${gr.ids.length}</span></button>`; }).join("");
+  if(chips)chips.innerHTML=gs.map((gr,k)=>{
+    const d=done(gr);
+    return `<button class="${d===gr.ids.length?"full":""}" data-k="${gr.key}">${d===gr.ids.length?"✓ ":""}${esc(tr(gr.g))}</button>`; }).join("");
+  [nav,chips].forEach(box=>{ if(!box)return;
+    box.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{
+      const el=document.getElementById(b.dataset.k);
+      if(el)el.scrollIntoView({behavior:"smooth",block:"start"}); }); });
+}
+function zeroSpy(){                                        /* подсвечиваем группу, до которой долистал */
+  const gs=zeroGroups(); let cur=gs[0]&&gs[0].key;
+  for(const gr of gs){ const el=document.getElementById(gr.key);
+    if(el&&el.getBoundingClientRect().top<140)cur=gr.key; }
+  document.querySelectorAll("#zeroNav .zn-item").forEach(b=>b.classList.toggle("on",b.dataset.k===cur));
+}
 function buildZero(){
   const wrap=$("#zeroList"); if(!wrap)return;
   if(!ZERO.length){ wrap.innerHTML='<div class="muted">раздел не загружен</div>'; return; }
+  const gs=zeroGroups(); const key={}; gs.forEach(gr=>gr.ids.forEach(i=>key[i]=gr.key));
   let html="", g=null, n=0;
   ZERO.forEach((z,i)=>{
-    if(z.g!==g){ g=z.g; html+=`<div class="zero-g"><span>${esc(tr(g))}</span></div>`; }
+    if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
     n++;
     const done=ZDONE.has(i);
     html+=`<div class="zero-step${done?" done":""}" data-i="${i}">
@@ -1947,6 +2018,7 @@ function buildZero(){
       <div class="zero-b">
         <div class="zero-t">${esc(tr(z.t))}</div>
         <div class="zero-p">${zeroFmt(tr(z.p))}</div>
+        ${z.c?`<div class="zero-code">${esc(z.c)}</div>`:""}
         <div class="zero-an">${esc(tr(z.an))}</div>
       </div></div>`;
   });
@@ -1959,10 +2031,13 @@ function buildZero(){
     const st=b.closest(".zero-step"), i=+st.dataset.i;
     if(ZDONE.has(i)){ ZDONE.delete(i); st.classList.remove("done"); b.textContent=[...st.parentNode.children].filter(x=>x.classList.contains("zero-step")).indexOf(st)+1; }
     else { ZDONE.add(i); st.classList.add("done"); b.textContent="✓"; }
-    zeroSave(); zeroBarUI(); });
+    zeroSave(); zeroBarUI(); zeroNavUI(); });
   const nx=$("#zeroNext"); if(nx)nx.onclick=()=>setMode("basics");
-  const rs=$("#zeroReset"); if(rs)rs.onclick=()=>{ ZDONE.clear(); zeroSave(); buildZero(); zeroBarUI(); };
-  zeroBarUI();
+  const rs=$("#zeroReset"); if(rs)rs.onclick=()=>{ ZDONE.clear(); zeroSave(); buildZero(); };
+  zeroBarUI(); zeroNavUI();
+  if(!buildZero._spy){ buildZero._spy=1;
+    window.addEventListener("scroll",()=>{ if(mode==="zero")zeroSpy(); },{passive:true}); }
+  zeroSpy();
 }
 function zeroFmt(t){ return esc(t).replace(/`([^`]+)`/g,'<code>$1</code>'); }
 function buildBasics(q){
