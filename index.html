@@ -570,6 +570,22 @@
   .viz-prog{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:8px;font-size:12px;color:var(--mut)}
   .viz-prog .bar{flex:0 0 130px;height:6px;border-radius:4px;background:var(--panel-2);overflow:hidden}
   .viz-prog .bar span{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--good))}
+  .fr-me{display:flex;align-items:center;gap:12px;justify-content:center;margin:10px 0 16px;flex-wrap:wrap}
+  .fr-code{font:900 30px/1 var(--mono);letter-spacing:6px;color:var(--acc);
+    border:1px dashed rgba(110,168,254,.5);border-radius:12px;padding:10px 18px}
+  .fr-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .fr-row{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:13px;
+    background:var(--panel-2);padding:11px 14px}
+  .fr-dot{flex:none;width:10px;height:10px;border-radius:50%;background:var(--line)}
+  .fr-row.on .fr-dot{background:var(--good);box-shadow:0 0 9px var(--good)}
+  .fr-nm{flex:1;font:600 14px var(--sans);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fr-cd{font:700 12px var(--mono);color:var(--mut);letter-spacing:2px}
+  .fr-row button{border:1px solid var(--line);background:var(--panel);color:var(--mut);
+    font:600 12px var(--sans);padding:6px 12px;border-radius:9px;cursor:pointer}
+  .fr-row.on button.go{border-color:var(--good);color:var(--good)}
+  .fr-inv{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;
+    display:flex;align-items:center;gap:12px;border:1px solid var(--good);border-radius:16px;
+    background:var(--panel);padding:13px 18px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
   .net-st{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:13px;
     border:1px solid var(--line);background:var(--panel-2);color:var(--mut);margin:8px auto}
   .net-st b{color:var(--fg)}
@@ -1344,6 +1360,24 @@ function Ta(kind,id,field,ruArr){ const e=I18N[kind]&&I18N[kind][id]; if(LANG===
 const CLNAME={"Архитектура":"Architecture"};
 function clName(t){ return LANG==="en"?(CLNAME[t]||t):t; }
 const UITR={
+  "Друзья":"Friends",
+  "видно, кто сейчас в сети — зовёшь в один клик":"see who is online — invite in one click",
+  "Пока этот экран открыт, друзья видят тебя в сети. Зелёная точка — можно звать прямо сейчас.":"While this screen is open your friends see you online. A green dot means you can invite right now.",
+  "твой код":"your code",
+  "Добавить друга":"Add a friend",
+  "код":"code",
+  "имя":"name",
+  "друг":"friend",
+  "не в сети":"offline",
+  "Позвать":"Invite",
+  "зовёт в гонку":"invites you to a race",
+  "Принять":"Accept",
+  "Позже":"Later",
+  "Ждём друга":"Waiting for your friend",
+  "Приглашение отправлено. Как только примет — гонка начнётся.":"Invitation sent. The race starts as soon as they accept.",
+  "Если не увидит приглашение — продиктуй этот код.":"If they miss the invite, just read them this code.",
+  "Пока никого. Добавь друга по его коду — он найдёт свой на этом же экране.":"Nobody yet. Add a friend by their code — they find theirs on this same screen.",
+  "Друзья работают только на сайте по https":"Friends only work on the https site",
   "Рефлексия и аннотации":"Reflection & annotations",
   "Linux для бэкендера":"Linux for backend",
   "Оценка и решения":"Estimates & decisions",
@@ -1980,6 +2014,7 @@ function setMode(m){mode=m;
   $("#viewPath").hidden=(m!=="path");
   $("#viewViz").hidden=(m!=="viz");
   stopFp(); clearInterval(gTimer); stopArcade(); if(behTimer){clearInterval(behTimer);behTimer=null;}
+  if(m!=="game")presStop();
   if(ZQ){clearInterval(ZQ.tm); if(m!=="zero")ZQ=null;} if(m!=="viz")v3Stop(); if(m!=="game")netClose();
   if(m==="drill")rebuild();
   else if(m==="fp"){buildFpNav($("#fpSearch").value);renderFingers();}
@@ -8107,6 +8142,100 @@ function roomJoinUI(){
   $("#roomCode").onkeydown=e=>{ if(e.key==="Enter")go(); };
   $("#roomCode").focus();
 }
+/* ---- друзья и живое приглашение: присутствие через брокер, без сервера ---- */
+let PRES=null;
+function myCode(v){ if(v)try{localStorage.setItem("jdMyCode",v)}catch(e){}
+  let c=localStorage.getItem("jdMyCode");
+  if(!c){ c=roomRnd(4); try{localStorage.setItem("jdMyCode",c)}catch(e){} }
+  return c; }
+function friendList(v){ if(v)try{localStorage.setItem("jdFriends",JSON.stringify(v))}catch(e){}
+  try{ return JSON.parse(localStorage.getItem("jdFriends")||"[]"); }catch(e){ return []; } }
+function presPayload(extra){ return Object.assign({sdp:{type:"offer",sdp:"v=0\r\n"},type:"data",
+  connectionId:"jdp_"+roomRnd(4),reliable:false,serialization:"binary",label:"jdp",browser:"chrome",metadata:null},extra); }
+function presStop(){ if(!PRES)return; clearInterval(PRES.hb); clearInterval(PRES.timer);
+  try{PRES.ws.close()}catch(e){} PRES=null; }
+function presStart(){
+  if(PRES||!roomAvailable())return;
+  const me="jdu"+myCode();
+  const ws=new WebSocket(ROOM_WS+"&id="+me+"&token="+roomRnd(8));
+  PRES={ws,online:{},pend:{},hb:null,timer:null};
+  ws.onmessage=e=>{ let m; try{m=JSON.parse(e.data)}catch(x){return}
+    if(m.type==="OPEN"){
+      PRES.hb=setInterval(()=>{try{ws.send(JSON.stringify({type:"HEARTBEAT"}))}catch(e){}},18000);
+      presProbe(); PRES.timer=setInterval(presProbe,12000); return; }
+    if(m.type==="EXPIRE"){                                   /* адресата нет в сети */
+      const c=PRES.pend[m.dst]; if(c!=null){ PRES.online[c]=false; delete PRES.pend[m.dst]; presDraw(); }
+      return; }
+    const jd=m.payload&&m.payload.jd; if(!jd)return;
+    const from=(m.src||"").replace(/^jdu/,"");
+    if(jd.kind==="ping"){ presSend(from,{kind:"pong",who:duelName()}); PRES.online[from]=true; presDraw(); }
+    else if(jd.kind==="pong"){ PRES.online[from]=true; presName(from,jd.who); presDraw(); }
+    else if(jd.kind==="invite"){ presInviteBanner(from,jd.who,jd.room); }
+  };
+  ws.onerror=()=>{};
+}
+function presSend(code,jd){ if(!PRES)return;
+  const dst="jdu"+code; PRES.pend[dst]=code;
+  try{ PRES.ws.send(JSON.stringify({type:"OFFER",dst,payload:presPayload({jd})})); }catch(e){}
+  setTimeout(()=>{ if(PRES&&PRES.pend[dst]!==undefined){ delete PRES.pend[dst]; } },4000);
+}
+function presProbe(){ friendList().forEach(f=>presSend(f.code,{kind:"ping",who:duelName()})); }
+function presName(code,name){ if(!name)return; const l=friendList();
+  const f=l.find(x=>x.code===code); if(f&&!f.name){ f.name=name; friendList(l); } }
+function presInviteBanner(code,who,room){
+  const old=$("#frInv"); if(old)old.remove();
+  const d=document.createElement("div"); d.className="fr-inv"; d.id="frInv";
+  d.innerHTML=`<span>🎮 <b>${esc(who||code)}</b> ${tr("зовёт в гонку")}</span>
+    <button class="btn primary" id="frYes" style="flex:none;padding:7px 14px">${tr("Принять")}</button>
+    <button class="btn" id="frNo" style="flex:none;padding:7px 12px;color:var(--mut)">${tr("Позже")}</button>`;
+  document.body.appendChild(d);
+  $("#frYes").onclick=()=>{ d.remove(); setMode("game"); roomJoin(room).catch(()=>{}); };
+  $("#frNo").onclick=()=>d.remove();
+  setTimeout(()=>{ const el=$("#frInv"); if(el===d)d.remove(); },30000);
+}
+function presInvite(code){
+  roomHost().then(room=>{
+    presSend(code,{kind:"invite",who:duelName(),room});
+    netBox(tr("Ждём друга"),`<p class="muted2">${tr("Приглашение отправлено. Как только примет — гонка начнётся.")}</p>
+      <div style="font:900 40px/1.1 var(--mono);letter-spacing:8px;color:var(--acc);margin:12px 0">${esc(room)}</div>
+      <p class="du-hint">${tr("Если не увидит приглашение — продиктуй этот код.")}</p>`);
+  }).catch(()=>{});
+}
+function presDraw(){
+  const box=$("#frList"); if(!box)return;
+  const l=friendList();
+  if(!l.length){ box.innerHTML=`<p class="muted2">${tr("Пока никого. Добавь друга по его коду — он найдёт свой на этом же экране.")}</p>`; return; }
+  box.innerHTML=l.map((f,i)=>{ const on=PRES&&PRES.online[f.code];
+    return `<div class="fr-row${on?" on":""}"><span class="fr-dot"></span>
+      <span class="fr-nm">${esc(f.name||tr("друг"))}</span><span class="fr-cd">${esc(f.code)}</span>
+      ${on?`<button class="go" data-inv="${esc(f.code)}">🎮 ${tr("Позвать")}</button>`
+          :`<span class="fr-cd">${tr("не в сети")}</span>`}
+      <button data-del="${i}">✕</button></div>`; }).join("");
+  box.querySelectorAll("[data-inv]").forEach(b=>b.onclick=()=>presInvite(b.dataset.inv));
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
+    const l2=friendList(); l2.splice(+b.dataset.del,1); friendList(l2); presDraw(); });
+}
+function friendsUI(){
+  if(!roomAvailable())return netMenu("⚠ "+tr("Друзья работают только на сайте по https"));
+  presStart();
+  netBox(tr("Друзья"),`
+    <p class="muted2">${tr("Пока этот экран открыт, друзья видят тебя в сети. Зелёная точка — можно звать прямо сейчас.")}</p>
+    <div class="fr-me"><span class="mut">${tr("твой код")}</span><span class="fr-code">${esc(myCode())}</span></div>
+    <div class="net-step"><h4>${tr("Добавить друга")}</h4>
+      <div style="display:flex;gap:8px">
+        <input class="du-code" id="frCode" maxlength="4" placeholder="${tr("код")}"
+          style="min-height:0;height:42px;flex:0 0 120px;font:800 20px/1 var(--mono);letter-spacing:5px;text-align:center;text-transform:uppercase">
+        <input class="du-code" id="frName" maxlength="14" placeholder="${tr("имя")}" style="min-height:0;height:42px;flex:1;font-size:15px">
+        <button class="btn primary" id="frAdd" style="flex:none">+</button></div></div>
+    <div class="fr-list" id="frList"></div>`);
+  $("#frAdd").onclick=()=>{
+    const c=($("#frCode").value||"").trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(c.length!==4||c===myCode())return;
+    const l=friendList(); if(!l.some(x=>x.code===c)){ l.push({code:c,name:($("#frName").value||"").trim()}); friendList(l); }
+    $("#frCode").value=""; $("#frName").value=""; presDraw(); presProbe();
+  };
+  presDraw();
+}
 /* ---- экран связи ---- */
 function netWatch(){                                  /* не соединилось — не молчим */
   clearTimeout(NET&&NET.wd);
@@ -8150,6 +8279,7 @@ function netMenu(msg){
     <p class="muted2">${tr("Оба бежите один и тот же уровень каждый на своём телефоне и видите призрак и счёт друг друга вживую. Соединение прямое, между браузерами — сервера нет.")}</p>
     ${msg?`<div class="q-pill" style="margin:0 auto 10px;display:inline-block">${msg}</div>`:""}
     <div class="mode-cards">
+      <button class="mode-card duo" id="frBtn" style="grid-column:1/-1"><div class="mc-emoji">👥</div><b>${tr("Друзья")}</b><span>${tr("видно, кто сейчас в сети — зовёшь в один клик")}</span></button>
       <button class="mode-card duo" id="roomNew" style="grid-column:1/-1"><div class="mc-emoji">🔢</div><b>${tr("Создать комнату")}</b><span>${tr("получишь код из 4 символов — просто продиктуй его")}</span></button>
       <button class="mode-card duo" id="roomJoinB" style="grid-column:1/-1"><div class="mc-emoji">🎯</div><b>${tr("Ввести код")}</b><span>${tr("тебе назвали код комнаты")}</span></button>
       <button class="mode-card duo" id="netNew" style="grid-column:1/-1"><div class="mc-emoji">📡</div><b>${tr("Вручную, без интернета")}</b><span>${tr("обмен двумя длинными кодами — работает в одной сети Wi-Fi")}</span></button>
@@ -8163,6 +8293,7 @@ function netMenu(msg){
   $("#netStun").onchange=e=>netStun(e.target.checked);
   $("#netDiagB").onclick=netDiagUI;
   $("#netHelp").onclick=duelHelp;
+  const fb=$("#frBtn"); if(fb)fb.onclick=friendsUI;
   const ra=roomAvailable();
   const rn=$("#roomNew"), rj=$("#roomJoinB");
   if(!ra){ [rn,rj].forEach(b=>{ if(b){ b.disabled=true; b.style.opacity=".45";
