@@ -1,6 +1,6 @@
 /* Service worker: приложение работает офлайн после первой загрузки. */
-const CACHE="jd-msqb0bms";
-const ASSETS=["./","index.html","manifest.json","icon-192.png","icon-512.png","apple-touch-icon.png","basics.js","behav.js","bugs.js","cards-extra.js","cards.js","explainers.js","hooks.js","i18n-en.js","more-fp.js","more-term.js","more.js","notes.js","ord.js","pics.js","principles.js","quiz.js","take.js","term-extra.js","terms.js","tier.js","tricky.js","viz-zero.js","zero.js"];
+const CACHE="jd-msqbzdh1";
+const ASSETS=["./","index.html","manifest.json","icon-192.png","icon-512.png","apple-touch-icon.png","basics.js","behav.js","bugs.js","cards-extra.js","cards.js","explainers.js","hooks.js","i18n-en.js","more-fp.js","more-term.js","more.js","notes.js","ord.js","pics.js","principles.js","quiz.js","take.js","term-extra.js","terms.js","tier.js","tricky.js","viz-zero.js","zdrill.js","zero.js"];
 self.addEventListener("install",e=>{
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS.map(u=>new Request(u,{cache:"reload"})))).catch(()=>{}));

@@ -441,6 +441,14 @@
   .hlp-t td:first-child{white-space:nowrap;color:var(--fg);font-weight:600}
   .hlp-warn{border:1px solid rgba(255,207,110,.35);background:rgba(255,207,110,.06);
     border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--mut);margin-top:10px}
+  .zt-go{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .zt-go button{border:1px solid var(--line);background:var(--panel);color:var(--txt);font:600 12.5px var(--sans);
+    padding:8px 14px;border-radius:10px;cursor:pointer;transition:.14s var(--ease)}
+  .zt-go button:hover{border-color:var(--acc);color:var(--acc)}
+  .zq-wrap{max-width:640px;margin:0 auto;text-align:center}
+  .zq-n{font:700 12px var(--mono);color:var(--mut);letter-spacing:1px}
+  .zq-q{font:700 22px/1.45 var(--sans);margin:16px 0 22px}
+  .zq-t{font:900 30px var(--mono);color:var(--acc);margin-bottom:6px}
   .zt{border:1px solid rgba(169,139,255,.32);border-radius:16px;background:linear-gradient(180deg,rgba(169,139,255,.07),transparent);
     padding:16px 18px;margin:8px 0 22px}
   .zt-h{display:flex;align-items:center;gap:9px;font:800 12px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:#c9b0ff;margin-bottom:10px}
@@ -1268,6 +1276,7 @@
 <script src="behav.js"></script>
 <script src="take.js"></script>
 <script src="viz-zero.js"></script>
+<script src="zdrill.js"></script>
 <script src="tricky.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
@@ -1954,7 +1963,8 @@ function setMode(m){mode=m;
   $("#viewBeh").hidden=(m!=="beh");
   $("#viewPath").hidden=(m!=="path");
   $("#viewViz").hidden=(m!=="viz");
-  stopFp(); clearInterval(gTimer); stopArcade(); if(behTimer){clearInterval(behTimer);behTimer=null;} if(m!=="viz")v3Stop(); if(m!=="game")netClose();
+  stopFp(); clearInterval(gTimer); stopArcade(); if(behTimer){clearInterval(behTimer);behTimer=null;}
+  if(ZQ){clearInterval(ZQ.tm); if(m!=="zero")ZQ=null;} if(m!=="viz")v3Stop(); if(m!=="game")netClose();
   if(m==="drill")rebuild();
   else if(m==="fp"){buildFpNav($("#fpSearch").value);renderFingers();}
   else if(m==="terms")buildTerms($("#termSearch").value);
@@ -2238,14 +2248,65 @@ function zeroTake(gname){
     <div class="zt-cols">${col("plus","Плюсы",t.plus)}${col("minus","Чем платишь",t.minus)}`
     +`${col("take","Когда брать",t.take)}${col("skip","Когда НЕ брать",t.skip)}</div>
     <div class="zt-ask"><h5>${tr("Чем будут добивать")}</h5>`
-    +t.ask.map(x=>`<div>${esc(tr(x))}</div>`).join("")+`</div></div>`;
+    +t.ask.map(x=>`<div>${esc(tr(x))}</div>`).join("")+`</div>
+    <div class="zt-go">`
+    +(zdrillCount(gname)?`<button data-zd="${esc(gname)}">🎴 ${tr("Карточки по теме")} (${zdrillCount(gname)})</button>`:"")
+    +`<button data-zq="${esc(gname)}">🎤 ${tr("Прогнать вопросы вслух")}</button></div></div>`;
+}
+/* сколько карточек дрила относится к теме */
+function zdrillCards(g){ const m=(window.ZDRILL||{})[g]; if(!m)return [];
+  const all=CARDS.filter(c=>c.t===m[0]&&!isHidden(c.id));
+  if(!m[1])return all;
+  const re=new RegExp(m[1],"i");
+  const hit=all.filter(c=>re.test((c.q||"")+" "+(c.a||"")+" "+(c.s||"")));
+  return hit.length>=4?hit:all;
+}
+function zdrillCount(g){ return zdrillCards(g).length; }
+function zeroToDrill(g){ const cs=zdrillCards(g); if(!cs.length)return;
+  drillList=cs.map(c=>c.id); drillTokens.clear();
+  drillWeak=false; drillFav=false; drillTricky=false; drillLeech=false;
+  cramEl.checked=true; feynEl.checked=false; rmExpand=false;
+  setMode("drill");
+}
+/* прогон добивающих вопросов вслух, по одному, с таймером */
+let ZQ=null;
+function zeroAsk(g){ const t=(window.ZTAKE||{})[g]; if(!t||!t.ask.length)return;
+  ZQ={g,list:t.ask.slice(),i:0,left:60,tm:null}; zeroAskDraw();
+}
+function zeroAskDraw(){
+  const wrap=$("#zeroList"); if(!wrap||!ZQ)return;
+  clearInterval(ZQ.tm);
+  if(ZQ.i>=ZQ.list.length){
+    wrap.innerHTML=`<div class="zero-done"><div style="font-size:30px">🎤</div>
+      <b>${tr("Прошёл все вопросы темы")} «${esc(tr(ZQ.g))}»</b>
+      <p class="muted2" style="margin:8px 0 14px">${tr("Если на каком-то запнулся — вернись к теме и перечитай тот шаг.")}</p>
+      <div class="du-acts"><button class="btn primary" id="zqAgain" style="flex:none">↻ ${tr("Ещё раз")}</button>
+      <button class="btn" id="zqBack" style="flex:none">${tr("← К лестнице")}</button></div></div>`;
+    $("#zqAgain").onclick=()=>{ ZQ.i=0; zeroAskDraw(); };
+    $("#zqBack").onclick=()=>{ ZQ=null; buildZero(); };
+    return;
+  }
+  ZQ.left=60;
+  wrap.innerHTML=`<div class="zero-done zq-wrap">
+    <div class="zq-n">${esc(tr(ZQ.g))} · ${tr("вопрос")} ${ZQ.i+1}/${ZQ.list.length}</div>
+    <div class="zq-t" id="zqT">1:00</div>
+    <div class="zq-q">${esc(tr(ZQ.list[ZQ.i]))}</div>
+    <p class="muted2">${tr("Ответь вслух, как на собесе. Потом переходи дальше.")}</p>
+    <div class="du-acts"><button class="btn primary" id="zqNext" style="flex:none">${tr("Ответил →")}</button>
+      <button class="btn" id="zqStop" style="flex:none">${tr("← К лестнице")}</button></div></div>`;
+  $("#zqNext").onclick=()=>{ ZQ.i++; zeroAskDraw(); };
+  $("#zqStop").onclick=()=>{ clearInterval(ZQ.tm); ZQ=null; buildZero(); };
+  ZQ.tm=setInterval(()=>{ ZQ.left--; const el=$("#zqT");
+    if(el)el.textContent=Math.floor(ZQ.left/60)+":"+String(Math.max(0,ZQ.left)%60).padStart(2,"0");
+    if(ZQ.left<=0){ clearInterval(ZQ.tm); if(el)el.textContent=tr("время"); } },1000);
 }
 function buildZero(){
   const wrap=$("#zeroList"); if(!wrap)return;
   if(!ZERO.length){ wrap.innerHTML='<div class="muted">раздел не загружен</div>'; return; }
   const gs=zeroGroups(); const key={}; gs.forEach(gr=>gr.ids.forEach(i=>key[i]=gr.key));
-  const TK=(window.ZTAKE||{}), lastOf={};
-  gs.forEach(gr=>{ if(TK[gr.g])lastOf[gr.ids[gr.ids.length-1]]=gr.g; });
+  const TK=(window.ZTAKE||{}), lastOf={}, endOf={};
+  gs.forEach(gr=>{ const last=gr.ids[gr.ids.length-1];
+    if(TK[gr.g])lastOf[last]=gr.g; else endOf[last]=gr.g; });
   let html="", g=null, n=0;
   ZERO.forEach((z,i)=>{
     if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
@@ -2261,12 +2322,17 @@ function buildZero(){
         <div class="zero-an">${esc(tr(z.an))}</div>
       </div>${viz?`<div class="zv">${viz}</div>`:""}</div>`;
     if(lastOf[i])html+=zeroTake(lastOf[i]);          /* разбор — сразу после последнего шага темы */
+    else if(endOf[i]&&zdrillCount(endOf[i]))         /* у темы без разбора — хотя бы карточки */
+      html+=`<div class="zt-go" style="border-top:0;margin:2px 0 18px 44px">`
+        +`<button data-zd="${esc(endOf[i])}">🎴 ${tr("Карточки по теме")} (${zdrillCount(endOf[i])})</button></div>`;
   });
   html+=`<div class="zero-done"><div style="font-size:30px">🎓</div>
     <b>${tr("Дошёл до конца — дальше «Для чайника» и «На пальцах»")}</b>
     <p class="muted2" style="margin:8px 0 14px">${tr("Теперь сборщик мусора, потоки и кэш будут не набором правил, а следствиями того, что ты уже понял.")}</p>
     <button class="btn primary" id="zeroNext" style="flex:none">🍼 ${tr("Для чайника")} →</button></div>`;
   wrap.innerHTML=html;
+  wrap.querySelectorAll("[data-zd]").forEach(b=>b.onclick=()=>zeroToDrill(b.dataset.zd));
+  wrap.querySelectorAll("[data-zq]").forEach(b=>b.onclick=()=>zeroAsk(b.dataset.zq));
   wrap.querySelectorAll(".zero-n").forEach(b=>b.onclick=()=>{
     const st=b.closest(".zero-step"), i=+st.dataset.i;
     if(ZDONE.has(i)){ ZDONE.delete(i); st.classList.remove("done"); b.textContent=[...st.parentNode.children].filter(x=>x.classList.contains("zero-step")).indexOf(st)+1; }
