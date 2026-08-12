@@ -510,10 +510,10 @@
   .beh-ta:focus{border-color:var(--acc)}
   .beh-tm{display:flex;align-items:center;gap:10px;margin-top:9px;font-size:12px;color:var(--mut)}
   .beh-tm b{font:800 15px var(--mono);color:var(--fg)}
-  #viewZero .terms-wrap{max-width:1240px}       /* лестнице нужна ширина: колонка маршрута + текст + схема */
+  #viewZero .terms-wrap{max-width:1180px}       /* маршрут + текст + схема */
   .zero-step.has-viz{align-items:flex-start}
-  .zv{flex:0 0 262px;max-width:262px;box-sizing:border-box;align-self:flex-start;
-    border:1px solid var(--line);border-radius:14px;background:var(--panel-2);padding:12px 13px;overflow:hidden}
+  .zv{flex:0 0 236px;max-width:236px;box-sizing:border-box;align-self:flex-start;
+    border:1px solid var(--line);border-radius:14px;background:var(--panel-2);padding:11px 12px;overflow:hidden}
   .zv .fp-row{margin:5px 0}
   .zv .fp-box{font-size:11.5px;padding:5px 8px}
   .zv .fp-tag{font-size:9.5px}
@@ -521,8 +521,13 @@
   .zv-off{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut);cursor:pointer;user-select:none}
   .zv-off input{accent-color:var(--acc);cursor:pointer}
   @media(prefers-reduced-motion:reduce){ .zv *{animation:none!important} }
-  @media(max-width:1340px){                     /* трём колонкам не хватает места — схема уходит под текст */
+  @media(max-width:1240px){                     /* ужимаем колонки, но схему держим справа */
+    .zero-nav{flex:0 0 196px}
+    .zv{flex:0 0 208px;max-width:208px}
+  }
+  @media(max-width:1060px){                     /* места правда нет — схема уходит под текст */
     .zero-step.has-viz{flex-wrap:wrap}
+    .zero-step.has-viz .zero-b{min-width:calc(100% - 44px)}   /* иначе текст схлопнется, а переноса не будет */
     .zv{flex:1 1 100%;max-width:520px;margin-top:10px;margin-left:44px}
   }
   @media(max-width:620px){ .zv{margin-left:0;max-width:100%} }
@@ -1206,7 +1211,7 @@
   <div class="terms-wrap">
     <div class="bas-intro">🌱 <b>С нуля.</b> <span id="zeroIntro">Как код вообще превращается в работу — от транзистора до твоей программы. Читается сверху вниз, каждый шаг опирается на предыдущий.</span></div>
     <div class="zero-top"><div class="zero-bar"><span id="zeroBar"></span></div><b id="zeroPct">0%</b>
-      <label class="zv-off"><input type="checkbox" id="zeroAnim" checked> ${tr("схемы")}</label>
+      <label class="zv-off"><input type="checkbox" id="zeroAnim" checked> <span id="zeroAnimLbl">схемы</span></label>
       <button class="btn" id="zeroReset" style="flex:none;padding:6px 12px;font-size:12px">↻ сбросить</button></div>
     <div class="zero-wrap">
       <aside class="zero-nav" id="zeroNav"><h4>Маршрут</h4></aside>
@@ -2267,6 +2272,7 @@ function buildZero(){
     zeroSave(); zeroBarUI(); zeroNavUI(); });
   const nx=$("#zeroNext"); if(nx)nx.onclick=()=>setMode("basics");
   const rs=$("#zeroReset"); if(rs)rs.onclick=()=>{ ZDONE.clear(); zeroSave(); buildZero(); };
+  const anl=$("#zeroAnimLbl"); if(anl)anl.textContent=tr("схемы");
   const an=$("#zeroAnim");
   if(an){ an.checked=zeroAnimOn(); document.body.classList.toggle("no-anim",!an.checked);
     an.onchange=()=>{ zeroAnimOn(an.checked); document.body.classList.toggle("no-anim",!an.checked); }; }
