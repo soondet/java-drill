@@ -7907,6 +7907,8 @@ let NET=null;
 function netStun(v){ if(v!=null){try{localStorage.setItem("jdNetStun",v?"1":"0")}catch(e){}}
   return localStorage.getItem("jdNetStun")==="1"; }
 function netCfg(){ return netStun()?{iceServers:[{urls:"stun:stun.l.google.com:19302"}]}:{iceServers:[]}; }
+/* комната и приглашение и так идут через интернет-брокер — STUN там всегда, иначе разные сети не сойдутся */
+function netCfgRoom(){ return {iceServers:[{urls:"stun:stun.l.google.com:19302"}]}; }
 function netB64(u8){ let r=""; for(let i=0;i<u8.length;i++)r+=String.fromCharCode(u8[i]);
   return btoa(r).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
 function netUnb64(x){ x=x.replace(/-/g,"+").replace(/_/g,"/");
@@ -8082,7 +8084,7 @@ function roomWire(pc,ws,peerId){                          /* обмен канд
 async function roomHost(){
   netClose();
   const code=roomRnd(4), me="jd"+code+"h", peer="jd"+code+"g";
-  const pc=new RTCPeerConnection(netCfg());
+  const pc=new RTCPeerConnection(netCfgRoom());
   NET={pc,ch:null,role:"host",up:false,peer:null,rtt:0,seed:(Math.random()*4294967296)>>>0,name2:null,code};
   pc.ondatachannel=e=>{ if(NET){ NET.ch=e.channel; netWire(e.channel); } };  /* канал создаёт тот, кто шлёт offer */
   netWatchIce();
@@ -8104,7 +8106,7 @@ async function roomJoin(code){
   code=String(code||"").trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
   if(code.length!==4)throw new Error("код из 4 символов");
   const me="jd"+code+"g", peer="jd"+code+"h";
-  const pc=new RTCPeerConnection(netCfg());
+  const pc=new RTCPeerConnection(netCfgRoom());
   const ch=pc.createDataChannel("jd",{ordered:false,maxRetransmits:0});  /* без него offer пустой и ICE не стартует */
   NET={pc,ch,role:"guest",up:false,peer:null,rtt:0,seed:0,name2:null,code};
   netWire(ch); netWatchIce();
@@ -8271,10 +8273,11 @@ function netWatchIce(){                                       /* состоян�
   if(!NET||!NET.pc)return;
   NET.pc.oniceconnectionstatechange=()=>{ netUI();
     if(NET&&NET.pc&&NET.pc.iceConnectionState==="failed"){
+      const done=netStun()||!!NET.code;                     /* в комнате STUN и так включён — предлагать нечего */
       const el=$("#netSt"); if(el)el.innerHTML="❌ "+tr("маршрут не найден")+" — <a href=\'#\' id=\'netFall2\' style=\'color:inherit\'>"
-        +(netStun()?tr("играть асинхронной дуэлью"):tr("попробовать через интернет"))+"</a>";
+        +(done?tr("играть асинхронной дуэлью"):tr("попробовать через интернет"))+"</a>";
       const a=$("#netFall2"); if(a)a.onclick=e=>{ e.preventDefault();
-        if(netStun()){ netClose(); duelMenu("⚡ "+tr("Связь не поднялась — сыграйте кодом")); }
+        if(done){ netClose(); duelMenu("⚡ "+tr("Связь не поднялась — сыграйте кодом")); }
         else { netStun(true); netMenu("🌐 "+tr("Включил интернет-режим — попробуй ещё раз")); } }; } };
 }
 function netMenu(msg){
