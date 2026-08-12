@@ -2227,10 +2227,24 @@ function zeroSpy(){                                        /* подсвечив
     if(st.getBoundingClientRect().top<170)si=st.dataset.i; });
   document.querySelectorAll("#zeroNav .zn-s").forEach(b=>b.classList.toggle("on",b.dataset.s===si));
 }
+function zeroTake(gname){
+  const t=(window.ZTAKE||{})[gname]; if(!t)return "";
+  const col=(cls,title,arr)=>`<div class="zt-b ${cls}"><h5>${tr(title)}</h5><ul>`
+    +arr.map(x=>`<li>${esc(tr(x))}</li>`).join("")+`</ul></div>`;
+  return `<div class="zt">
+    <div class="zt-h">⚖ ${tr("Разбор для собеса")} · ${esc(tr(gname))}</div>
+    <div class="zt-why"><b>${tr("Зачем")}:</b> ${esc(tr(t.why))}</div>
+    <div class="zt-cols">${col("plus","Плюсы",t.plus)}${col("minus","Чем платишь",t.minus)}`
+    +`${col("take","Когда брать",t.take)}${col("skip","Когда НЕ брать",t.skip)}</div>
+    <div class="zt-ask"><h5>${tr("Чем будут добивать")}</h5>`
+    +t.ask.map(x=>`<div>${esc(tr(x))}</div>`).join("")+`</div></div>`;
+}
 function buildZero(){
   const wrap=$("#zeroList"); if(!wrap)return;
   if(!ZERO.length){ wrap.innerHTML='<div class="muted">раздел не загружен</div>'; return; }
   const gs=zeroGroups(); const key={}; gs.forEach(gr=>gr.ids.forEach(i=>key[i]=gr.key));
+  const TK=(window.ZTAKE||{}), lastOf={};
+  gs.forEach(gr=>{ if(TK[gr.g])lastOf[gr.ids[gr.ids.length-1]]=gr.g; });
   let html="", g=null, n=0;
   ZERO.forEach((z,i)=>{
     if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
@@ -2245,20 +2259,7 @@ function buildZero(){
         ${z.c?`<div class="zero-code">${esc(z.c)}</div>`:""}
         <div class="zero-an">${esc(tr(z.an))}</div>
       </div>${viz?`<div class="zv">${viz}</div>`:""}</div>`;
-  });
-  /* разбор темы в форме, в которой добивают на собесе */
-  const TK=(window.ZTAKE||{});
-  gs.forEach(gr=>{ const t=TK[gr.g]; if(!t)return;
-    const last=gr.ids[gr.ids.length-1];
-    const col=(cls,title,arr)=>`<div class="zt-b ${cls}"><h5>${tr(title)}</h5><ul>${arr.map(x=>`<li>${esc(tr(x))}</li>`).join("")}</ul></div>`;
-    const block=`<div class="zt" data-after="${last}">
-      <div class="zt-h">⚖ ${tr("Разбор для собеса")} · ${esc(tr(gr.g))}</div>
-      <div class="zt-why"><b>${tr("Зачем")}:</b> ${esc(tr(t.why))}</div>
-      <div class="zt-cols">${col("plus","Плюсы",t.plus)}${col("minus","Чем платишь",t.minus)}
-        ${col("take","Когда брать",t.take)}${col("skip","Когда НЕ брать",t.skip)}</div>
-      <div class="zt-ask"><h5>${tr("Чем будут добивать")}</h5>${t.ask.map(x=>`<div>${esc(tr(x))}</div>`).join("")}</div>
-    </div>`;
-    html=html.replace(new RegExp("(<div class=\"zero-step[^>]*id=\"zs"+last+"\"[\\s\\S]*?</div></div>)"),"$1"+block);
+    if(lastOf[i])html+=zeroTake(lastOf[i]);          /* разбор — сразу после последнего шага темы */
   });
   html+=`<div class="zero-done"><div style="font-size:30px">🎓</div>
     <b>${tr("Дошёл до конца — дальше «Для чайника» и «На пальцах»")}</b>
