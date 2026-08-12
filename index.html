@@ -7938,6 +7938,93 @@ function netDiagUI(){
       <p class="du-hint">${tr("Сравните с другом три строки: внешний адрес (разный — вы в разных сетях, нужен интернет-режим), отпечаток файла (разный — у вас разные сборки) и длину кода (разная — мессенджер обрезал).")}</p>`;
   });
 }
+/* ---- комната по коду: рукопожатие через публичный брокер, данные всё равно напрямую ---- */
+const ROOM_WS="wss://0.peerjs.com:443/peerjs?key=peerjs&version=1.5.4";
+function roomRnd(n){ let s=""; const A="ABCDEFGHJKMNPQRSTUVWXYZ23456789";   /* без похожих символов */
+  for(let i=0;i<n;i++)s+=A[Math.floor(Math.random()*A.length)]; return s; }
+function roomAvailable(){ return location.protocol==="https:"||location.hostname==="localhost"; }
+function roomSock(id,onMsg,onOpen,onErr){
+  const ws=new WebSocket(ROOM_WS+"&id="+id+"&token="+roomRnd(8));
+  ws.onmessage=e=>{ let m; try{m=JSON.parse(e.data)}catch(x){return}
+    if(m.type==="OPEN"){ onOpen&&onOpen(); return; }
+    if(m.type==="ERROR"){ onErr&&onErr(m.payload&&m.payload.msg||"брокер отказал"); return; }
+    onMsg&&onMsg(m); };
+  ws.onerror=()=>onErr&&onErr("нет связи с брокером");
+  ws.onclose=()=>{ if(NET)NET.hb&&clearInterval(NET.hb); };
+  return ws;
+}
+function roomSend(ws,type,dst,payload){ try{ ws.send(JSON.stringify({type,dst,payload})); }catch(e){} }
+function roomWire(pc,ws,peerId){                          /* обмен кандидатами в обе стороны */
+  const pend=[];
+  pc.onicecandidate=e=>{ if(e.candidate)roomSend(ws,"CANDIDATE",peerId,{candidate:e.candidate,type:"data",connectionId:"jd"}); };
+  return {
+    addPending:async()=>{ for(const c of pend.splice(0)){ try{await pc.addIceCandidate(c)}catch(e){} } },
+    onCandidate:async c=>{ if(pc.remoteDescription){ try{await pc.addIceCandidate(c)}catch(e){} } else pend.push(c); }
+  };
+}
+async function roomHost(){
+  netClose();
+  const code=roomRnd(4), me="jd"+code+"h", peer="jd"+code+"g";
+  const pc=new RTCPeerConnection(netCfg());
+  const ch=pc.createDataChannel("jd",{ordered:false,maxRetransmits:0});
+  NET={pc,ch,role:"host",up:false,peer:null,rtt:0,seed:(Math.random()*4294967296)>>>0,name2:null,code};
+  netWire(ch); netWatchIce();
+  const ws=roomSock(me,async m=>{
+    if(m.type==="OFFER"&&m.payload&&m.payload.sdp){
+      await pc.setRemoteDescription(m.payload.sdp);
+      await helper.addPending();
+      const a=await pc.createAnswer(); await pc.setLocalDescription(a);
+      roomSend(ws,"ANSWER",peer,{sdp:a,type:"data",connectionId:"jd"});
+    } else if(m.type==="CANDIDATE"&&m.payload&&m.payload.candidate){ helper.onCandidate(m.payload.candidate); }
+  },()=>{ NET.hb=setInterval(()=>{try{ws.send(JSON.stringify({type:"HEARTBEAT"}))}catch(e){}},18000); netUI(); },
+     err=>{ const el=$("#netSt"); if(el)el.innerHTML="❌ "+tr("брокер недоступен")+": "+esc(err); });
+  const helper=roomWire(pc,ws,peer);
+  NET.ws=ws;
+  return code;
+}
+async function roomJoin(code){
+  netClose();
+  code=String(code||"").trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(code.length!==4)throw new Error("код из 4 символов");
+  const me="jd"+code+"g", peer="jd"+code+"h";
+  const pc=new RTCPeerConnection(netCfg());
+  NET={pc,ch:null,role:"guest",up:false,peer:null,rtt:0,seed:0,name2:null,code};
+  pc.ondatachannel=e=>{ if(NET){ NET.ch=e.channel; netWire(e.channel); } };
+  netWatchIce();
+  let helper;
+  const ws=roomSock(me,async m=>{
+    if(m.type==="ANSWER"&&m.payload&&m.payload.sdp){ await pc.setRemoteDescription(m.payload.sdp); await helper.addPending(); }
+    else if(m.type==="CANDIDATE"&&m.payload&&m.payload.candidate){ helper.onCandidate(m.payload.candidate); }
+  },async()=>{
+    NET.hb=setInterval(()=>{try{ws.send(JSON.stringify({type:"HEARTBEAT"}))}catch(e){}},18000);
+    const o=await pc.createOffer(); await pc.setLocalDescription(o);
+    roomSend(ws,"OFFER",peer,{sdp:o,type:"data",connectionId:"jd",reliable:false,serialization:"binary",label:"jd",browser:"chrome"});
+    netUI();
+  },err=>{ const el=$("#netSt"); if(el)el.innerHTML="❌ "+tr("брокер недоступен")+": "+esc(err); });
+  helper=roomWire(pc,ws,peer);
+  NET.ws=ws;
+}
+function roomHostUI(){
+  netBox(tr("Комната по коду"),`<p class="muted2">${tr("Поднимаю комнату…")}</p>`);
+  roomHost().then(code=>{
+    netBox(tr("Комната по коду"),`
+      <p class="muted2">${tr("Продиктуй другу этот код — больше ничего пересылать не надо.")}</p>
+      <div style="font:900 44px/1.1 var(--mono);letter-spacing:8px;color:var(--acc);margin:14px 0">${esc(code)}</div>
+      <p class="du-hint">${tr("Он открывает тот же сайт → Игра → 🤝 Дуэль → ⚡ Живая гонка → «Ввести код».")}</p>`);
+  }).catch(e=>netMenu("⚠ "+tr("Не удалось поднять комнату")));
+}
+function roomJoinUI(){
+  netBox(tr("Ввести код"),`
+    <div class="net-step"><h4><span class="net-num">1</span>${tr("Код из четырёх символов")}</h4>
+      <input class="du-code" id="roomCode" maxlength="4" placeholder="AB12"
+        style="min-height:0;height:52px;font:900 30px/1 var(--mono);letter-spacing:8px;text-align:center;text-transform:uppercase">
+      <div class="du-acts"><button class="btn primary" id="roomGo" style="flex:none">${tr("Подключиться")}</button></div>
+      <p class="du-hint" id="roomErr"></p></div>`);
+  const go=()=>roomJoin($("#roomCode").value).catch(e=>{ const el=$("#roomErr"); if(el)el.innerHTML="⚠ "+esc(e.message||"не вышло"); });
+  $("#roomGo").onclick=go;
+  $("#roomCode").onkeydown=e=>{ if(e.key==="Enter")go(); };
+  $("#roomCode").focus();
+}
 /* ---- экран связи ---- */
 function netWatch(){                                  /* не соединилось — не молчим */
   clearTimeout(NET&&NET.wd);
@@ -7981,8 +8068,10 @@ function netMenu(msg){
     <p class="muted2">${tr("Оба бежите один и тот же уровень каждый на своём телефоне и видите призрак и счёт друг друга вживую. Соединение прямое, между браузерами — сервера нет.")}</p>
     ${msg?`<div class="q-pill" style="margin:0 auto 10px;display:inline-block">${msg}</div>`:""}
     <div class="mode-cards">
-      <button class="mode-card duo" id="netNew" style="grid-column:1/-1"><div class="mc-emoji">📡</div><b>${tr("Создать комнату")}</b><span>${tr("ты отправляешь код первым")}</span></button>
-      <button class="mode-card duo" id="netJoinB" style="grid-column:1/-1"><div class="mc-emoji">🔌</div><b>${tr("Подключиться")}</b><span>${tr("тебе прислали код")}</span></button>
+      <button class="mode-card duo" id="roomNew" style="grid-column:1/-1"><div class="mc-emoji">🔢</div><b>${tr("Создать комнату")}</b><span>${tr("получишь код из 4 символов — просто продиктуй его")}</span></button>
+      <button class="mode-card duo" id="roomJoinB" style="grid-column:1/-1"><div class="mc-emoji">🎯</div><b>${tr("Ввести код")}</b><span>${tr("тебе назвали код комнаты")}</span></button>
+      <button class="mode-card duo" id="netNew" style="grid-column:1/-1"><div class="mc-emoji">📡</div><b>${tr("Вручную, без интернета")}</b><span>${tr("обмен двумя длинными кодами — работает в одной сети Wi-Fi")}</span></button>
+      <button class="mode-card duo" id="netJoinB" style="grid-column:1/-1"><div class="mc-emoji">🔌</div><b>${tr("Принять длинный код")}</b><span>${tr("для ручного способа")}</span></button>
     </div>
     <label class="net-sw"><input type="checkbox" id="netStun" ${netStun()?"checked":""}>
       ${tr("работать через интернет (иначе только одна сеть Wi-Fi)")}</label>
@@ -7992,6 +8081,11 @@ function netMenu(msg){
   $("#netStun").onchange=e=>netStun(e.target.checked);
   $("#netDiagB").onclick=netDiagUI;
   $("#netHelp").onclick=duelHelp;
+  const ra=roomAvailable();
+  const rn=$("#roomNew"), rj=$("#roomJoinB");
+  if(!ra){ [rn,rj].forEach(b=>{ if(b){ b.disabled=true; b.style.opacity=".45";
+      b.querySelector("span").textContent=tr("нужен сайт по https — из файла не работает"); } }); }
+  else { rn.onclick=roomHostUI; rj.onclick=roomJoinUI; }
   $("#netNew").onclick=netHostUI;
   $("#netJoinB").onclick=netGuestUI;
   $("#netBack").onclick=()=>duelMenu();
