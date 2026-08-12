@@ -441,6 +441,21 @@
   .hlp-t td:first-child{white-space:nowrap;color:var(--fg);font-weight:600}
   .hlp-warn{border:1px solid rgba(255,207,110,.35);background:rgba(255,207,110,.06);
     border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--mut);margin-top:10px}
+  .zt{border:1px solid rgba(169,139,255,.32);border-radius:16px;background:linear-gradient(180deg,rgba(169,139,255,.07),transparent);
+    padding:16px 18px;margin:8px 0 22px}
+  .zt-h{display:flex;align-items:center;gap:9px;font:800 12px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:#c9b0ff;margin-bottom:10px}
+  .zt-why{font-size:14px;line-height:1.6;color:var(--txt);margin-bottom:14px}
+  .zt-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .zt-b h5{margin:0 0 6px;font:700 11px var(--mono);letter-spacing:.8px;text-transform:uppercase;color:var(--mut)}
+  .zt-b ul{margin:0;padding-left:17px}
+  .zt-b li{font-size:13px;line-height:1.55;margin-bottom:4px;color:var(--txt)}
+  .zt-b.plus h5{color:var(--good)} .zt-b.minus h5{color:var(--bad)}
+  .zt-b.take h5{color:var(--acc)} .zt-b.skip h5{color:var(--warn)}
+  .zt-ask{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+  .zt-ask h5{margin:0 0 7px;font:700 11px var(--mono);letter-spacing:.8px;text-transform:uppercase;color:#ffcf6e}
+  .zt-ask div{font-size:13px;line-height:1.55;color:var(--txt);padding:4px 0 4px 16px;position:relative}
+  .zt-ask div::before{content:"?";position:absolute;left:0;color:#ffcf6e;font:800 12px var(--mono)}
+  @media(max-width:620px){ .zt-cols{grid-template-columns:1fr} }
   .zero-wrap{display:flex;gap:26px;align-items:flex-start}
   .zero-nav{flex:0 0 232px;position:sticky;top:72px;max-height:calc(100vh - 96px);overflow:auto;
     border:1px solid var(--line);border-radius:16px;background:var(--panel-2);padding:12px}
@@ -1229,6 +1244,7 @@
 <script src="basics.js"></script>
 <script src="zero.js"></script>
 <script src="behav.js"></script>
+<script src="take.js"></script>
 <script src="tricky.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
@@ -1296,6 +1312,13 @@ function Ta(kind,id,field,ruArr){ const e=I18N[kind]&&I18N[kind][id]; if(LANG===
 const CLNAME={"Архитектура":"Architecture"};
 function clName(t){ return LANG==="en"?(CLNAME[t]||t):t; }
 const UITR={
+  "Разбор для собеса":"Interview breakdown",
+  "Зачем":"Why",
+  "Плюсы":"Pros",
+  "Чем платишь":"What it costs",
+  "Когда брать":"When to take it",
+  "Когда НЕ брать":"When not to",
+  "Чем будут добивать":"Follow-up questions",
   "🎤 Поведенческий":"🎤 Behavioural",
   "Техническую часть ты закроешь карточками. Здесь то, что спросят первым и к чему обычно не готовятся. Пиши свои заготовки — они сохраняются.":"Cards cover the technical part. This is what gets asked first and what people rarely prepare. Write your own answers — they are saved.",
   "что на самом деле проверяют":"what they are really checking",
@@ -2184,6 +2207,20 @@ function buildZero(){
         ${z.c?`<div class="zero-code">${esc(z.c)}</div>`:""}
         <div class="zero-an">${esc(tr(z.an))}</div>
       </div></div>`;
+  });
+  /* разбор темы в форме, в которой добивают на собесе */
+  const TK=(window.ZTAKE||{});
+  gs.forEach(gr=>{ const t=TK[gr.g]; if(!t)return;
+    const last=gr.ids[gr.ids.length-1];
+    const col=(cls,title,arr)=>`<div class="zt-b ${cls}"><h5>${tr(title)}</h5><ul>${arr.map(x=>`<li>${esc(tr(x))}</li>`).join("")}</ul></div>`;
+    const block=`<div class="zt" data-after="${last}">
+      <div class="zt-h">⚖ ${tr("Разбор для собеса")} · ${esc(tr(gr.g))}</div>
+      <div class="zt-why"><b>${tr("Зачем")}:</b> ${esc(tr(t.why))}</div>
+      <div class="zt-cols">${col("plus","Плюсы",t.plus)}${col("minus","Чем платишь",t.minus)}
+        ${col("take","Когда брать",t.take)}${col("skip","Когда НЕ брать",t.skip)}</div>
+      <div class="zt-ask"><h5>${tr("Чем будут добивать")}</h5>${t.ask.map(x=>`<div>${esc(tr(x))}</div>`).join("")}</div>
+    </div>`;
+    html=html.replace(new RegExp("(<div class=\"zero-step[^>]*id=\"zs"+last+"\"[\\s\\S]*?</div></div>)"),"$1"+block);
   });
   html+=`<div class="zero-done"><div style="font-size:30px">🎓</div>
     <b>${tr("Дошёл до конца — дальше «Для чайника» и «На пальцах»")}</b>
