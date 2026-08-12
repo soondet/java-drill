@@ -8083,9 +8083,9 @@ async function roomHost(){
   netClose();
   const code=roomRnd(4), me="jd"+code+"h", peer="jd"+code+"g";
   const pc=new RTCPeerConnection(netCfg());
-  const ch=pc.createDataChannel("jd",{ordered:false,maxRetransmits:0});
-  NET={pc,ch,role:"host",up:false,peer:null,rtt:0,seed:(Math.random()*4294967296)>>>0,name2:null,code};
-  netWire(ch); netWatchIce();
+  NET={pc,ch:null,role:"host",up:false,peer:null,rtt:0,seed:(Math.random()*4294967296)>>>0,name2:null,code};
+  pc.ondatachannel=e=>{ if(NET){ NET.ch=e.channel; netWire(e.channel); } };  /* канал создаёт тот, кто шлёт offer */
+  netWatchIce();
   const ws=roomSock(me,async m=>{
     if(m.type==="OFFER"&&m.payload&&m.payload.sdp){
       await pc.setRemoteDescription(m.payload.sdp);
@@ -8105,9 +8105,9 @@ async function roomJoin(code){
   if(code.length!==4)throw new Error("код из 4 символов");
   const me="jd"+code+"g", peer="jd"+code+"h";
   const pc=new RTCPeerConnection(netCfg());
-  NET={pc,ch:null,role:"guest",up:false,peer:null,rtt:0,seed:0,name2:null,code};
-  pc.ondatachannel=e=>{ if(NET){ NET.ch=e.channel; netWire(e.channel); } };
-  netWatchIce();
+  const ch=pc.createDataChannel("jd",{ordered:false,maxRetransmits:0});  /* без него offer пустой и ICE не стартует */
+  NET={pc,ch,role:"guest",up:false,peer:null,rtt:0,seed:0,name2:null,code};
+  netWire(ch); netWatchIce();
   let helper;
   const ws=roomSock(me,async m=>{
     if(m.type==="ANSWER"&&m.payload&&m.payload.sdp){ await pc.setRemoteDescription(m.payload.sdp); await helper.addPending(); }
@@ -8162,7 +8162,9 @@ function presStart(){
   ws.onmessage=e=>{ let m; try{m=JSON.parse(e.data)}catch(x){return}
     if(m.type==="OPEN"){
       PRES.hb=setInterval(()=>{try{ws.send(JSON.stringify({type:"HEARTBEAT"}))}catch(e){}},18000);
-      presProbe(); PRES.timer=setInterval(presProbe,12000); return; }
+      presProbe();                                           /* друг мог ещё не зарегистрироваться — добиваем быстрыми повторами */
+      setTimeout(presProbe,2500); setTimeout(presProbe,6000);
+      PRES.timer=setInterval(presProbe,12000); return; }
     if(m.type==="EXPIRE"){                                   /* адресата нет в сети */
       const c=PRES.pend[m.dst]; if(c!=null){ PRES.online[c]=false; delete PRES.pend[m.dst]; presDraw(); }
       return; }
@@ -8189,7 +8191,9 @@ function presInviteBanner(code,who,room){
     <button class="btn primary" id="frYes" style="flex:none;padding:7px 14px">${tr("Принять")}</button>
     <button class="btn" id="frNo" style="flex:none;padding:7px 12px;color:var(--mut)">${tr("Позже")}</button>`;
   document.body.appendChild(d);
-  $("#frYes").onclick=()=>{ d.remove(); setMode("game"); roomJoin(room).catch(()=>{}); };
+  $("#frYes").onclick=()=>{ d.remove(); setMode("game");
+    netBox(tr("Подключаюсь"),`<p class="muted2">${tr("Комната")} <b>${esc(room||"?")}</b> — ${tr("соединяемся напрямую")}…</p>`);
+    roomJoin(room).catch(e=>netBox(tr("Не вышло"),`<p class="muted2">${esc(e.message||String(e))}</p>`)); };
   $("#frNo").onclick=()=>d.remove();
   setTimeout(()=>{ const el=$("#frInv"); if(el===d)d.remove(); },30000);
 }
