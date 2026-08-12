@@ -510,6 +510,22 @@
   .beh-ta:focus{border-color:var(--acc)}
   .beh-tm{display:flex;align-items:center;gap:10px;margin-top:9px;font-size:12px;color:var(--mut)}
   .beh-tm b{font:800 15px var(--mono);color:var(--fg)}
+  #viewZero .terms-wrap{max-width:1240px}       /* лестнице нужна ширина: колонка маршрута + текст + схема */
+  .zero-step.has-viz{align-items:flex-start}
+  .zv{flex:0 0 262px;max-width:262px;box-sizing:border-box;align-self:flex-start;
+    border:1px solid var(--line);border-radius:14px;background:var(--panel-2);padding:12px 13px;overflow:hidden}
+  .zv .fp-row{margin:5px 0}
+  .zv .fp-box{font-size:11.5px;padding:5px 8px}
+  .zv .fp-tag{font-size:9.5px}
+  body.no-anim .zv *{animation:none!important;transition:none!important}
+  .zv-off{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut);cursor:pointer;user-select:none}
+  .zv-off input{accent-color:var(--acc);cursor:pointer}
+  @media(prefers-reduced-motion:reduce){ .zv *{animation:none!important} }
+  @media(max-width:1340px){                     /* трём колонкам не хватает места — схема уходит под текст */
+    .zero-step.has-viz{flex-wrap:wrap}
+    .zv{flex:1 1 100%;max-width:520px;margin-top:10px;margin-left:44px}
+  }
+  @media(max-width:620px){ .zv{margin-left:0;max-width:100%} }
   .zero-top{display:flex;align-items:center;gap:12px;margin:6px 0 16px}
   .zero-bar{flex:1;height:8px;border-radius:5px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
   .zero-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--good));transition:width .3s var(--ease)}
@@ -1190,6 +1206,7 @@
   <div class="terms-wrap">
     <div class="bas-intro">🌱 <b>С нуля.</b> <span id="zeroIntro">Как код вообще превращается в работу — от транзистора до твоей программы. Читается сверху вниз, каждый шаг опирается на предыдущий.</span></div>
     <div class="zero-top"><div class="zero-bar"><span id="zeroBar"></span></div><b id="zeroPct">0%</b>
+      <label class="zv-off"><input type="checkbox" id="zeroAnim" checked> ${tr("схемы")}</label>
       <button class="btn" id="zeroReset" style="flex:none;padding:6px 12px;font-size:12px">↻ сбросить</button></div>
     <div class="zero-wrap">
       <aside class="zero-nav" id="zeroNav"><h4>Маршрут</h4></aside>
@@ -1245,6 +1262,7 @@
 <script src="zero.js"></script>
 <script src="behav.js"></script>
 <script src="take.js"></script>
+<script src="viz-zero.js"></script>
 <script src="tricky.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
@@ -1312,6 +1330,7 @@ function Ta(kind,id,field,ruArr){ const e=I18N[kind]&&I18N[kind][id]; if(LANG===
 const CLNAME={"Архитектура":"Architecture"};
 function clName(t){ return LANG==="en"?(CLNAME[t]||t):t; }
 const UITR={
+  "схемы":"diagrams",
   "Облако":"Cloud",
   "Отказоустойчивость":"Resilience",
   "Virtual threads":"Virtual threads",
@@ -2149,6 +2168,11 @@ let behTimer=null;
 const ZERO=(window.ZERO||[]);
 const ZDONE=(()=>{try{return new Set(JSON.parse(localStorage.getItem("jdZero")||"[]"))}catch(e){return new Set()}})();
 function zeroSave(){ try{localStorage.setItem("jdZero",JSON.stringify([...ZDONE]))}catch(e){} }
+function zeroAnimOn(v){ if(v!=null){try{localStorage.setItem("jdZeroAnim",v?"1":"0")}catch(e){}}
+  const s=localStorage.getItem("jdZeroAnim");
+  if(s!=null)return s==="1";
+  return !(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);   /* уважаем системную настройку */
+}
 function zeroPct(){ return ZERO.length?Math.round(ZDONE.size/ZERO.length*100):0; }
 function zeroBarUI(){ const b=$("#zeroBar"), p=$("#zeroPct");
   if(b)b.style.width=zeroPct()+"%"; if(p)p.textContent=zeroPct()+"%"; }
@@ -2207,14 +2231,15 @@ function buildZero(){
     if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
     n++;
     const done=ZDONE.has(i);
-    html+=`<div class="zero-step${done?" done":""}" id="zs${i}" data-i="${i}">
+    const viz=(window.ZVIZ||{})[z.t];
+    html+=`<div class="zero-step${done?" done":""}${viz?" has-viz":""}" id="zs${i}" data-i="${i}">
       <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
       <div class="zero-b">
         <div class="zero-t">${esc(tr(z.t))}</div>
         <div class="zero-p">${zeroFmt(tr(z.p))}</div>
         ${z.c?`<div class="zero-code">${esc(z.c)}</div>`:""}
         <div class="zero-an">${esc(tr(z.an))}</div>
-      </div></div>`;
+      </div>${viz?`<div class="zv">${viz}</div>`:""}</div>`;
   });
   /* разбор темы в форме, в которой добивают на собесе */
   const TK=(window.ZTAKE||{});
@@ -2242,6 +2267,9 @@ function buildZero(){
     zeroSave(); zeroBarUI(); zeroNavUI(); });
   const nx=$("#zeroNext"); if(nx)nx.onclick=()=>setMode("basics");
   const rs=$("#zeroReset"); if(rs)rs.onclick=()=>{ ZDONE.clear(); zeroSave(); buildZero(); };
+  const an=$("#zeroAnim");
+  if(an){ an.checked=zeroAnimOn(); document.body.classList.toggle("no-anim",!an.checked);
+    an.onchange=()=>{ zeroAnimOn(an.checked); document.body.classList.toggle("no-anim",!an.checked); }; }
   zeroBarUI(); zeroNavUI();
   if(!buildZero._spy){ buildZero._spy=1;
     window.addEventListener("scroll",()=>{ if(mode==="zero")zeroSpy(); },{passive:true}); }
