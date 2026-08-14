@@ -603,6 +603,21 @@
     padding:13px;border-radius:13px;border:1px solid var(--line);background:var(--panel-2);color:var(--txt)}
   .hb-lock input:focus{outline:none;border-color:var(--acc2)}
   .hb-err{color:var(--bad);font-size:13px;min-height:19px;margin:11px 0 0}
+  .hb-term{max-width:720px;margin:9vh auto 0;padding:16px 18px;border-radius:14px;
+    background:rgba(0,0,0,.55);border:1px solid var(--line);font:500 12.5px/1.75 var(--mono);
+    color:#cfd6e6;white-space:pre-wrap;word-break:break-word;box-shadow:var(--shadow)}
+  .hb-term .i{color:#5f6b82}.hb-term .g{color:#46d6a0}.hb-term .y{color:#ffcf6e}
+  .hb-term .b{color:#6ea8fe}.hb-term .p{color:#c58fff}
+  .hb-term .cur{display:inline-block;width:8px;height:14px;background:var(--acc);
+    vertical-align:-2px;animation:hbCur .9s steps(2) infinite}
+  @keyframes hbCur{50%{opacity:0}}
+  .hb-skip{display:block;margin:12px auto 0;font:600 12px var(--sans);color:var(--mut);
+    background:none;border:0;cursor:pointer;text-decoration:underline;opacity:.7}
+  .hb-mic{font:inherit;color:var(--acc);background:none;border:0;padding:0;cursor:pointer;
+    text-decoration:underline;text-underline-offset:2px}
+  .hb-mic:disabled{color:var(--mut);cursor:default;text-decoration:none}
+  .hb-lvl{display:block;width:120px;height:4px;margin:9px auto 0;border-radius:3px;background:var(--panel-2);overflow:hidden}
+  .hb-lvl i{display:block;height:100%;width:0;background:var(--grad);transition:width .07s linear}
   .hb-gift{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
     max-width:560px;margin:0 auto 26px;padding:14px 18px 30px;border-radius:16px;
     border:2px dashed rgba(255,207,110,.5);background:rgba(255,207,110,.07);
@@ -8765,6 +8780,7 @@ function hbOpen(){
 function hbClose(){
   const w=$("#hbWrap"); if(w)w.remove();
   document.body.style.overflow="";
+  hbMicStop();                                         /* закрыли комнату — микрофон отпускаем сразу */
   if(HB){ cancelAnimationFrame(HB.raf); removeEventListener("resize",HB.fit); HB=null; }
   if(location.hash==="#hb")history.replaceState(null,"",location.pathname+location.search);
 }
@@ -8799,7 +8815,81 @@ async function hbTry(pw){
   if(html==null){ if(err)err.textContent="Не тот код"; if(inp){ inp.value=""; inp.focus(); } return; }
   hbShow(html);
 }
+/* ---- сборка «проекта» перед поздравлением: тем, кто открыл ссылку от программиста ---- */
+const HB_LOG=[
+ ['<span class="g">$</span> mvn birthday:celebrate <span class="y">-Dnames=almat,aigerim</span>',260],
+ ['<span class="i">[INFO] Scanning for projects...</span>',300],
+ ['<span class="i">[INFO] ------------------&lt; <span class="p">kz.almaty:birthday</span> &gt;-------------------</span>',150],
+ ['<span class="i">[INFO] Building</span> <span class="b">birthday 27.0</span>',260],
+ ['<span class="i">[INFO] --- confetti-plugin:3.1.4:launch @ birthday ---</span>',230],
+ ['<span class="i">[INFO] particles loaded: 170 .................. </span><span class="g">OK</span>',230],
+ ['<span class="i">[INFO] --- cake-plugin:5.0.0:bake @ birthday ---</span>',230],
+ ['<span class="i">[INFO] candles: 5, wishes: unlimited .......... </span><span class="g">OK</span>',230],
+ ['<span class="i">[INFO] --- kaspi-plugin:8.7:collect @ birthday ---</span>',230],
+ ['<span class="i">[INFO] gift endpoint 8 707 910 06 99 ......... </span><span class="g">READY</span>',380],
+ ['<span class="i">[INFO] ------------------------------------------------------</span>',120],
+ ['<span class="g">[INFO] BUILD SUCCESS</span>',200],
+ ['<span class="i">[INFO] Total time:  27.000 s</span>',420]
+];
+function hbLog(done){
+  const box=$("#hbIn");
+  box.innerHTML='<pre class="hb-term" id="hbTerm"></pre><button class="hb-skip" id="hbSkip">пропустить</button>';
+  const t=$("#hbTerm"); let i=0, timer=null, killed=false;
+  const stop=()=>{ killed=true; clearTimeout(timer); };
+  const skip=$("#hbSkip"); if(skip)skip.onclick=()=>{ stop(); done(); };
+  const next=()=>{
+    if(killed)return;
+    if(i>=HB_LOG.length){ setTimeout(()=>{ if(!killed)done(); },260); return; }
+    const [line,wait]=HB_LOG[i++];
+    t.innerHTML+=(i>1?"\n":"")+line;
+    t.insertAdjacentHTML("beforeend",'<span class="cur"></span>');
+    const c=t.querySelector(".cur:not(:last-child)"); if(c)c.remove();
+    timer=setTimeout(next,wait);
+  };
+  next();
+}
+/* ---- задуть свечи по-настоящему: звук не пишется и никуда не уходит, берём только уровень ---- */
+let HBMIC=null;
+function hbMicStop(){ if(!HBMIC)return;
+  cancelAnimationFrame(HBMIC.raf);
+  try{ HBMIC.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
+  try{ HBMIC.ac.close(); }catch(e){}
+  HBMIC=null; }
+async function hbMicStart(btn,onBlow){
+  if(HBMIC)return;
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){ btn.textContent="микрофон недоступен"; btn.disabled=true; return; }
+  btn.textContent="разрешаю…"; btn.disabled=true;
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }
+  catch(e){ btn.textContent="не дали доступ — жми на торт"; return; }
+  const AC=window.AudioContext||window.webkitAudioContext;
+  const ac=new AC(), an=ac.createAnalyser(); an.fftSize=1024;
+  ac.createMediaStreamSource(stream).connect(an);
+  const buf=new Uint8Array(an.fftSize);
+  HBMIC={stream,ac,raf:0};
+  btn.textContent="дуй! 🎤";
+  btn.insertAdjacentHTML("afterend",'<span class="hb-lvl"><i id="hbLvl"></i></span>');
+  const bar=$("#hbLvl");
+  let base=0, n=0, hot=0;
+  const tick=()=>{
+    if(!HBMIC)return;
+    HBMIC.raf=requestAnimationFrame(tick);
+    an.getByteTimeDomainData(buf);
+    let s=0; for(let i=0;i<buf.length;i++){ const v=(buf[i]-128)/128; s+=v*v; }
+    const rms=Math.sqrt(s/buf.length);
+    if(n<45){ base=(base*n+rms)/(n+1); n++; return; }   /* ~0.7 с на замер тишины вокруг */
+    if(bar)bar.style.width=Math.min(100,rms*420)+"%";
+    const lvl=Math.max(base*4.5,0.055);
+    hot = rms>lvl ? hot+1 : 0;
+    if(hot>=7){ hbMicStop(); onBlow(); }                /* ~120 мс подряд, чтобы один щелчок не считался */
+  };
+  tick();
+}
 function hbShow(html){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)hbReveal(html);
+  else hbLog(()=>hbReveal(html));
+}
+function hbReveal(html){
   $("#hbIn").innerHTML=html;
   const cp=$("#hbCopy"), num=$("#hbNum");
   if(cp&&num)cp.onclick=()=>{
@@ -8814,12 +8904,15 @@ function hbShow(html){
     else legacy();
   };
   const cake=$("#hbCake");
-  if(cake)cake.onclick=()=>{
-    if(cake.classList.contains("out"))return;
-    cake.classList.add("out");
+  const blow=()=>{
+    if(!cake||cake.classList.contains("out"))return;
+    cake.classList.add("out"); hbMicStop();
     const h=$("#hbHint"); if(h)h.textContent="загадали? тогда держите салют 🎉";
     hbBurst(innerWidth/2,innerHeight*.42,90);
   };
+  if(cake)cake.onclick=blow;
+  const mic=$("#hbMic");
+  if(mic)mic.onclick=e=>{ e.stopPropagation(); hbMicStart(mic,blow); };
   hbConfetti();
 }
 /* ---- конфетти ---- */

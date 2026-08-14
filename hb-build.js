@@ -76,7 +76,7 @@ const HTML=`
     <span class="hb-candle"><i></i></span>
   </div>
   <div class="hb-tiers"><div class="hb-t1"></div><div class="hb-t2"></div><div class="hb-t3"></div></div>
-  <div class="hb-hint" id="hbHint">нажми на торт — задуй свечи</div>
+  <div class="hb-hint" id="hbHint">нажми на торт — или <button class="hb-mic" id="hbMic" type="button">дунь в микрофон 🎤</button></div>
 </div>
 
 <div class="hb-cards">
