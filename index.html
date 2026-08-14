@@ -9133,23 +9133,28 @@ function sgPlayMelody(baseMidi){
   let t=ac.currentTime+.2, ms=200;
   SG_PLAY={oscs:[],timers:[],until:0};
   SG_MEL.forEach((m,i)=>{
-    const dur=(m[3]||1)*BEAT;
-    const o=ac.createOscillator(), g=ac.createGain();
-    o.type="triangle";
-    o.frequency.value=440*Math.pow(2,(baseMidi+m[0]-69)/12);
-    g.gain.setValueAtTime(.0001,t);
-    g.gain.exponentialRampToValueAtTime(.17,t+.02);
-    g.gain.exponentialRampToValueAtTime(.0001,t+dur*.92);
-    o.connect(g).connect(ac.destination);
-    o.start(t); o.stop(t+dur);
-    SG_PLAY.oscs.push(o);
-    const at=ms, len=dur*1000;
+    const durs=Array.isArray(m[3])?m[3]:[m[3]||1];
+    const f=440*Math.pow(2,(baseMidi+m[0]-69)/12);
+    let chip=0;
+    durs.forEach(b=>{                                  /* каждая нота слога звучит отдельно */
+      const dur=b*BEAT, end=t+Math.max(.08,dur-.07);   /* пауза перед повтором той же высоты */
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.type="triangle"; o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.exponentialRampToValueAtTime(.17,t+.02);
+      g.gain.exponentialRampToValueAtTime(.0001,end);
+      o.connect(g).connect(ac.destination);
+      o.start(t); o.stop(end+.02);
+      SG_PLAY.oscs.push(o);
+      t+=dur; chip+=dur*1000;
+    });
+    const at=ms;
     SG_PLAY.timers.push(setTimeout(()=>{
       const el=SG_SYLS[i]; if(!el)return;
       el.classList.add("beat");
-      SG_PLAY&&SG_PLAY.timers.push(setTimeout(()=>el.classList.remove("beat"),len*.9));
+      SG_PLAY&&SG_PLAY.timers.push(setTimeout(()=>el.classList.remove("beat"),chip*.9));
     },at));
-    t+=dur; ms+=len;
+    ms+=chip;
   });
   SG_PLAY.until=performance.now()+ms+250;
   const b=$("#sgPlay"); if(b)b.textContent="⏹ стоп";
