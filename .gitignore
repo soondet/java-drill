@@ -9,6 +9,3 @@ hb-aigerim.*
 
 hb-grab.sh
 hb-test.*
-
-# токен телеграм-бота лежит в ~/.jd-telegram, но на всякий случай
-.jd-telegram
