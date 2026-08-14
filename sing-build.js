@@ -53,6 +53,27 @@ function photo(base,name,c1,c2){
 console.log("Фото:");
 const IMG=photo("sing-photo",NAME,"#ff8fb1","#a98bff");
 
+/* Мелодия Happy Birthday в полутонах от ПЕРВОЙ спетой ноты — значит петь можно
+   в любой тональности. Повторы подряд склеены: две одинаковые ноты по высоте не
+   отличить без разбора ритма, поэтому «Hap-py» — один шаг.
+   [интервал, слог, конец строки?] */
+function splitName(n){
+  const v="аеёиоуыэюяaeiouy", s=String(n).trim();
+  if(s.length<4)return [s,"…"];
+  for(let i=Math.ceil(s.length/2);i<s.length-1;i++)
+    if(v.includes(s[i].toLowerCase()))return [s.slice(0,i+1),s.slice(i+1)];
+  for(let i=Math.ceil(s.length/2);i>0;i--)
+    if(v.includes(s[i].toLowerCase()))return [s.slice(0,i+1),s.slice(i+1)];
+  const m=Math.ceil(s.length/2); return [s.slice(0,m),s.slice(m)];
+}
+const [N1,N2]=splitName(NAME);
+const MEL=[
+  [0,"Hap-py"],[2,"birth"],[0,"day"],[5,"to"],[4,"you",1],
+  [0,"Hap-py"],[2,"birth"],[0,"day"],[7,"to"],[5,"you",1],
+  [0,"Hap-py"],[12,"birth"],[9,"day"],[5,"dear"],[4,N1],[2,N2,1],
+  [10,"Hap-py"],[9,"birth"],[5,"day"],[7,"to"],[5,"you",1]
+];
+
 const HTML=`
 <div class="sg-hero">
   <div class="sg-em">🎤</div>
@@ -66,9 +87,10 @@ const HTML=`
     <div class="sg-note" id="sgNote">—</div>
     <div class="sg-cents" id="sgCents">включи микрофон и спой</div>
   </div>
+  <div class="sg-song" id="sgSong" data-mel='${JSON.stringify(MEL).replace(/'/g,"&#39;")}'></div>
   <div class="sg-hold"><i id="sgHoldBar"></i></div>
   <button class="sg-btn" id="sgMic" type="button">🎤 включить микрофон</button>
-  <div class="sg-hint" id="sgHint">задание: возьми любую ноту и удержи её три секунды</div>
+  <div class="sg-hint" id="sgHint">задание: спеть Happy Birthday целиком. Начинай с любой удобной ноты — тональность подхватится сама</div>
 </div>
 
 <div class="sg-card">

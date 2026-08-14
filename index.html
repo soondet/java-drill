@@ -629,6 +629,13 @@
   .sg-note{font:800 34px var(--mono);letter-spacing:1px;
     background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
   .sg-cents{font:600 12.5px var(--mono);color:var(--mut);margin-top:3px}
+  .sg-song{margin:14px auto 0;max-width:520px;line-height:2.25;font:600 14px var(--sans)}
+  .sg-syl{display:inline-block;margin:0 3px;padding:4px 10px;border-radius:9px;
+    border:1px solid var(--line-2);background:var(--panel-2);color:var(--mut);transition:.18s}
+  .sg-syl.done{color:#0a0b12;background:linear-gradient(135deg,#ff8fb1,#a98bff);border-color:transparent}
+  .sg-syl.now{color:var(--txt);border-color:#54e6c8;box-shadow:0 0 0 3px rgba(84,230,200,.15);
+    animation:sgPulse 1.1s ease-in-out infinite}
+  @keyframes sgPulse{50%{box-shadow:0 0 0 7px rgba(84,230,200,.05)}}
   .sg-hold{width:100%;max-width:340px;height:8px;margin:14px auto 0;border-radius:5px;
     background:var(--panel-2);border:1px solid var(--line-2);overflow:hidden}
   .sg-hold i{display:block;height:100%;width:0;border-radius:5px;
@@ -653,6 +660,7 @@
     -webkit-background-clip:text;background-clip:text;color:transparent}
   @media (prefers-reduced-motion:reduce){
     .sg-bars i,.sg-hero .sg-em,.sg-stage,.sg-card,.sg-toast{animation:none}
+    .sg-syl.now{animation:none}
   }
   .hb-term{max-width:720px;margin:9vh auto 0;padding:16px 18px;border-radius:14px;
     background:rgba(0,0,0,.55);border:1px solid var(--line);font:500 12.5px/1.75 var(--mono);
@@ -9073,9 +9081,24 @@ function sgPitch(buf,rate){                            /* автокорреля
   const shift=a?Math.max(-1,Math.min(1,-b/(2*a))):0;
   return rate/(best+shift);
 }
+let SG_MEL=[], SG_SYLS=[];
 function sgWire(){
+  const song=$("#sgSong");
+  SG_MEL=[]; SG_SYLS=[];
+  if(song){                                            /* слова видно сразу — до того, как включат микрофон */
+    try{ SG_MEL=JSON.parse(song.getAttribute("data-mel")||"[]"); }catch(e){}
+    song.innerHTML=SG_MEL.map((m,i)=>'<span class="sg-syl" data-i="'+i+'">'+esc(m[1])+"</span>"+(m[2]?"<br>":"")).join("");
+    SG_SYLS=[...song.querySelectorAll(".sg-syl")];
+    if(SG_SYLS[0])SG_SYLS[0].classList.add("now");
+  }
   const btn=$("#sgMic"); if(!btn)return;
   btn.onclick=()=>sgStart(btn);
+}
+function sgStep(syls,step,hint,bar,total){
+  syls.forEach((s,i)=>{ s.classList.toggle("done",i<step); s.classList.toggle("now",i===step); });
+  if(bar)bar.style.width=Math.min(100,step/total*100)+"%";
+  if(hint&&step<total)hint.textContent="дальше: "+syls[step].textContent;
+  const cur=syls[step]; if(cur&&cur.scrollIntoView)cur.scrollIntoView({block:"nearest"});
 }
 async function sgStart(btn){
   if(HBMIC)return;
@@ -9093,8 +9116,11 @@ async function sgStart(btn){
   const time=new Float32Array(an.fftSize), freq=new Uint8Array(an.frequencyBinCount);
   const cv=$("#sgEq"), ctx=cv?cv.getContext("2d"):null;
   const nEl=$("#sgNote"), cEl=$("#sgCents"), bar=$("#sgHoldBar"), hint=$("#sgHint");
-  let hold=0, holdMidi=null, won=false, quiet=0, wrong=0, frame=0, last=performance.now();
-  const HOLD_MS=3000, BARS=44;
+  const MEL=SG_MEL, syls=SG_SYLS;
+  let step=0, ref=null, won=false, quiet=0, frame=0, last=performance.now();
+  let curMidi=null, curMs=0;
+  const NEED=110;                                       /* столько держать ноту, чтобы засчитать */
+  const BARS=44;
   const tick=()=>{
     if(!HBMIC)return;
     HBMIC.raf=requestAnimationFrame(tick);
@@ -9116,27 +9142,44 @@ async function sgStart(btn){
     an.getFloatTimeDomainData(time);
     const f=sgPitch(time,ac.sampleRate);
     if(f<0){
-      if(++quiet>9){ if(nEl)nEl.textContent="—"; if(cEl)cEl.textContent="тишина"; hold=0; holdMidi=null; if(bar)bar.style.width="0%"; }
+      if(++quiet>9){ if(nEl)nEl.textContent="—"; if(cEl)cEl.textContent="тишина"; curMidi=null; curMs=0; }
+      /* замолчала надолго — начинаем песню заново, иначе случайный звук
+         навсегда задаёт не ту тональность и прогресс залипает */
+      if(!won&&step>0&&quiet===90){ step=0; ref=null; sgStep(syls,0,hint,bar,MEL.length);
+        if(hint)hint.textContent="начнём сначала — с любой удобной ноты"; }
       return;
     }
     quiet=0;
     const n=sgNote(f);
     if(nEl)nEl.textContent=SG_NAMES[n.i]+" "+n.oct+" · "+SG_LAT[n.i]+n.oct;
     if(cEl)cEl.textContent=(n.cents>0?"+":"")+n.cents+" центов · "+Math.round(f)+" Гц";
-    if(won)return;
-    if(holdMidi===null){ holdMidi=n.midi; hold=0; }
-    else if(n.midi!==holdMidi){                         /* одиночный сбой не сбрасывает прогресс */
-      if(++wrong>2){ holdMidi=n.midi; hold=0; wrong=0; }
+    if(won||!MEL.length)return;
+
+    if(n.midi!==curMidi){ curMidi=n.midi; curMs=0; return; }
+    curMs+=dt;
+    if(curMs<NEED)return;                               /* мазок голосом мимо — не считаем */
+    if(curMs>NEED+dt)return;                            /* засчитываем ноту один раз, пока держится */
+
+    if(step===0){                                       /* первая нота задаёт тональность */
+      ref=n.midi;
+      const t=((ref-7)%12+12)%12;
+      if(cEl)cEl.title="тональность "+SG_NAMES[t];
+      sgStep(syls,++step,hint,bar,MEL.length);
+      return;
     }
-    else { wrong=0;
-      if(Math.abs(n.cents)<45)hold+=dt;                 /* держится ровно, а не ползёт */
-      else hold=Math.max(0,hold-dt); }
-    if(bar)bar.style.width=Math.min(100,hold/HOLD_MS*100)+"%";
-    if(hold>=HOLD_MS){
-      won=true;
-      if(hint)hint.innerHTML='<b class="sg-win">чисто! держала '+SG_NAMES[n.i]+" "+n.oct+" три секунды 🎉</b>";
-      hbBurst(innerWidth/2,innerHeight*.38,120);
-      for(let k=0;k<4;k++)setTimeout(()=>hbBurst(innerWidth*(.2+Math.random()*.6),innerHeight*.3,55),k*220);
+    const want=ref+MEL[step][0];
+    if(n.midi===want||n.midi===want+12||n.midi===want-12){
+      sgStep(syls,++step,hint,bar,MEL.length);
+      if(step>=MEL.length){
+        won=true;
+        if(hint)hint.innerHTML='<b class="sg-win">спела целиком! 🎉</b>';
+        hbBurst(innerWidth/2,innerHeight*.38,140);
+        for(let k=0;k<5;k++)setTimeout(()=>hbBurst(innerWidth*(.15+Math.random()*.7),innerHeight*.3,60),k*230);
+      }
+    } else if(hint){
+      const d=n.midi-want;
+      hint.textContent = Math.abs(d)>=12 ? "мимо — попробуй ещё раз этот слог"
+        : d>0 ? "чуть ниже ↓" : "чуть выше ↑";
     }
   };
   tick();
