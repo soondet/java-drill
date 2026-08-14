@@ -67,11 +67,12 @@ function splitName(n){
   const m=Math.ceil(s.length/2); return [s.slice(0,m),s.slice(m)];
 }
 const [N1,N2]=splitName(NAME);
+/* [интервал, слог, конец строки, длительность в долях] */
 const MEL=[
-  [0,"Hap-py"],[2,"birth"],[0,"day"],[5,"to"],[4,"you",1],
-  [0,"Hap-py"],[2,"birth"],[0,"day"],[7,"to"],[5,"you",1],
-  [0,"Hap-py"],[12,"birth"],[9,"day"],[5,"dear"],[4,N1],[2,N2,1],
-  [10,"Hap-py"],[9,"birth"],[5,"day"],[7,"to"],[5,"you",1]
+  [0,"Hap-py",0,1],[2,"birth",0,1],[0,"day",0,1],[5,"to",0,1],[4,"you",1,2],
+  [0,"Hap-py",0,1],[2,"birth",0,1],[0,"day",0,1],[7,"to",0,1],[5,"you",1,2],
+  [0,"Hap-py",0,1],[12,"birth",0,1],[9,"day",0,1],[5,"dear",0,1],[4,N1,0,1],[2,N2,1,2],
+  [10,"Hap-py",0,1],[9,"birth",0,1],[5,"day",0,1],[7,"to",0,1],[5,"you",1,2]
 ];
 
 const HTML=`
@@ -87,9 +88,18 @@ const HTML=`
     <div class="sg-note" id="sgNote">—</div>
     <div class="sg-cents" id="sgCents">включи микрофон и спой</div>
   </div>
+  <div class="sg-tuner" id="sgTuner">
+    <span class="sg-zone"></span><span class="sg-mid"></span>
+    <i class="sg-needle" id="sgNeedle"></i>
+    <b class="sg-tgt" id="sgTgt">начни с любой удобной ноты</b>
+  </div>
   <div class="sg-song" id="sgSong" data-mel='${JSON.stringify(MEL).replace(/'/g,"&#39;")}'></div>
   <div class="sg-hold"><i id="sgHoldBar"></i></div>
-  <button class="sg-btn" id="sgMic" type="button">🎤 включить микрофон</button>
+  <div class="sg-acts">
+    <button class="sg-btn" id="sgMic" type="button">🎤 включить микрофон</button>
+    <button class="sg-btn ghost" id="sgPlay" type="button">🔊 послушать мелодию</button>
+  </div>
+  <label class="sg-hp"><input type="checkbox" id="sgHp"> я в наушниках — подпевать под музыку</label>
   <div class="sg-hint" id="sgHint">задание: спеть Happy Birthday целиком. Начинай с любой удобной ноты — тональность подхватится сама</div>
 </div>
 
