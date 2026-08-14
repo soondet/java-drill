@@ -52,6 +52,17 @@ const IMG_G=photo("hb-aigerim","Айгерим","#a98bff","#ff8fb1");
 
 /* ---- содержимое комнаты ---- */
 const HTML=`
+<div class="hb-gift">
+  <span class="hb-gift-em">🎁</span>
+  <div class="hb-gift-t">
+    <b>Подарки принимаются</b>
+    <span class="hb-num" id="hbNum">8 707 910 06 99</span>
+    <span class="hb-kaspi">Kaspi</span>
+  </div>
+  <button class="hb-copy" id="hbCopy" type="button">копировать</button>
+  <div class="hb-gift-note">* не обязательно, но крайне приятно</div>
+</div>
+
 <div class="hb-hero">
   <div class="hb-em">🎂</div>
   <h1>С днём рождения!</h1>
