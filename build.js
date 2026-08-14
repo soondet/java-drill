@@ -26,6 +26,25 @@ html = html.replace("<!--INLINE-I18N-EN-->", () => {
   } catch (e) { missing.push("i18n-en.js"); return "<!--i18n-en.js НЕ НАЙДЕН-->"; }
 });
 fs.writeFileSync("java-drill.html", html);
+
+/* Service worker отдаёт файлы cache-first, а имя кэша раньше было зашито намертво —
+   поэтому у того, кто уже заходил, обновления не доезжали вообще. Пересчитываем имя
+   от содержимого: контент изменился → новое имя → activate сносит старый кэш. */
+try {
+  const crypto = require("crypto");
+  let sw = fs.readFileSync("sw.js", "utf8");
+  const assets = (sw.match(/const ASSETS=\[([^\]]*)\]/) || [, ""])[1]
+    .split(",").map(s => s.trim().replace(/^"|"$/g, "")).filter(s => s && s !== "./");
+  const h = crypto.createHash("sha1").update(html);
+  for (const a of assets) { try { h.update(fs.readFileSync(a)); } catch (e) {} }
+  const ver = "jd-" + h.digest("hex").slice(0, 10);
+  const old = (sw.match(/const CACHE="([^"]+)"/) || [, ""])[1];
+  if (old !== ver) {
+    fs.writeFileSync("sw.js", sw.replace(/const CACHE="[^"]+"/, 'const CACHE="' + ver + '"'));
+    console.log("  кэш sw.js:", old, "→", ver);
+  }
+} catch (e) { console.log("  ⚠ sw.js не обновлён:", e.message); }
+
 const kb = Math.round(Buffer.byteLength(html) / 1024);
 console.log("✓ java-drill.html собран:", kb + "KB, инлайнено скриптов:", inlined, inlineEN ? "(EN встроен)" : "(EN ленивый — держи i18n-en.js рядом)");
 if (missing.length) console.log("  не найдено (оставлены ссылками):", missing.join(", "));
