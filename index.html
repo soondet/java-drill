@@ -586,6 +586,65 @@
   .fr-inv{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;
     display:flex;align-items:center;gap:12px;border:1px solid var(--good);border-radius:16px;
     background:var(--panel);padding:13px 18px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  /* ---- 🎂 секретная комната ---- */
+  .hb-wrap{position:fixed;inset:0;z-index:120;overflow-y:auto;overscroll-behavior:contain;
+    background:radial-gradient(1100px 620px at 50% -8%,rgba(169,139,255,.22),transparent 60%),
+      radial-gradient(900px 520px at 12% 108%,rgba(84,230,200,.14),transparent 62%),#07080e}
+  .hb-canvas{position:fixed;inset:0;pointer-events:none;z-index:1}
+  .hb-in{position:relative;z-index:2;max-width:940px;margin:0 auto;padding:48px 20px 80px}
+  .hb-x{position:fixed;top:16px;right:16px;z-index:4;width:38px;height:38px;border-radius:50%;
+    border:1px solid var(--line);background:var(--panel);color:var(--mut);font-size:17px;cursor:pointer}
+  .hb-x:hover{color:var(--txt);border-color:var(--acc)}
+  .hb-lock{max-width:420px;margin:14vh auto 0;text-align:center;padding:34px 26px}
+  .hb-lock .hb-em{font-size:54px;margin-bottom:10px}
+  .hb-lock h2{font:800 23px var(--sans);margin:0 0 6px}
+  .hb-lock p{color:var(--mut);font-size:14px;margin:0 0 20px;line-height:1.55}
+  .hb-lock input{width:100%;text-align:center;letter-spacing:3px;font:700 17px var(--mono);
+    padding:13px;border-radius:13px;border:1px solid var(--line);background:var(--panel-2);color:var(--txt)}
+  .hb-lock input:focus{outline:none;border-color:var(--acc2)}
+  .hb-err{color:var(--bad);font-size:13px;min-height:19px;margin:11px 0 0}
+  .hb-hero{text-align:center;margin-bottom:26px}
+  .hb-hero .hb-em{font-size:64px;line-height:1;animation:hbPop .7s cubic-bezier(.2,1.5,.4,1) both}
+  .hb-hero h1{font:900 clamp(30px,7vw,50px) var(--sans);margin:12px 0 6px;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hb-names{font:700 19px var(--sans);color:var(--txt);margin:0}
+  .hb-names span{color:var(--mut);font-weight:500;margin:0 5px}
+  @keyframes hbPop{from{transform:scale(.3) rotate(-18deg);opacity:0}to{transform:none;opacity:1}}
+  .hb-cake{width:200px;margin:0 auto 34px;cursor:pointer;user-select:none;text-align:center}
+  .hb-flames{display:flex;justify-content:center;gap:15px;align-items:flex-end;height:46px}
+  .hb-candle{position:relative;width:7px;height:26px;border-radius:3px;
+    background:linear-gradient(#fff2c9,#ffd166);box-shadow:0 0 0 1px rgba(0,0,0,.25) inset}
+  .hb-candle i{position:absolute;left:50%;top:-15px;transform:translateX(-50%);width:11px;height:15px;
+    border-radius:50% 50% 50% 50%/62% 62% 38% 38%;background:radial-gradient(circle at 50% 72%,#fff6b0,#ffb020 58%,#ff6a00);
+    box-shadow:0 0 15px 4px rgba(255,168,32,.55);animation:hbFlame .42s ease-in-out infinite alternate}
+  @keyframes hbFlame{from{transform:translateX(-50%) scaleY(.86) rotate(-4deg)}to{transform:translateX(-50%) scaleY(1.1) rotate(4deg)}}
+  .hb-cake.out .hb-candle i{opacity:0;transform:translateX(-50%) scaleY(.2);transition:.35s;box-shadow:none}
+  .hb-tiers div{margin:0 auto;border-radius:9px}
+  .hb-t1{width:112px;height:22px;background:linear-gradient(#ffd9e6,#ff9fc0)}
+  .hb-t2{width:150px;height:30px;background:linear-gradient(#c9b6ff,#8f6fe8);margin-top:-3px!important}
+  .hb-t3{width:186px;height:36px;background:linear-gradient(#9ed8ff,#5aa2f5);margin-top:-3px!important}
+  .hb-hint{color:var(--mut);font-size:12px;margin-top:12px}
+  .hb-cards{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  .hb-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow);animation:hbUp .6s ease both}
+  .hb-card:nth-child(2){animation-delay:.13s}
+  @keyframes hbUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  .hb-ph{width:124px;height:124px;margin:0 auto 14px;border-radius:50%;overflow:hidden;
+    border:2px solid transparent;background:var(--grad) border-box;box-shadow:0 10px 30px -10px rgba(0,0,0,.8)}
+  .hb-ph img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+  .hb-card h2{font:800 21px var(--sans);text-align:center;margin:0 0 13px}
+  .hb-code{font:600 12.5px/1.62 var(--mono);background:rgba(0,0,0,.34);border:1px solid var(--line-2);
+    border-radius:12px;padding:13px 14px;overflow-x:auto;color:#cfd6e6;margin:0 0 13px;white-space:pre}
+  .hb-code .k{color:#c58fff}.hb-code .a{color:#ffcf6e}.hb-code .m{color:#6ea8fe}.hb-code .c{color:#5f6b82}
+  .hb-card p{color:var(--mut);font-size:14px;line-height:1.62;margin:0}
+  .hb-toast{margin-top:22px;padding:20px;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--radius);animation:hbUp .6s .26s ease both}
+  .hb-cheers{text-align:center;font:800 22px var(--sans);margin:14px 0 0;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  @media (prefers-reduced-motion:reduce){
+    .hb-hero .hb-em,.hb-card,.hb-toast{animation:none}
+    .hb-candle i{animation:none}
+  }
   .net-st{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:13px;
     border:1px solid var(--line);background:var(--panel-2);color:var(--mut);margin:8px auto}
   .net-st b{color:var(--fg)}
@@ -1294,6 +1353,7 @@
 <script src="viz-zero.js"></script>
 <script src="zdrill.js"></script>
 <script src="tricky.js"></script>
+<script src="hb-data.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[])];
@@ -8665,6 +8725,128 @@ if(!localStorage.getItem("jdSeen")){
   document.body.appendChild(ob);
   $("#onbX").onclick=()=>{ ob.remove(); localStorage.setItem("jdSeen","1"); };
 }
+</script>
+<script>
+/* ---------- 🎂 секретная комната ----------
+   Содержимое лежит зашифрованным (AES-GCM, ключ из пароля через PBKDF2).
+   Репозиторий публичный, поэтому обычная проверка пароля ничего бы не скрыла:
+   и код, и фотки читались бы прямо из исходника. Здесь расшифровалось = пароль верный. */
+let HB=null;
+const HB_WORD="tort";                                  /* набрать это слово где угодно — тоже вход */
+
+function hbOpen(){
+  if($("#hbWrap"))return;
+  const w=document.createElement("div"); w.className="hb-wrap"; w.id="hbWrap";
+  w.innerHTML='<button class="hb-x" id="hbX" aria-label="Закрыть">✕</button>'
+    +'<canvas class="hb-canvas" id="hbCv"></canvas><div class="hb-in" id="hbIn"></div>';
+  document.body.appendChild(w);
+  document.body.style.overflow="hidden";
+  $("#hbX").onclick=hbClose;
+  hbLock();
+}
+function hbClose(){
+  const w=$("#hbWrap"); if(w)w.remove();
+  document.body.style.overflow="";
+  if(HB){ cancelAnimationFrame(HB.raf); removeEventListener("resize",HB.fit); HB=null; }
+  if(location.hash==="#hb")history.replaceState(null,"",location.pathname+location.search);
+}
+function hbLock(){
+  const ok=window.HBDATA&&window.crypto&&window.crypto.subtle;
+  $("#hbIn").innerHTML='<div class="glass hb-lock"><div class="hb-em">🔒</div>'
+    +'<h2>Секретная комната</h2>'
+    +(ok?'<p>Тут кое-кого поздравляют. Введи код — он пришёл вместе со ссылкой.</p>'
+        +'<input id="hbPw" type="password" placeholder="код" autocomplete="off" autocapitalize="off" spellcheck="false">'
+        +'<p class="hb-err" id="hbErr"></p>'
+       :'<p>Здесь нужен браузер посвежее — или открой страницу по ссылке на сайт, а не файлом с диска.</p>')
+    +'</div>';
+  const i=$("#hbPw"); if(!i)return;
+  setTimeout(()=>i.focus(),50);
+  i.onkeydown=e=>{ if(e.key==="Enter")hbTry(i.value); };
+}
+function hbB64(s){ const b=atob(s), u=new Uint8Array(b.length);
+  for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i); return u; }
+async function hbDecrypt(pw,d){
+  const km=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);
+  const key=await crypto.subtle.deriveKey({name:"PBKDF2",salt:hbB64(d.s),iterations:d.it,hash:"SHA-256"},
+    km,{name:"AES-GCM",length:256},false,["decrypt"]);
+  return new TextDecoder().decode(await crypto.subtle.decrypt({name:"AES-GCM",iv:hbB64(d.i)},key,hbB64(d.c)));
+}
+async function hbTry(pw){
+  const err=$("#hbErr"), inp=$("#hbPw");
+  if(!pw||!pw.trim()){ if(err)err.textContent="Введи код"; return; }
+  if(err)err.textContent="проверяю…"; if(inp)inp.disabled=true;
+  let html=null;
+  try{ html=await hbDecrypt(pw.trim(),window.HBDATA); }catch(e){}
+  if(inp)inp.disabled=false;
+  if(html==null){ if(err)err.textContent="Не тот код"; if(inp){ inp.value=""; inp.focus(); } return; }
+  hbShow(html);
+}
+function hbShow(html){
+  $("#hbIn").innerHTML=html;
+  const cake=$("#hbCake");
+  if(cake)cake.onclick=()=>{
+    if(cake.classList.contains("out"))return;
+    cake.classList.add("out");
+    const h=$("#hbHint"); if(h)h.textContent="загадали? тогда держите салют 🎉";
+    hbBurst(innerWidth/2,innerHeight*.42,90);
+  };
+  hbConfetti();
+}
+/* ---- конфетти ---- */
+function hbConfetti(){
+  const cv=$("#hbCv"); if(!cv||HB)return;
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  const ctx=cv.getContext("2d"), dpr=Math.min(2,devicePixelRatio||1);
+  const fit=()=>{ cv.width=innerWidth*dpr; cv.height=innerHeight*dpr; };
+  fit(); addEventListener("resize",fit);
+  HB={p:[],raf:0,fit,t:0};
+  for(let i=0;i<110;i++)hbAdd(Math.random()*innerWidth,-Math.random()*innerHeight,3,1);
+  const step=()=>{
+    HB.raf=requestAnimationFrame(step);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    if(++HB.t%9===0&&HB.p.length<170)hbAdd(Math.random()*innerWidth,-14,3,1);
+    for(let i=HB.p.length-1;i>=0;i--){
+      const q=HB.p[i];
+      q.vy+=.055; q.vx*=.995; q.x+=q.vx; q.y+=q.vy; q.r+=q.vr;
+      if(q.y>innerHeight+30||q.x<-60||q.x>innerWidth+60){ HB.p.splice(i,1); continue; }
+      ctx.save(); ctx.translate(q.x,q.y); ctx.rotate(q.r); ctx.fillStyle=q.c;
+      ctx.fillRect(-q.w/2,-q.h/2,q.w,q.h*Math.abs(Math.cos(q.r))); ctx.restore();
+    }
+  };
+  step();
+}
+const HB_COL=["#6ea8fe","#a98bff","#54e6c8","#ffcf6e","#ff7a85","#46d6a0","#ffffff"];
+function hbAdd(x,y,spread,up){
+  if(!HB)return;
+  HB.p.push({x,y,vx:(Math.random()-.5)*spread*2,vy:up?Math.random()*1.6:-Math.random()*spread-2,
+    w:4+Math.random()*6,h:7+Math.random()*9,r:Math.random()*6.28,vr:(Math.random()-.5)*.26,
+    c:HB_COL[(Math.random()*HB_COL.length)|0]});
+}
+function hbBurst(x,y,n){
+  if(!HB)return;
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.28, v=2+Math.random()*7;
+    HB.p.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2,w:4+Math.random()*6,h:7+Math.random()*9,
+      r:Math.random()*6.28,vr:(Math.random()-.5)*.4,c:HB_COL[(Math.random()*HB_COL.length)|0]});
+  }
+}
+/* ---- как сюда попасть: ссылка #hb или набрать секретное слово ---- */
+(function(){
+  const byHash=()=>{ if(location.hash==="#hb")hbOpen(); };
+  addEventListener("hashchange",byHash);
+  if(document.readyState==="loading")addEventListener("DOMContentLoaded",byHash); else byHash();
+  let buf="";
+  addEventListener("keydown",e=>{
+    if(e.key==="Escape"&&$("#hbWrap")){ hbClose(); return; }
+    const t=e.target, tag=t&&t.tagName;
+    if(tag==="INPUT"||tag==="TEXTAREA"||(t&&t.isContentEditable))return;
+    if(e.key&&e.key.length===1){
+      buf=(buf+e.key.toLowerCase()).slice(-HB_WORD.length);
+      if(buf===HB_WORD){ buf=""; hbOpen(); }
+    }
+  });
+})();
 </script>
 <script>
 /* PWA: офлайн и установка на рабочий стол. На file:// service worker недоступен — там и не пытаемся. */
