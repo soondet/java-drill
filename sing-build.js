@@ -97,6 +97,7 @@ const HTML=`
 
   <div class="sg-song" id="sgSong" data-mel='${JSON.stringify(MEL).replace(/'/g,"&#39;")}'></div>
   <div class="sg-hold"><i id="sgHoldBar"></i></div>
+  <div class="sg-res" id="sgRes" hidden></div>
 
   <div class="sg-acts">
     <button class="sg-btn" id="sgMic" type="button">🎤 включить микрофон</button>

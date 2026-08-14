@@ -674,6 +674,18 @@
   .sg-btn:hover{border-color:#ff8fb1}
   .sg-btn:disabled{cursor:default;color:var(--mut)}
   .sg-hint{color:var(--mut);font-size:13px;margin-top:12px;line-height:1.5}
+  .sg-res{margin-top:16px;padding:18px 16px 16px;border-radius:16px;
+    border:1px solid rgba(84,230,200,.32);background:rgba(84,230,200,.07);animation:hbUp .5s ease both}
+  .sg-res-t{font:800 19px var(--sans);margin-bottom:14px;
+    background:linear-gradient(135deg,#54e6c8,#a98bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sg-res-grid{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+  .sg-res-grid div{flex:1 1 96px;max-width:150px;padding:11px 8px;border-radius:12px;background:rgba(0,0,0,.28)}
+  .sg-res-grid b{display:block;font:800 21px var(--mono);color:var(--txt);line-height:1.2}
+  .sg-res-grid span{display:block;font:600 11px var(--sans);color:var(--mut);margin-top:4px}
+  .sg-res-range{margin-top:12px;font:500 13px var(--sans);color:var(--mut);line-height:1.55}
+  .sg-res-range b{color:#8fe6c4}
+  .sg-res-best{margin-top:7px;font:600 12px var(--sans);color:var(--mut);opacity:.75}
+  .sg-res .sg-btn{margin-top:14px}
   .sg-win{color:#54e6c8;font-weight:800}
   .sg-card{max-width:640px;margin:0 auto;padding:22px;text-align:center;
     background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
@@ -9077,6 +9089,22 @@ function sgSoundcheck(done){
   };
   next();
 }
+const SG_OCT={0:"субконтроктавы",1:"контроктавы",2:"большой октавы",3:"малой октавы",
+  4:"первой октавы",5:"второй октавы",6:"третьей октавы",7:"четвёртой октавы"};
+function sgPl(n,a,b,c){ const m=n%100; if(m>=11&&m<=14)return c; const k=n%10;
+  return k===1?a:(k>=2&&k<=4?b:c); }
+function sgFull(midi){ const n=sgNote(440*Math.pow(2,(midi-69)/12));
+  return SG_NAMES[n.i]+" "+(SG_OCT[n.oct]||n.oct+"-й октавы"); }
+function sgSpan(semi){
+  const o=Math.floor(semi/12), s=semi%12;
+  const a=o?o+" "+sgPl(o,"октава","октавы","октав"):"";
+  const b=s?s+" "+sgPl(s,"полутон","полутона","полутонов"):"";
+  return (a+" "+b).trim()||"меньше полутона";
+}
+function sgBest(v){ try{
+    if(v!=null)localStorage.setItem("jdSingBest",JSON.stringify(v));
+    return JSON.parse(localStorage.getItem("jdSingBest")||"null");
+  }catch(e){ return null; } }
 const SG_NAMES=["до","до#","ре","ре#","ми","фа","фа#","соль","соль#","ля","ля#","си"];
 const SG_LAT=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
 function sgNote(f){                                    /* частота → нота + отклонение в центах */
@@ -9182,6 +9210,30 @@ function sgWire(){
   btn.onclick=()=>sgStart(btn);
 }
 let SG_KEY=67;                                         /* соль первой октавы — удобный старт */
+let SG_RESET=null;
+function sgResult(hits,clean,total,lo,hi){
+  const box=$("#sgRes"); if(!box)return;
+  const pct=Math.round(clean/total*100);
+  const acc=hits.length?Math.round(hits.reduce((a,b)=>a+b,0)/hits.length):0;
+  const prev=sgBest();
+  const rec=!prev||pct>prev.pct||(pct===prev.pct&&acc<prev.acc);
+  if(rec)sgBest({pct,acc});
+  const range=(lo!=null&&hi!=null&&hi>lo)
+    ? '<div class="sg-res-range">от <b>'+sgFull(lo)+"</b> до <b>"+sgFull(hi)+"</b> — "+sgSpan(hi-lo)+"</div>"
+    : "";
+  box.innerHTML='<div class="sg-res-t">Спела целиком 🎉</div>'
+    +'<div class="sg-res-grid">'
+    +  '<div><b>'+clean+"/"+total+"</b><span>с первой попытки</span></div>"
+    +  '<div><b>±'+acc+"</b><span>"+sgPl(acc,"цент","цента","центов")+" точность</span></div>"
+    +  '<div><b>'+pct+"%</b><span>чистота"+(rec?" · рекорд 🏆":"")+"</span></div>"
+    +"</div>"+range
+    +(prev&&!rec?'<div class="sg-res-best">твой рекорд: '+prev.pct+"% · ±"+prev.acc+" "
+       +sgPl(prev.acc,"цент","цента","центов")+"</div>":"")
+    +'<button class="sg-btn" id="sgAgain" type="button">спеть ещё раз</button>';
+  box.hidden=false;
+  const a=$("#sgAgain"); if(a)a.onclick=()=>{ if(SG_RESET)SG_RESET(); };
+  if(box.scrollIntoView)box.scrollIntoView({block:"nearest",behavior:"smooth"});
+}
 function sgStep(syls,step,hint,bar,total){
   syls.forEach((s,i)=>{ s.classList.toggle("done",i<step); s.classList.toggle("now",i===step); });
   if(bar)bar.style.width=Math.min(100,step/total*100)+"%";
@@ -9231,6 +9283,14 @@ async function sgStart(btn){
   const MEL=SG_MEL, syls=SG_SYLS;
   let step=0, ref=null, won=false, quiet=0, frame=0, last=performance.now();
   let curMidi=null, curMs=0, doneWant=null;
+  let hits=[], clean=0, dirty=false, lo=null, hi=null;   /* точность, попадания с первой, диапазон за сеанс */
+  const reset=()=>{
+    step=0; ref=null; doneWant=null; won=false; hits=[]; clean=0; dirty=false;
+    sgStep(syls,0,hint,bar,MEL.length); sgTuner(null,null,false);
+    const r=$("#sgRes"); if(r){ r.hidden=true; r.innerHTML=""; }
+    if(hint)hint.textContent="поехали — с любой удобной ноты";
+  };
+  SG_RESET=reset;
   const NEED=110;                                       /* столько держать ноту, чтобы засчитать */
   const BARS=44;
   const tick=()=>{
@@ -9282,6 +9342,8 @@ async function sgStart(btn){
     curMs+=dt;
     if(curMs<NEED)return;                               /* мазок голосом мимо — не считаем */
     if(curMs>NEED+dt)return;                            /* засчитываем ноту один раз, пока держится */
+    if(lo===null||n.midi<lo)lo=n.midi;                  /* диапазон меряем только по устойчивым нотам */
+    if(hi===null||n.midi>hi)hi=n.midi;
 
     if(step===0){                                       /* первая нота задаёт тональность */
       ref=n.midi; SG_KEY=ref; doneWant=n.midi;          /* мелодию дальше играем в её тональности */
@@ -9291,14 +9353,19 @@ async function sgStart(btn){
     const want=ref+MEL[step][0];
     if(n.midi===want||n.midi===want+12||n.midi===want-12){
       doneWant=n.midi;
+      hits.push(Math.abs(n.cents));
+      if(!dirty)clean++;
+      dirty=false;
       sgStep(syls,++step,hint,bar,MEL.length);
       if(step>=MEL.length){
         won=true;
-        if(hint)hint.innerHTML='<b class="sg-win">спела целиком! 🎉</b>';
+        if(hint)hint.textContent="";
+        sgResult(hits,clean,MEL.length-1,lo,hi);        /* первая нота задаёт тональность, её не оцениваем */
         hbBurst(innerWidth/2,innerHeight*.38,140);
         for(let k=0;k<5;k++)setTimeout(()=>hbBurst(innerWidth*(.15+Math.random()*.7),innerHeight*.3,60),k*230);
       }
-    }                                                   /* про промах говорит шкала — второй раз не повторяем */
+    }
+    else dirty=true;                                    /* промах на этом слоге — «с первой попытки» уже не считается */
   };
   tick();
 }
