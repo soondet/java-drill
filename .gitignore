@@ -6,3 +6,6 @@ node_modules/
 # в гит уходит только зашифрованный hb-data.js
 hb-almat.*
 hb-aigerim.*
+
+hb-grab.sh
+hb-test.*

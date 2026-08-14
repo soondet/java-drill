@@ -70,7 +70,7 @@ const HTML=`
 
 <div class="hb-cards">
   <article class="hb-card">
-    <div class="hb-ph"><img src="${IMG_A}" alt="Алмат"></div>
+    <div class="hb-ph"><img src="${IMG_A}" alt="Алмат" style="object-position:50% 20%"></div>
     <h2>Алмат</h2>
     <pre class="hb-code"><span class="k">public final class</span> Almat <span class="k">implements</span> Unbreakable {
     <span class="a">@Override</span>
@@ -83,7 +83,7 @@ const HTML=`
   </article>
 
   <article class="hb-card">
-    <div class="hb-ph"><img src="${IMG_G}" alt="Айгерим"></div>
+    <div class="hb-ph"><img src="${IMG_G}" alt="Айгерим" style="object-position:50% 28%"></div>
     <h2>Айгерим</h2>
     <pre class="hb-code"><span class="k">while</span> (alive) {
     code();
