@@ -83,24 +83,24 @@ const HTML=`
 </div>
 
 <div class="sg-stage">
-  <canvas class="sg-eq" id="sgEq" width="640" height="150"></canvas>
-  <div class="sg-read">
-    <div class="sg-note" id="sgNote">—</div>
-    <div class="sg-cents" id="sgCents">включи микрофон и спой</div>
+  <canvas class="sg-eq" id="sgEq" width="640" height="112"></canvas>
+
+  <div class="sg-tuner">
+    <div class="sg-tgt" id="sgTgt">начни с любой удобной ноты</div>
+    <div class="sg-scale"><span class="sg-zone"></span><i class="sg-needle" id="sgNeedle"></i></div>
+    <div class="sg-dev" id="sgDev">микрофон выключен</div>
+    <div class="sg-now" id="sgNote"></div>
   </div>
-  <div class="sg-tuner" id="sgTuner">
-    <span class="sg-zone"></span><span class="sg-mid"></span>
-    <i class="sg-needle" id="sgNeedle"></i>
-    <b class="sg-tgt" id="sgTgt">начни с любой удобной ноты</b>
-  </div>
+
   <div class="sg-song" id="sgSong" data-mel='${JSON.stringify(MEL).replace(/'/g,"&#39;")}'></div>
   <div class="sg-hold"><i id="sgHoldBar"></i></div>
+
   <div class="sg-acts">
     <button class="sg-btn" id="sgMic" type="button">🎤 включить микрофон</button>
     <button class="sg-btn ghost" id="sgPlay" type="button">🔊 послушать мелодию</button>
   </div>
   <label class="sg-hp"><input type="checkbox" id="sgHp"> я в наушниках — подпевать под музыку</label>
-  <div class="sg-hint" id="sgHint">задание: спеть Happy Birthday целиком. Начинай с любой удобной ноты — тональность подхватится сама</div>
+  <div class="sg-hint" id="sgHint">спеть Happy Birthday целиком — тональность подхватится с первой ноты</div>
 </div>
 
 <div class="sg-card">

@@ -624,36 +624,47 @@
   .sg-stage{max-width:640px;margin:0 auto 22px;padding:20px 18px;text-align:center;
     background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);animation:hbUp .6s ease both}
-  .sg-eq{display:block;width:100%;height:150px;margin-bottom:10px}
-  .sg-read{min-height:66px}
-  .sg-note{font:800 34px var(--mono);letter-spacing:1px;
-    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .sg-cents{font:600 12.5px var(--mono);color:var(--mut);margin-top:3px}
-  .sg-tuner{position:relative;height:52px;max-width:460px;margin:10px auto 4px;
-    border-radius:12px;border:1px solid var(--line-2);background:rgba(0,0,0,.28);overflow:hidden}
-  .sg-zone{position:absolute;left:46%;right:46%;top:0;bottom:18px;background:rgba(70,214,160,.16);
-    border-left:1px solid rgba(70,214,160,.35);border-right:1px solid rgba(70,214,160,.35)}
-  .sg-mid{position:absolute;left:50%;top:0;bottom:18px;width:2px;margin-left:-1px;background:rgba(255,255,255,.5)}
-  .sg-needle{position:absolute;left:50%;top:3px;width:4px;height:28px;margin-left:-2px;border-radius:3px;
-    background:var(--mut);transition:left .07s linear,background .15s;box-shadow:0 0 12px rgba(0,0,0,.5)}
-  .sg-needle.ok{background:#46d6a0;box-shadow:0 0 16px rgba(70,214,160,.7)}
-  .sg-needle.near{background:#ffcf6e}
-  .sg-needle.far{background:#ff7a85}
-  .sg-tgt{position:absolute;left:0;right:0;bottom:3px;text-align:center;
-    font:700 11.5px var(--sans);color:var(--mut);letter-spacing:.2px}
+  .sg-eq{display:block;width:100%;height:112px;margin-bottom:4px}
+  /* шкала — главный элемент сцены: сюда смотрят, когда поют */
+  .sg-tuner{max-width:520px;margin:0 auto;padding:15px 16px 12px;border-radius:16px;
+    background:rgba(0,0,0,.32);border:1px solid var(--line-2)}
+  .sg-tgt{font:800 clamp(19px,4.4vw,24px) var(--sans);color:var(--txt);line-height:1.25;min-height:30px}
+  .sg-tgt.ok{background:linear-gradient(135deg,#46d6a0,#54e6c8);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .sg-scale{position:relative;height:40px;margin:10px 0 8px;border-radius:10px;
+    background:rgba(255,255,255,.035);overflow:hidden;
+    background-image:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),rgba(255,255,255,.13) calc(10% - 1px) 10%)}
+  .sg-zone{position:absolute;left:45%;right:45%;top:0;bottom:0;background:rgba(70,214,160,.18);
+    border-left:1px solid rgba(70,214,160,.4);border-right:1px solid rgba(70,214,160,.4)}
+  .sg-needle{position:absolute;left:50%;top:4px;bottom:4px;width:4px;margin-left:-2px;border-radius:3px;
+    background:var(--mut);transition:left .07s linear,background .15s,box-shadow .15s}
+  .sg-needle.ok{background:#46d6a0;box-shadow:0 0 18px 2px rgba(70,214,160,.75)}
+  .sg-needle.near{background:#ffcf6e;box-shadow:0 0 14px rgba(255,207,110,.6)}
+  .sg-needle.far{background:#ff7a85;box-shadow:0 0 14px rgba(255,122,133,.5)}
+  .sg-dev{font:600 13px var(--sans);color:var(--mut);min-height:18px}
+  .sg-now{font:500 11.5px var(--mono);color:var(--mut);opacity:.6;margin-top:3px;min-height:15px}
   .sg-acts{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:16px}
   .sg-btn.ghost{background:none}
+  .sg-btn.live{border-color:rgba(70,214,160,.45);background:rgba(70,214,160,.09);
+    color:#8fe6c4;cursor:default;padding-left:16px}
+  .sg-btn.live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;
+    background:#46d6a0;margin-right:9px;vertical-align:1px;animation:sgRec 1.3s ease-in-out infinite}
+  @keyframes sgRec{50%{opacity:.25}}
   .sg-hp{display:inline-flex;align-items:center;gap:7px;margin-top:12px;
     font:500 12.5px var(--sans);color:var(--mut);cursor:pointer}
   .sg-hp input{accent-color:#a98bff;width:15px;height:15px}
-  .sg-syl.beat{color:var(--txt);border-color:#ffcf6e;background:rgba(255,207,110,.14)}
-  .sg-song{margin:14px auto 0;max-width:520px;line-height:2.25;font:600 14px var(--sans)}
-  .sg-syl{display:inline-block;margin:0 3px;padding:4px 10px;border-radius:9px;
-    border:1px solid var(--line-2);background:var(--panel-2);color:var(--mut);transition:.18s}
-  .sg-syl.done{color:#0a0b12;background:linear-gradient(135deg,#ff8fb1,#a98bff);border-color:transparent}
-  .sg-syl.now{color:var(--txt);border-color:#54e6c8;box-shadow:0 0 0 3px rgba(84,230,200,.15);
-    animation:sgPulse 1.1s ease-in-out infinite}
-  @keyframes sgPulse{50%{box-shadow:0 0 0 7px rgba(84,230,200,.05)}}
+  /* прошлое тише настоящего: спетое гаснет, текущий слог — самый яркий */
+  .sg-song{margin:16px auto 0;max-width:540px}
+  .sg-line{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-bottom:7px}
+  .sg-syl{display:inline-block;padding:4px 9px;border-radius:9px;background:none;
+    border:1px solid transparent;color:var(--mut);opacity:.5;
+    font:600 14px var(--sans);transition:.2s ease}
+  .sg-syl.done{color:#a98bff;opacity:.45}
+  .sg-syl.now{color:#0a0b12;opacity:1;transform:scale(1.13);
+    background:linear-gradient(135deg,#ff8fb1,#a98bff);border-color:transparent;
+    box-shadow:0 7px 22px -7px rgba(169,139,255,.9);animation:sgPulse 1.5s ease-in-out infinite}
+  @keyframes sgPulse{50%{box-shadow:0 7px 26px -5px rgba(255,143,177,.95)}}
+  .sg-syl.beat{color:var(--txt);opacity:1;border-color:#ffcf6e;background:rgba(255,207,110,.16)}
   .sg-hold{width:100%;max-width:340px;height:8px;margin:14px auto 0;border-radius:5px;
     background:var(--panel-2);border:1px solid var(--line-2);overflow:hidden}
   .sg-hold i{display:block;height:100%;width:0;border-radius:5px;
@@ -9149,7 +9160,14 @@ function sgWire(){
   SG_MEL=[]; SG_SYLS=[];
   if(song){                                            /* слова видно сразу — до того, как включат микрофон */
     try{ SG_MEL=JSON.parse(song.getAttribute("data-mel")||"[]"); }catch(e){}
-    song.innerHTML=SG_MEL.map((m,i)=>'<span class="sg-syl" data-i="'+i+'">'+esc(m[1])+"</span>"+(m[2]?"<br>":"")).join("");
+    let h="",open=false;                                /* строки песни — отдельными рядами, а не одним потоком */
+    SG_MEL.forEach((m,i)=>{
+      if(!open){ h+='<div class="sg-line">'; open=true; }
+      h+='<span class="sg-syl" data-i="'+i+'">'+esc(m[1])+"</span>";
+      if(m[2]){ h+="</div>"; open=false; }
+    });
+    if(open)h+="</div>";
+    song.innerHTML=h;
     SG_SYLS=[...song.querySelectorAll(".sg-syl")];
     if(SG_SYLS[0])SG_SYLS[0].classList.add("now");
   }
@@ -9162,32 +9180,32 @@ let SG_KEY=67;                                         /* соль первой 
 function sgStep(syls,step,hint,bar,total){
   syls.forEach((s,i)=>{ s.classList.toggle("done",i<step); s.classList.toggle("now",i===step); });
   if(bar)bar.style.width=Math.min(100,step/total*100)+"%";
-  if(hint&&step<total)hint.textContent="дальше: "+syls[step].textContent;
   const cur=syls[step]; if(cur&&cur.scrollIntoView)cur.scrollIntoView({block:"nearest"});
 }
 /* Шкала: центр — нужная нота, стрелка — то, что слышно сейчас.
    Октаву не считаем ошибкой, поэтому меряем до ближайшего октавного двойника. */
 function sgTuner(cur,want,holding){
-  const nd=$("#sgNeedle"), tg=$("#sgTgt");
+  const nd=$("#sgNeedle"), tg=$("#sgTgt"), dv=$("#sgDev");
   if(!nd)return;
-  if(holding){                                         /* ноту только что засчитали — не дёргаем стрелку на следующую */
-    nd.style.left="50%"; nd.className="sg-needle ok";
-    if(tg)tg.textContent="есть! тяни сколько хочешь";
-    return; }
-  if(want===null){ nd.style.left="50%"; nd.className="sg-needle";
-    if(tg)tg.textContent=cur===null?"начни с любой удобной ноты":"тональность принята";
-    return; }
+  const set=(title,dev,cls,left)=>{
+    nd.style.left=left; nd.className="sg-needle"+(cls?" "+cls:"");
+    if(tg){ tg.textContent=title; tg.classList.toggle("ok",cls==="ok"); }
+    if(dv)dv.textContent=dev;
+  };
+  if(holding)                                          /* ноту засчитали — не дёргаем стрелку на следующую */
+    return set("есть!","тяни сколько хочешь","ok","50%");
+  if(want===null)
+    return set(cur===null?"начни с любой удобной ноты":"тональность принята",
+               cur===null?"с какой удобно — под неё подстроится вся песня":"","","50%");
   let d=cur-want;
-  if(Math.abs(d-12)<Math.abs(d))d-=12;
+  if(Math.abs(d-12)<Math.abs(d))d-=12;                  /* октава ошибкой не считается */
   if(Math.abs(d+12)<Math.abs(d))d+=12;
-  const R=5, c=Math.max(-R,Math.min(R,d));
-  nd.style.left=(50+c/R*50)+"%";
-  const a=Math.abs(d);
-  nd.className="sg-needle "+(a<.4?"ok":a<1.5?"near":"far");
-  if(tg){
-    const w=sgNote(440*Math.pow(2,(want-69)/12));
-    tg.textContent="нужна "+SG_NAMES[w.i]+" "+w.oct+(a<.4?" — так и держи":a<8?(d>0?" · ты выше на "+a.toFixed(1):" · ты ниже на "+a.toFixed(1)):"");
-  }
+  const R=5, a=Math.abs(d);
+  const w=sgNote(440*Math.pow(2,(want-69)/12));
+  set("нужна "+SG_NAMES[w.i]+" "+w.oct,
+      a<.5?"попала — держи":(d>0?"ты выше на "+a.toFixed(1)+" ↓":"ты ниже на "+a.toFixed(1)+" ↑"),
+      a<.5?"ok":a<1.5?"near":"far",
+      (50+Math.max(-R,Math.min(R,d))/R*50)+"%");
 }
 async function sgStart(btn){
   if(HBMIC)return;
@@ -9201,10 +9219,10 @@ async function sgStart(btn){
   an.fftSize=2048; an.smoothingTimeConstant=.75;
   ac.createMediaStreamSource(stream).connect(an);
   HBMIC={stream,ac,raf:0};
-  btn.textContent="🎤 слушаю — пой!";
+  btn.textContent="слушаю — пой!"; btn.classList.add("live");
   const time=new Float32Array(an.fftSize), freq=new Uint8Array(an.frequencyBinCount);
   const cv=$("#sgEq"), ctx=cv?cv.getContext("2d"):null;
-  const nEl=$("#sgNote"), cEl=$("#sgCents"), bar=$("#sgHoldBar"), hint=$("#sgHint");
+  const nEl=$("#sgNote"), bar=$("#sgHoldBar"), hint=$("#sgHint");
   const MEL=SG_MEL, syls=SG_SYLS;
   let step=0, ref=null, won=false, quiet=0, frame=0, last=performance.now();
   let curMidi=null, curMs=0, doneWant=null;
@@ -9216,14 +9234,19 @@ async function sgStart(btn){
     an.getByteFrequencyData(freq);
     if(ctx){
       ctx.clearRect(0,0,cv.width,cv.height);
-      const w=cv.width/BARS;
+      const w=cv.width/BARS, top=Math.round(freq.length*0.11);  /* только голосовой диапазон, выше — пусто и рябит */
       for(let i=0;i<BARS;i++){
-        const v=freq[Math.floor(Math.pow(i/BARS,1.7)*(freq.length*.55))]/255;
-        const h=Math.max(3,v*cv.height);
+        const v=freq[1+Math.floor(Math.pow(i/BARS,1.45)*top)]/255;
+        const h=v*cv.height;
+        if(h<2)continue;                                        /* тишина — это тишина, а не пунктир */
         const g=ctx.createLinearGradient(0,cv.height-h,0,cv.height);
-        g.addColorStop(0,"#a98bff"); g.addColorStop(.55,"#6ea8fe"); g.addColorStop(1,"#54e6c8");
+        g.addColorStop(0,"#ff8fb1"); g.addColorStop(.5,"#a98bff"); g.addColorStop(1,"#54e6c8");
         ctx.fillStyle=g;
-        ctx.fillRect(i*w+1.5,cv.height-h,w-3,h);
+        const x=i*w+1.5, bw=w-3, r=Math.min(bw/2,4);
+        ctx.beginPath();
+        if(ctx.roundRect)ctx.roundRect(x,cv.height-h,bw,h,[r,r,0,0]);
+        else ctx.rect(x,cv.height-h,bw,h);
+        ctx.fill();
       }
     }
     if(++frame%2)return;                                /* поиск ноты через кадр — глазу хватает, телефону легче */
@@ -9231,7 +9254,7 @@ async function sgStart(btn){
     an.getFloatTimeDomainData(time);
     const f=sgPitch(time,ac.sampleRate);
     if(f<0){
-      if(++quiet>9){ if(nEl)nEl.textContent="—"; if(cEl)cEl.textContent="тишина"; curMidi=null; curMs=0; }
+      if(++quiet>9){ if(nEl)nEl.textContent="тишина"; curMidi=null; curMs=0; }
       /* замолчала надолго — начинаем песню заново, иначе случайный звук
          навсегда задаёт не ту тональность и прогресс залипает */
       if(!won&&step>0&&quiet===90){ step=0; ref=null; doneWant=null; sgStep(syls,0,hint,bar,MEL.length);
@@ -9241,8 +9264,7 @@ async function sgStart(btn){
     }
     quiet=0;
     const n=sgNote(f);
-    if(nEl)nEl.textContent=SG_NAMES[n.i]+" "+n.oct+" · "+SG_LAT[n.i]+n.oct;
-    if(cEl)cEl.textContent=(n.cents>0?"+":"")+n.cents+" центов · "+Math.round(f)+" Гц";
+    if(nEl)nEl.textContent="слышу "+SG_NAMES[n.i]+" "+n.oct+" · "+SG_LAT[n.i]+n.oct+" · "+Math.round(f)+" Гц";
     if(won||!MEL.length)return;
     /* пока играет мелодия из динамика, микрофон слышит её же — не засчитываем,
        кроме случая, когда человек в наушниках и правда подпевает */
@@ -9271,11 +9293,7 @@ async function sgStart(btn){
         hbBurst(innerWidth/2,innerHeight*.38,140);
         for(let k=0;k<5;k++)setTimeout(()=>hbBurst(innerWidth*(.15+Math.random()*.7),innerHeight*.3,60),k*230);
       }
-    } else if(hint){
-      const d=n.midi-want;
-      hint.textContent = Math.abs(d)>=12 ? "мимо — попробуй ещё раз этот слог"
-        : d>0 ? "чуть ниже ↓" : "чуть выше ↑";
-    }
+    }                                                   /* про промах говорит шкала — второй раз не повторяем */
   };
   tick();
 }
