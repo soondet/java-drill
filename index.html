@@ -624,7 +624,7 @@
   .sg-stage{max-width:640px;margin:0 auto 22px;padding:20px 18px;text-align:center;
     background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
     box-shadow:var(--shadow);animation:hbUp .6s ease both}
-  .sg-eq{display:block;width:100%;height:112px;margin-bottom:4px}
+  .sg-eq{display:none;width:100%;height:112px;margin-bottom:4px}  /* до микрофона пустой прямоугольник не нужен */
   /* шкала — главный элемент сцены: сюда смотрят, когда поют */
   .sg-tuner{max-width:520px;margin:0 auto;padding:15px 16px 12px;border-radius:16px;
     background:rgba(0,0,0,.32);border:1px solid var(--line-2)}
@@ -643,6 +643,14 @@
   .sg-needle.far{background:#ff7a85;box-shadow:0 0 14px rgba(255,122,133,.5)}
   .sg-dev{font:600 13px var(--sans);color:var(--mut);min-height:18px}
   .sg-now{font:500 11.5px var(--mono);color:var(--mut);opacity:.6;margin-top:3px;min-height:15px}
+  .sg-pick{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+  .sg-styles{display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .sg-lbl{font:600 11.5px var(--sans);color:var(--mut);opacity:.7;margin-right:2px}
+  .sg-tab{font:700 12.5px var(--sans);cursor:pointer;padding:7px 13px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--mut);transition:.16s}
+  .sg-tab.sm{font-size:11.5px;padding:5px 10px;border-radius:8px}
+  .sg-tab:hover{color:var(--txt)}
+  .sg-tab.on{color:#0a0b12;border-color:transparent;background:linear-gradient(135deg,#ff8fb1,#a98bff)}
   .sg-acts{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:16px}
   .sg-btn.ghost{background:none}
   .sg-btn.live{border-color:rgba(70,214,160,.45);background:rgba(70,214,160,.09);
@@ -9139,11 +9147,67 @@ function sgPitch(buf,rate){                            /* автокорреля
   return rate/(best+shift);
 }
 /* ---- мелодия синтезом: ни одного файла, работает офлайн ---- */
-let SG_MEL=[], SG_SYLS=[], SG_AC=null, SG_PLAY=null;
+let SG_MEL=[], SG_SYLS=[], SG_AC=null, SG_PLAY=null, SG_SONGS=[], SG_SONG=null;
 function sgAudio(){
   if(HBMIC&&HBMIC.ac)return HBMIC.ac;
   if(!SG_AC){ const AC=window.AudioContext||window.webkitAudioContext; if(!AC)return null; SG_AC=new AC(); }
   return SG_AC;
+}
+/* Стиль меняет темп, тембр, рисунок аккомпанемента и лад — ноты мелодии те же.
+   Минор получается опусканием 3-й, 6-й и 7-й ступеней: от первой ноты
+   (это 5-я ступень) им отвечают интервалы 9, 2 и 4. */
+const SG_STYLES=[
+  {id:"прямо", beat:.52, wave:"triangle", pat:"block",   minor:0},
+  {id:"вальс", beat:.46, wave:"triangle", pat:"waltz",   minor:0},
+  {id:"регги", beat:.60, wave:"sawtooth", pat:"offbeat", minor:0},
+  {id:"8-бит", beat:.42, wave:"square",   pat:"bass",    minor:0},
+  {id:"минор", beat:.56, wave:"triangle", pat:"block",   minor:1}
+];
+let SG_STYLE=SG_STYLES[0];
+const SG_CHORD={I:[0,4,7], IV:[5,9,12], V:[7,11,14]};
+const SG_CHORD_M={I:[0,3,7], IV:[5,8,12], V:[7,10,14]};
+function sgMinor(iv){ return (iv===2||iv===4||iv===9)?iv-1:iv; }
+function sgTone(ac,f,at,dur,gain,wave){
+  const o=ac.createOscillator(), g=ac.createGain();
+  o.type=wave; o.frequency.value=f;
+  g.gain.setValueAtTime(.0001,at);
+  g.gain.exponentialRampToValueAtTime(gain,at+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,at+Math.max(.06,dur));
+  o.connect(g).connect(ac.destination);
+  o.start(at); o.stop(at+Math.max(.08,dur)+.02);
+  SG_PLAY&&SG_PLAY.oscs.push(o);
+  return o;
+}
+function sgHz(midi){ return 440*Math.pow(2,(midi-69)/12); }
+function sgChords(ac,t0,chips,times,tonicMidi,st){
+  const map=st.minor?SG_CHORD_M:SG_CHORD;
+  let cur=null, from=0;
+  const flush=(to,name)=>{
+    const notes=map[name]||map.I, dur=to-from;
+    if(dur<=0)return;
+    if(st.pat==="bass"){                                 /* приставка: только басовая нота на каждую долю */
+      for(let t=from;t<to-.01;t+=st.beat)
+        sgTone(ac,sgHz(tonicMidi-12+notes[0]),t0+t,st.beat*.4,.09,"square");
+    } else if(st.pat==="waltz"){                         /* бас — раз, аккорд — два-три */
+      let i=0;
+      for(let t=from;t<to-.01;t+=st.beat,i++){
+        if(i%3===0)sgTone(ac,sgHz(tonicMidi-12+notes[0]),t0+t,st.beat*.7,.11,"triangle");
+        else notes.forEach(n=>sgTone(ac,sgHz(tonicMidi+n),t0+t,st.beat*.32,.045,"triangle"));
+      }
+    } else if(st.pat==="offbeat"){                       /* регги: удар на слабую долю */
+      for(let t=from+st.beat/2;t<to-.01;t+=st.beat)
+        notes.forEach(n=>sgTone(ac,sgHz(tonicMidi+n),t0+t,st.beat*.22,.05,"sawtooth"));
+    } else {
+      notes.forEach(n=>sgTone(ac,sgHz(tonicMidi+n),t0+from,dur*.95,.045,"triangle"));
+      sgTone(ac,sgHz(tonicMidi-12+notes[0]),t0+from,dur*.95,.07,"triangle");
+    }
+  };
+  chips.forEach((c,i)=>{
+    const name=c[4]||"I";
+    if(cur===null){ cur=name; from=times[i].at; return; }
+    if(name!==cur){ flush(times[i].at,cur); cur=name; from=times[i].at; }
+  });
+  if(cur!==null)flush(times[times.length-1].at+times[times.length-1].len,cur);
 }
 function sgStopMelody(){
   if(!SG_PLAY)return;
@@ -9157,52 +9221,81 @@ function sgPlayMelody(baseMidi){
   const ac=sgAudio(); if(!ac||!SG_MEL.length)return;
   if(ac.state==="suspended")ac.resume();
   sgStopMelody();
-  const BEAT=.52;
-  let t=ac.currentTime+.2, ms=200;
+  const st=SG_STYLE, BEAT=st.beat, t0=ac.currentTime+.25;
   SG_PLAY={oscs:[],timers:[],until:0};
-  SG_MEL.forEach((m,i)=>{
+  let t=0, ms=250;
+  const times=[];
+  SG_MEL.forEach((m,i)=>{                              /* сперва раскладка по времени — она нужна и аккордам */
     const durs=Array.isArray(m[3])?m[3]:[m[3]||1];
-    const f=440*Math.pow(2,(baseMidi+m[0]-69)/12);
-    let chip=0;
+    const iv=st.minor?sgMinor(m[0]):m[0];
+    const f=sgHz(baseMidi+iv);
+    const at=t; let chip=0;
     durs.forEach(b=>{                                  /* каждая нота слога звучит отдельно */
-      const dur=b*BEAT, end=t+Math.max(.08,dur-.07);   /* пауза перед повтором той же высоты */
-      const o=ac.createOscillator(), g=ac.createGain();
-      o.type="triangle"; o.frequency.value=f;
-      g.gain.setValueAtTime(.0001,t);
-      g.gain.exponentialRampToValueAtTime(.17,t+.02);
-      g.gain.exponentialRampToValueAtTime(.0001,end);
-      o.connect(g).connect(ac.destination);
-      o.start(t); o.stop(end+.02);
-      SG_PLAY.oscs.push(o);
-      t+=dur; chip+=dur*1000;
+      const dur=b*BEAT;
+      sgTone(ac,f,t0+t,Math.max(.08,dur-.07),.17,st.wave);   /* пауза перед повтором той же высоты */
+      t+=dur; chip+=dur;
     });
-    const at=ms;
+    times.push({at,len:chip});
+    const showAt=ms;
     SG_PLAY.timers.push(setTimeout(()=>{
       const el=SG_SYLS[i]; if(!el)return;
       el.classList.add("beat");
-      SG_PLAY&&SG_PLAY.timers.push(setTimeout(()=>el.classList.remove("beat"),chip*.9));
-    },at));
-    ms+=chip;
+      SG_PLAY&&SG_PLAY.timers.push(setTimeout(()=>el.classList.remove("beat"),chip*900));
+    },showAt));
+    ms+=chip*1000;
   });
+  sgChords(ac,t0,SG_MEL,times,baseMidi+(SG_SONG?SG_SONG.tonic:-7),st);
   SG_PLAY.until=performance.now()+ms+250;
   const b=$("#sgPlay"); if(b)b.textContent="⏹ стоп";
   SG_PLAY.timers.push(setTimeout(sgStopMelody,ms+260));
 }
+function sgRender(){
+  const song=$("#sgSong"); if(!song||!SG_SONG)return;
+  SG_MEL=SG_SONG.mel||[];
+  let h="",open=false;                                 /* строки песни — отдельными рядами, а не одним потоком */
+  SG_MEL.forEach((m,i)=>{
+    if(!open){ h+='<div class="sg-line">'; open=true; }
+    h+='<span class="sg-syl" data-i="'+i+'">'+esc(m[1])+"</span>";
+    if(m[2]){ h+="</div>"; open=false; }
+  });
+  if(open)h+="</div>";
+  song.innerHTML=h;
+  SG_SYLS=[...song.querySelectorAll(".sg-syl")];
+  if(SG_SYLS[0])SG_SYLS[0].classList.add("now");
+  const pick=$("#sgPick");
+  if(pick)[...pick.children].forEach(b=>b.classList.toggle("on",b.dataset.id===SG_SONG.id));
+  if(SG_RESET)SG_RESET();
+  const hint=$("#sgHint");                             /* подпись под песню, а не всегда про Happy Birthday */
+  if(hint)hint.textContent="спеть «"+SG_SONG.name+"» целиком — тональность подхватится с первой ноты";
+}
 function sgWire(){
   const song=$("#sgSong");
-  SG_MEL=[]; SG_SYLS=[];
+  SG_MEL=[]; SG_SYLS=[]; SG_SONGS=[]; SG_SONG=null;
   if(song){                                            /* слова видно сразу — до того, как включат микрофон */
-    try{ SG_MEL=JSON.parse(song.getAttribute("data-mel")||"[]"); }catch(e){}
-    let h="",open=false;                                /* строки песни — отдельными рядами, а не одним потоком */
-    SG_MEL.forEach((m,i)=>{
-      if(!open){ h+='<div class="sg-line">'; open=true; }
-      h+='<span class="sg-syl" data-i="'+i+'">'+esc(m[1])+"</span>";
-      if(m[2]){ h+="</div>"; open=false; }
+    try{ SG_SONGS=JSON.parse(song.getAttribute("data-songs")||"[]"); }catch(e){}
+    SG_SONG=SG_SONGS[0]||null;
+    const pick=$("#sgPick");
+    if(pick&&SG_SONGS.length>1){
+      pick.innerHTML=SG_SONGS.map(s=>'<button type="button" class="sg-tab" data-id="'+esc(s.id)+'">'+esc(s.name)+"</button>").join("");
+      [...pick.children].forEach(b=>b.onclick=()=>{
+        const s=SG_SONGS.find(x=>x.id===b.dataset.id); if(!s||s===SG_SONG)return;
+        sgStopMelody(); SG_SONG=s; sgRender();
+      });
+    }
+    sgRender();
+  }
+  const box=$("#sgStyles");
+  if(box){
+    box.innerHTML='<span class="sg-lbl">как играть:</span>'
+      +SG_STYLES.map(s=>'<button type="button" class="sg-tab sm" data-s="'+esc(s.id)+'">'+esc(s.id)+"</button>").join("");
+    [...box.querySelectorAll(".sg-tab")].forEach(b=>{
+      b.classList.toggle("on",b.dataset.s===SG_STYLE.id);
+      b.onclick=()=>{
+        SG_STYLE=SG_STYLES.find(x=>x.id===b.dataset.s)||SG_STYLES[0];
+        [...box.querySelectorAll(".sg-tab")].forEach(x=>x.classList.toggle("on",x.dataset.s===SG_STYLE.id));
+        if(SG_PLAY){ sgStopMelody(); sgPlayMelody(SG_KEY); }
+      };
     });
-    if(open)h+="</div>";
-    song.innerHTML=h;
-    SG_SYLS=[...song.querySelectorAll(".sg-syl")];
-    if(SG_SYLS[0])SG_SYLS[0].classList.add("now");
   }
   const play=$("#sgPlay");
   if(play)play.onclick=()=>{ if(SG_PLAY)sgStopMelody(); else sgPlayMelody(SG_KEY); };
@@ -9279,14 +9372,14 @@ async function sgStart(btn){
   btn.textContent="слушаю — пой!"; btn.classList.add("live");
   const time=new Float32Array(an.fftSize), freq=new Uint8Array(an.frequencyBinCount);
   const cv=$("#sgEq"), ctx=cv?cv.getContext("2d"):null;
+  if(cv)cv.style.display="block";
   const nEl=$("#sgNote"), bar=$("#sgHoldBar"), hint=$("#sgHint");
-  const MEL=SG_MEL, syls=SG_SYLS;
   let step=0, ref=null, won=false, quiet=0, frame=0, last=performance.now();
   let curMidi=null, curMs=0, doneWant=null;
   let hits=[], clean=0, dirty=false, lo=null, hi=null;   /* точность, попадания с первой, диапазон за сеанс */
   const reset=()=>{
     step=0; ref=null; doneWant=null; won=false; hits=[]; clean=0; dirty=false;
-    sgStep(syls,0,hint,bar,MEL.length); sgTuner(null,null,false);
+    sgStep(SG_SYLS,0,hint,bar,SG_MEL.length); sgTuner(null,null,false);
     const r=$("#sgRes"); if(r){ r.hidden=true; r.innerHTML=""; }
     if(hint)hint.textContent="поехали — с любой удобной ноты";
   };
@@ -9322,7 +9415,7 @@ async function sgStart(btn){
       if(++quiet>9){ if(nEl)nEl.textContent="тишина"; curMidi=null; curMs=0; }
       /* замолчала надолго — начинаем песню заново, иначе случайный звук
          навсегда задаёт не ту тональность и прогресс залипает */
-      if(!won&&step>0&&quiet===90){ step=0; ref=null; doneWant=null; sgStep(syls,0,hint,bar,MEL.length);
+      if(!won&&step>0&&quiet===90){ step=0; ref=null; doneWant=null; sgStep(SG_SYLS,0,hint,bar,SG_MEL.length);
         sgTuner(null,null);
         if(hint)hint.textContent="начнём сначала — с любой удобной ноты"; }
       return;
@@ -9330,12 +9423,12 @@ async function sgStart(btn){
     quiet=0;
     const n=sgNote(f);
     if(nEl)nEl.textContent="слышу "+SG_NAMES[n.i]+" "+n.oct+" · "+SG_LAT[n.i]+n.oct+" · "+Math.round(f)+" Гц";
-    if(won||!MEL.length)return;
+    if(won||!SG_MEL.length)return;
     /* пока играет мелодия из динамика, микрофон слышит её же — не засчитываем,
        кроме случая, когда человек в наушниках и правда подпевает */
     const hp=$("#sgHp"), deaf=SG_PLAY&&performance.now()<SG_PLAY.until&&!(hp&&hp.checked);
     const held=doneWant!==null&&Math.abs(n.midi-doneWant)<1;
-    sgTuner(n.midi+n.cents/100, step===0?null:ref+MEL[step][0], held);
+    sgTuner(n.midi+n.cents/100, step===0?null:ref+SG_MEL[step][0], held);
     if(deaf)return;
 
     if(n.midi!==curMidi){ curMidi=n.midi; curMs=0; return; }
@@ -9347,20 +9440,20 @@ async function sgStart(btn){
 
     if(step===0){                                       /* первая нота задаёт тональность */
       ref=n.midi; SG_KEY=ref; doneWant=n.midi;          /* мелодию дальше играем в её тональности */
-      sgStep(syls,++step,hint,bar,MEL.length);
+      sgStep(SG_SYLS,++step,hint,bar,SG_MEL.length);
       return;
     }
-    const want=ref+MEL[step][0];
+    const want=ref+SG_MEL[step][0];
     if(n.midi===want||n.midi===want+12||n.midi===want-12){
       doneWant=n.midi;
       hits.push(Math.abs(n.cents));
       if(!dirty)clean++;
       dirty=false;
-      sgStep(syls,++step,hint,bar,MEL.length);
-      if(step>=MEL.length){
+      sgStep(SG_SYLS,++step,hint,bar,SG_MEL.length);
+      if(step>=SG_MEL.length){
         won=true;
         if(hint)hint.textContent="";
-        sgResult(hits,clean,MEL.length-1,lo,hi);        /* первая нота задаёт тональность, её не оцениваем */
+        sgResult(hits,clean,SG_MEL.length-1,lo,hi);        /* первая нота задаёт тональность, её не оцениваем */
         hbBurst(innerWidth/2,innerHeight*.38,140);
         for(let k=0;k<5;k++)setTimeout(()=>hbBurst(innerWidth*(.15+Math.random()*.7),innerHeight*.3,60),k*230);
       }

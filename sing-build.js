@@ -9,6 +9,7 @@ const fs=require("fs"), path=require("path"), crypto=require("crypto"), {execFil
 
 /* ---- поменять здесь, когда будут известны ---- */
 const NAME="ИМЯ";
+const BIRTH="27.08.1998";                    /* дата рождения: из неё делается личная мелодия */
 const TITLE="С днём рождения!";
 const TEXT="Голос — единственный инструмент, который всегда с собой: его не забудешь дома и не порвёшь струну. "
           +"Пусть он звучит, когда хочется, и пусть рядом всегда будут те, кто просит спеть ещё раз.";
@@ -67,16 +68,37 @@ function splitName(n){
   const m=Math.ceil(s.length/2); return [s.slice(0,m),s.slice(m)];
 }
 const [N1,N2]=splitName(NAME);
-/* [интервал, слог, конец строки, длительности нот в долях]
+/* [интервал, слог, конец строки, длительности нот в долях, аккорд]
    Длительностей может быть несколько: «Hap-py» — это две ноты одной высоты.
    Засчитывается такой слог как один шаг (две одинаковые по высоте ноты
-   не различить без разбора ритма), но играться должен по-настоящему. */
+   не различить без разбора ритма), но играться должен по-настоящему.
+   Интервалы считаются от ПЕРВОЙ ноты, tonic — сколько до тоники вниз. */
 const MEL=[
-  [0,"Hap-py",0,[.5,.5]],[2,"birth",0,[1]],[0,"day",0,[1]],[5,"to",0,[1]],[4,"you",1,[2]],
-  [0,"Hap-py",0,[.5,.5]],[2,"birth",0,[1]],[0,"day",0,[1]],[7,"to",0,[1]],[5,"you",1,[2]],
-  [0,"Hap-py",0,[.5,.5]],[12,"birth",0,[1]],[9,"day",0,[1]],[5,"dear",0,[1]],[4,N1,0,[.5]],[2,N2,1,[1.5]],
-  [10,"Hap-py",0,[.5,.5]],[9,"birth",0,[1]],[5,"day",0,[1]],[7,"to",0,[1]],[5,"you",1,[2]]
+  [0,"Hap-py",0,[.5,.5],"I"],[2,"birth",0,[1],"I"],[0,"day",0,[1],"I"],[5,"to",0,[1],"I"],[4,"you",1,[2],"V"],
+  [0,"Hap-py",0,[.5,.5],"V"],[2,"birth",0,[1],"V"],[0,"day",0,[1],"V"],[7,"to",0,[1],"V"],[5,"you",1,[2],"I"],
+  [0,"Hap-py",0,[.5,.5],"I"],[12,"birth",0,[1],"I"],[9,"day",0,[1],"I"],[5,"dear",0,[1],"IV"],[4,N1,0,[.5],"I"],[2,N2,1,[1.5],"I"],
+  [10,"Hap-py",0,[.5,.5],"IV"],[9,"birth",0,[1],"IV"],[5,"day",0,[1],"I"],[7,"to",0,[1],"V"],[5,"you",1,[2],"I"]
 ];
+
+/* Дата рождения как мелодия. Цифры кладём не на хроматику, а на мажорную
+   пентатонику — в ней любая последовательность звучит без диссонанса,
+   поэтому «случайного пиликанья» не выйдет ни при какой дате. */
+function dateMel(src){
+  const d=String(src).replace(/\D/g,"").split("").map(Number);
+  if(!d.length)return null;
+  const LAD=[0,2,4,7,9,12,14,16,19,21], CH=["I","I","IV","IV","V","V","I","I"];
+  const out=[];
+  d.forEach(x=>{
+    const iv=LAD[x], dur=x%2?.5:1, prev=out[out.length-1];
+    if(prev&&prev[0]===iv){ prev[3].push(dur); prev[1]+="-"+x; return; }  /* две одинаковые цифры — один шаг, две ноты */
+    out.push([iv,String(x),0,[dur],CH[out.length%CH.length]]);
+  });
+  const base=out[0][0];
+  out.forEach((c,i)=>{ c[0]-=base; if((i+1)%4===0||i===out.length-1)c[2]=1; });
+  return {id:"date",name:"Твоя дата",tonic:-(LAD[d[0]]),mel:out};
+}
+const SONGS=[{id:"hb",name:"Happy Birthday",tonic:-7,mel:MEL}];
+const DM=dateMel(BIRTH); if(DM)SONGS.push(DM);
 
 const HTML=`
 <div class="sg-hero">
@@ -95,7 +117,8 @@ const HTML=`
     <div class="sg-now" id="sgNote"></div>
   </div>
 
-  <div class="sg-song" id="sgSong" data-mel='${JSON.stringify(MEL).replace(/'/g,"&#39;")}'></div>
+  <div class="sg-pick" id="sgPick"></div>
+  <div class="sg-song" id="sgSong" data-songs='${JSON.stringify(SONGS).replace(/'/g,"&#39;")}'></div>
   <div class="sg-hold"><i id="sgHoldBar"></i></div>
   <div class="sg-res" id="sgRes" hidden></div>
 
@@ -103,6 +126,7 @@ const HTML=`
     <button class="sg-btn" id="sgMic" type="button">🎤 включить микрофон</button>
     <button class="sg-btn ghost" id="sgPlay" type="button">🔊 послушать мелодию</button>
   </div>
+  <div class="sg-styles" id="sgStyles"></div>
   <label class="sg-hp"><input type="checkbox" id="sgHp"> я в наушниках — подпевать под музыку</label>
   <div class="sg-hint" id="sgHint">спеть Happy Birthday целиком — тональность подхватится с первой ноты</div>
 </div>
