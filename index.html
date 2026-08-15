@@ -9669,10 +9669,16 @@ function qaFace(p,size){                               /* нет фото — р
   return '<span class="'+cls+' ini" style="background:linear-gradient(135deg,hsl('+hue
     +',62%,58%),hsl('+((hue+45)%360)+',62%,48%))">'+ch+"</span>";
 }
+const QA_YES=["да, всё так ✓","в точку ✓","угадала ✓","так и есть ✓","именно ✓"];
+const QA_NO=["а вот и нет — ","мимо — ","не угадала — ","на самом деле "];
+const QA_PICK=a=>a[(Math.random()*a.length)|0];
 function qaGame(){
   const box=$("#qaGame"); if(!box)return;
   let team=[]; try{ team=JSON.parse(box.getAttribute("data-team")||"[]"); }catch(e){}
   if(!team.length)return;
+  for(let k=team.length-1;k>0;k--){          /* иначе первые пять подряд «нервы» и схема читается с третьей карточки */
+    const j=(Math.random()*(k+1))|0; const t=team[k]; team[k]=team[j]; team[j]=t;
+  }
   let i=0, score=0, busy=false;
   const draw=()=>{
     if(i>=team.length)return qaScore(box,team,score);
@@ -9695,7 +9701,7 @@ function qaGame(){
     card.classList.add(right?"right":"wrong");
     btn.classList.add(right?"right":"wrong");
     verd.innerHTML='<span class="qa-sev '+tier.c+'">Severity: '+tier.k+"</span>"
-      +"<span>"+(right?"да, всё так ✓":"а вот и нет — "+tier.w)+"</span>";
+      +"<span>"+(right?QA_PICK(QA_YES):QA_PICK(QA_NO)+tier.w)+"</span>";
     if(right)hbBurst(innerWidth/2,innerHeight*.4,28);
     setTimeout(()=>{ i++; busy=false; draw(); },1250);
   };
