@@ -662,6 +662,12 @@
   .qa-g-p{margin:0 0 14px;font-size:13.5px;line-height:1.6;color:var(--mut)}
   .qa-card{padding:22px 14px;border-radius:14px;background:var(--panel-2);border:1px solid var(--line);
     transition:.25s}
+  .qa-av{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;
+    object-fit:cover;flex:none;color:#0a0b12;font-weight:800;overflow:hidden}
+  .qa-av.big{width:92px;height:92px;margin:0 auto 12px;font-size:38px;display:flex;
+    box-shadow:0 10px 26px -10px rgba(0,0,0,.85)}
+  .qa-av.sm{width:24px;height:24px;font-size:12px;margin-right:6px;vertical-align:-7px}
+  .qa-row b u{display:inline-flex;align-items:center;text-decoration:none;margin-left:9px;white-space:nowrap}
   .qa-card b{display:block;font:800 22px var(--sans);color:var(--txt)}
   .qa-card i{display:block;margin-top:5px;font:500 12.5px var(--sans);color:var(--mut)}
   .qa-card.right{border-color:#46d6a0;background:rgba(70,214,160,.13);box-shadow:0 0 26px -6px rgba(70,214,160,.6)}
@@ -9597,6 +9603,14 @@ function qaWire(){
 }
 let QA_SAID=0;
 const QA_TIER={"-1":{k:"Blocker",c:"bad",w:"нервы"},"1":{k:"Trivial",c:"ok",w:"спокойно"},"2":{k:"Not a bug",c:"star",w:"отдушина"}};
+function qaFace(p,size){                               /* нет фото — рисуем букву, а не дырку */
+  const cls="qa-av "+(size==="big"?"big":"sm");
+  if(p.p)return '<img class="'+cls+'" src="'+p.p+'" alt="'+esc(p.n)+'">';
+  const ch=esc((p.n||"?").trim()[0]||"?");
+  const hue=(p.n||"").split("").reduce((a,c)=>a+c.charCodeAt(0),0)%360;
+  return '<span class="'+cls+' ini" style="background:linear-gradient(135deg,hsl('+hue
+    +',62%,58%),hsl('+((hue+45)%360)+',62%,48%))">'+ch+"</span>";
+}
 function qaGame(){
   const box=$("#qaGame"); if(!box)return;
   let team=[]; try{ team=JSON.parse(box.getAttribute("data-team")||"[]"); }catch(e){}
@@ -9607,7 +9621,7 @@ function qaGame(){
     const p=team[i];
     box.innerHTML='<div class="qa-g-h">🏷 Расставь команду по severity'
       +'<span>'+(i+1)+" из "+team.length+"</span></div>"
-      +'<div class="qa-card" id="qaCard"><b>'+esc(p.n)+"</b>"
+      +'<div class="qa-card" id="qaCard">'+qaFace(p,"big")+"<b>"+esc(p.n)+"</b>"
       +(p.s?"<i>"+esc(p.s)+"</i>":"")+"</div>"
       +'<div class="qa-btns"><button type="button" class="qa-b bad" data-v="-1">🔴 выносит мозг</button>'
       +'<button type="button" class="qa-b ok" data-v="1">🟢 с ним спокойно</button></div>'
@@ -9634,8 +9648,8 @@ function qaScore(box,team,score){
   const list=tiers.map(([t,label])=>{
     const who=team.filter(p=>p.t===t);
     if(!who.length)return "";
-    return '<div class="qa-row '+(t===2?"star":t===1?"ok":"bad")+'"><span>'+esc(label)+"</span><b>"
-      +who.map(p=>esc(p.n)).join(", ")+"</b></div>";
+    return '<div class="qa-row '+(t===2?"star":t===1?"ok":"bad")+'"><span>'+esc(label)+"</span>"
+      +'<b>'+who.map(p=>'<u>'+qaFace(p,"sm")+esc(p.n)+"</u>").join("")+"</b></div>";
   }).join("");
   box.innerHTML='<div class="qa-g-h">📊 Итог<span>'+score+" из "+team.length+"</span></div>"
     +'<p class="qa-g-p">'+(score===team.length?"Ты знаешь свою команду наизусть."

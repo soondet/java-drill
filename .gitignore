@@ -13,3 +13,4 @@ hb-test.*
 sing-photo.*
 
 qa-photo.*
+qa-[0-9]*.*

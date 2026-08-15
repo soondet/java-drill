@@ -64,6 +64,25 @@ function photo(){
 }
 const IMG=photo();
 
+/* Фото коллег: qa-1.jpg … qa-13.jpg по порядку из списка TEAM.
+   Кого нет — на карточке останется буква вместо лица. */
+function teamPhoto(i){
+  for(const ext of [".jpg",".jpeg",".png",".webp",".heic"]){
+    const p=path.join(DIR,"qa-"+i+ext);
+    if(!fs.existsSync(p))continue;
+    const tmp=path.join(require("os").tmpdir(),"qa-t"+i+".jpg");
+    try{
+      execFileSync("sips",["-s","format","jpeg","-s","formatOptions","58","-Z","220",p,"--out",tmp],{stdio:"ignore"});
+      const b=fs.readFileSync(tmp); fs.unlinkSync(tmp);
+      return {d:"data:image/jpeg;base64,"+b.toString("base64"),kb:Math.round(b.length/1024)};
+    }catch(e){ return null; }
+  }
+  return null;
+}
+let found=0,kb=0;
+TEAM.forEach((p,idx)=>{ const im=teamPhoto(idx+1); if(im){ p.p=im.d; found++; kb+=im.kb; } });
+console.log("  · фото коллег: "+found+" из "+TEAM.length+(found?" ("+kb+" КБ)":" — везде буквы"));
+
 const testRows=TESTS.map(t=>'<div class="qa-t"><i>✓</i><span>'+esc(t)+"</span><b>PASS</b></div>").join("")
   +'<div class="qa-t qa-fail" id="qaFail"><i>✗</i><span>should_not_get_older</span><b>FAIL</b></div>';
 
