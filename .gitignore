@@ -11,3 +11,5 @@ hb-grab.sh
 hb-test.*
 
 sing-photo.*
+
+qa-photo.*

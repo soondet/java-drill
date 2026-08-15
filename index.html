@@ -603,6 +603,91 @@
     padding:13px;border-radius:13px;border:1px solid var(--line);background:var(--panel-2);color:var(--txt)}
   .hb-lock input:focus{outline:none;border-color:var(--acc2)}
   .hb-err{color:var(--bad);font-size:13px;min-height:19px;margin:11px 0 0}
+  /* ---- 🐞 комната для тестировщицы ---- */
+  .hb-wrap.qa-room{background:radial-gradient(1000px 600px at 50% -8%,rgba(110,168,254,.18),transparent 60%),
+      radial-gradient(900px 520px at 15% 108%,rgba(70,214,160,.12),transparent 62%),#07080e}
+  .qa-tick{max-width:640px;margin:0 auto 20px;padding:20px;border-radius:var(--radius);
+    background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);
+    text-align:left;animation:hbUp .55s ease both}
+  .qa-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .qa-key{font:700 12px var(--mono);color:var(--acc);border:1px solid rgba(110,168,254,.35);
+    border-radius:7px;padding:3px 9px}
+  .qa-st{font:700 11px var(--sans);letter-spacing:.5px;text-transform:uppercase;color:#0a0b12;
+    background:var(--warn);border-radius:6px;padding:3px 9px}
+  .qa-tick h1{font:800 clamp(20px,4.6vw,27px) var(--sans);margin:0 0 16px;color:var(--txt);line-height:1.25}
+  .qa-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:9px;margin-bottom:16px}
+  .qa-fields div{background:var(--panel-2);border-radius:10px;padding:9px 11px}
+  .qa-fields span{display:block;font:600 10.5px var(--sans);color:var(--mut);letter-spacing:.4px;text-transform:uppercase}
+  .qa-fields b{font:700 14px var(--sans);color:var(--txt)}
+  .qa-tick h4{font:700 12px var(--sans);color:var(--mut);letter-spacing:.5px;text-transform:uppercase;margin:0 0 7px}
+  .qa-tick ol{margin:0 0 16px;padding-left:20px;color:var(--txt);font-size:14px;line-height:1.75}
+  .qa-ea{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px}
+  .qa-ea div{border-left:3px solid var(--line);padding-left:11px}
+  .qa-ea span{font:700 10.5px var(--sans);color:var(--mut);letter-spacing:.4px;text-transform:uppercase}
+  .qa-ea p{margin:3px 0 0;font-size:13.5px;color:var(--txt);line-height:1.5}
+  .qa-res{padding:12px 14px;border-radius:12px;background:rgba(70,214,160,.09);
+    border:1px solid rgba(70,214,160,.3);font-size:14px;color:var(--txt);line-height:1.6}
+  .qa-res i{color:var(--mut);font-size:12.5px}
+  .qa-run{max-width:640px;margin:0 auto 20px;padding:16px;border-radius:var(--radius);
+    background:rgba(0,0,0,.42);border:1px solid var(--line);text-align:left;font:500 13px/1.6 var(--mono)}
+  .qa-run-h{color:#8fe6c4;margin-bottom:10px}
+  .qa-t{display:flex;align-items:center;gap:10px;padding:3px 0;opacity:0;transform:translateX(-8px);
+    transition:.3s ease;color:var(--mut)}
+  .qa-t.show{opacity:1;transform:none}
+  .qa-t i{font-style:normal;color:#46d6a0;width:14px}
+  .qa-t span{flex:1;color:#cfd6e6}
+  .qa-t b{font-size:11px;color:#46d6a0;letter-spacing:.5px}
+  .qa-fail{cursor:pointer;border-radius:8px;padding:5px 8px;margin:5px -8px 0;
+    background:rgba(255,122,133,.11);border:1px solid rgba(255,122,133,.35)}
+  .qa-fail i,.qa-fail b{color:#ff7a85}
+  .qa-fail span{color:#ff9ba3;text-decoration:underline;text-underline-offset:3px}
+  .qa-fail:hover{background:rgba(255,122,133,.18)}
+  .qa-fail.opened{cursor:default}
+  .qa-fail.opened span{text-decoration:none}
+  .qa-sum{margin-top:11px;padding-top:9px;border-top:1px solid var(--line-2);color:var(--mut);font-size:12px}
+  .qa-sum b{color:#46d6a0}.qa-sum b.r{color:#ff7a85}
+  .qa-trace{margin-top:12px;padding:13px;border-radius:12px;background:rgba(255,122,133,.07);
+    border:1px solid rgba(255,122,133,.28);animation:hbUp .5s ease both}
+  .qa-trace pre{margin:0;font:500 12px/1.65 var(--mono);color:#ffb3b9;white-space:pre-wrap;word-break:break-word}
+  .qa-note{display:flex;align-items:center;gap:14px;margin-top:12px;padding-top:12px;
+    border-top:1px solid rgba(255,122,133,.22);flex-wrap:wrap}
+  .qa-ph{width:74px;height:74px;border-radius:50%;object-fit:cover;flex:none;
+    border:2px solid transparent;background:var(--grad) border-box}
+  .qa-note p{flex:1 1 200px;margin:0;font:500 14px/1.62 var(--sans);color:var(--txt)}
+  .qa-game{max-width:640px;margin:0 auto;padding:18px 16px;border-radius:var(--radius);
+    background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
+  .qa-g-h{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    font:700 14px var(--sans);color:var(--txt);margin-bottom:14px}
+  .qa-g-h span{font:600 12px var(--mono);color:var(--mut)}
+  .qa-g-p{margin:0 0 14px;font-size:13.5px;line-height:1.6;color:var(--mut)}
+  .qa-card{padding:22px 14px;border-radius:14px;background:var(--panel-2);border:1px solid var(--line);
+    transition:.25s}
+  .qa-card b{display:block;font:800 22px var(--sans);color:var(--txt)}
+  .qa-card i{display:block;margin-top:5px;font:500 12.5px var(--sans);color:var(--mut)}
+  .qa-card.right{border-color:#46d6a0;background:rgba(70,214,160,.13);box-shadow:0 0 26px -6px rgba(70,214,160,.6)}
+  .qa-card.wrong{border-color:#ff7a85;background:rgba(255,122,133,.12);animation:qaShake .38s}
+  @keyframes qaShake{25%{transform:translateX(-7px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+  .qa-btns{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:13px}
+  .qa-b{font:700 13.5px var(--sans);cursor:pointer;padding:11px 17px;border-radius:12px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--txt);transition:.18s}
+  .qa-b.bad:hover{border-color:#ff7a85}
+  .qa-b.ok:hover{border-color:#46d6a0}
+  .qa-b.right{border-color:#46d6a0;background:rgba(70,214,160,.18)}
+  .qa-b.wrong{border-color:#ff7a85;background:rgba(255,122,133,.16)}
+  .qa-b.again{margin-top:14px;width:100%}
+  .qa-verd{min-height:26px;margin-top:12px;display:flex;gap:10px;justify-content:center;
+    align-items:center;flex-wrap:wrap;font:600 13px var(--sans);color:var(--mut)}
+  .qa-sev{font:700 11px var(--mono);letter-spacing:.4px;padding:4px 10px;border-radius:7px}
+  .qa-sev.bad{color:#ff7a85;background:rgba(255,122,133,.14)}
+  .qa-sev.ok{color:#46d6a0;background:rgba(70,214,160,.14)}
+  .qa-sev.star{color:#ffcf6e;background:rgba(255,207,110,.14)}
+  .qa-row{display:flex;justify-content:space-between;gap:12px;padding:11px 13px;border-radius:12px;
+    margin-top:8px;background:var(--panel-2);text-align:left;flex-wrap:wrap}
+  .qa-row span{font:700 11.5px var(--sans);letter-spacing:.3px;text-transform:uppercase;flex:none}
+  .qa-row b{font:600 13.5px var(--sans);color:var(--txt);text-align:right;flex:1 1 160px}
+  .qa-row.bad span{color:#ff7a85}.qa-row.ok span{color:#46d6a0}.qa-row.star span{color:#ffcf6e}
+  @media (prefers-reduced-motion:reduce){ .qa-tick,.qa-trace,.qa-card.wrong{animation:none} .qa-t{opacity:1;transform:none} }
+
   /* ---- 🎤 комната для той, кто поёт ---- */
   .hb-wrap.sg-room{background:radial-gradient(1100px 620px at 50% -8%,rgba(255,143,177,.2),transparent 60%),
       radial-gradient(900px 520px at 15% 108%,rgba(169,139,255,.16),transparent 62%),#07080e}
@@ -1496,6 +1581,7 @@
 <script src="tricky.js"></script>
 <script src="hb-data.js"></script>
 <script src="sing-data.js"></script>
+<script src="qa-data.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[])];
@@ -8879,7 +8965,8 @@ const HB_WORD="tort";                                  /* набрать это 
    Всё остальное — замок, расшифровка, конфетти — общее. */
 const HB_ROOMS={
   hb:  {cls:"",        data:()=>window.HBDATA, intro:hbLog,        wire:hbWireBd},
-  sing:{cls:"sg-room", data:()=>window.SGDATA, intro:sgSoundcheck, wire:sgWire}
+  sing:{cls:"sg-room", data:()=>window.SGDATA, intro:sgSoundcheck, wire:sgWire},
+  qa:  {cls:"qa-room", data:()=>window.QADATA, intro:qaIntro,      wire:qaWire}
 };
 
 function hbOpen(room){
@@ -9462,10 +9549,106 @@ async function sgStart(btn){
   };
   tick();
 }
+/* ---------- 🐞 комната для тестировщицы ---------- */
+const QA_LOG=[
+ ['<span class="g">$</span> jira issue view <span class="y">NAT-1508</span>',300],
+ ['<span class="i">connecting to tracker…</span>',330],
+ ['<span class="i">fetching issue …………… </span><span class="g">200 OK</span>',330],
+ ['<span class="i">rendering</span>',280]
+];
+function qaIntro(done){
+  const box=$("#hbIn");
+  box.innerHTML='<pre class="hb-term" id="hbTerm"></pre><button class="hb-skip" id="hbSkip">пропустить</button>';
+  const t=$("#hbTerm"); let i=0,timer=null,killed=false;
+  const skip=$("#hbSkip"); if(skip)skip.onclick=()=>{ killed=true; clearTimeout(timer); done(); };
+  const next=()=>{
+    if(killed)return;
+    if(i>=QA_LOG.length){ setTimeout(()=>{ if(!killed)done(); },200); return; }
+    const [line,wait]=QA_LOG[i++];
+    t.innerHTML+=(i>1?"\n":"")+line;
+    timer=setTimeout(next,wait);
+  };
+  next();
+}
+function qaWire(){
+  /* прогон: галочки проступают по одной, красный тест — последним */
+  const rows=[...document.querySelectorAll(".qa-t")];
+  rows.forEach((r,i)=>setTimeout(()=>{
+    r.classList.add("show");
+    if(i===rows.length-1){ const s=$("#qaSum"); if(s)s.hidden=false; hbBurst(innerWidth/2,innerHeight*.3,40); }
+  },260+i*190));
+  const fail=$("#qaFail"), trace=$("#qaTrace");
+  if(fail&&trace)fail.onclick=()=>{
+    if(!trace.hidden)return;
+    trace.hidden=false; fail.classList.add("opened");
+    hbBurst(innerWidth/2,innerHeight*.42,130);
+    for(let k=0;k<4;k++)setTimeout(()=>hbBurst(innerWidth*(.2+Math.random()*.6),innerHeight*.3,55),k*230);
+    if(trace.scrollIntoView)trace.scrollIntoView({block:"nearest",behavior:"smooth"});
+  };
+  qaGame();
+  /* вторая пасхалка — для тех, кто полезет в консоль. Текст лежит внутри
+     зашифрованного блока, поэтому в исходнике сайта его не прочитать. */
+  const c=$("#qaConsole");
+  if(c&&!QA_SAID){
+    QA_SAID=1;
+    try{ console.log("%c"+c.textContent,
+      "background:linear-gradient(90deg,#ff8fb1,#a98bff);color:#0a0b12;font:600 14px/1.7 monospace;padding:14px 18px;border-radius:10px"); }catch(e){}
+  }
+}
+let QA_SAID=0;
+const QA_TIER={"-1":{k:"Blocker",c:"bad",w:"нервы"},"1":{k:"Trivial",c:"ok",w:"спокойно"},"2":{k:"Not a bug",c:"star",w:"отдушина"}};
+function qaGame(){
+  const box=$("#qaGame"); if(!box)return;
+  let team=[]; try{ team=JSON.parse(box.getAttribute("data-team")||"[]"); }catch(e){}
+  if(!team.length)return;
+  let i=0, score=0, busy=false;
+  const draw=()=>{
+    if(i>=team.length)return qaScore(box,team,score);
+    const p=team[i];
+    box.innerHTML='<div class="qa-g-h">🏷 Расставь команду по severity'
+      +'<span>'+(i+1)+" из "+team.length+"</span></div>"
+      +'<div class="qa-card" id="qaCard"><b>'+esc(p.n)+"</b>"
+      +(p.s?"<i>"+esc(p.s)+"</i>":"")+"</div>"
+      +'<div class="qa-btns"><button type="button" class="qa-b bad" data-v="-1">🔴 выносит мозг</button>'
+      +'<button type="button" class="qa-b ok" data-v="1">🟢 с ним спокойно</button></div>'
+      +'<div class="qa-verd" id="qaVerd"></div>';
+    [...box.querySelectorAll(".qa-b")].forEach(b=>b.onclick=()=>answer(+b.dataset.v,b));
+  };
+  const answer=(v,btn)=>{
+    if(busy)return; busy=true;
+    const p=team[i], tier=QA_TIER[String(p.t)];
+    const right=(v<0)===(p.t<0);
+    if(right)score++;
+    const card=$("#qaCard"), verd=$("#qaVerd");
+    card.classList.add(right?"right":"wrong");
+    btn.classList.add(right?"right":"wrong");
+    verd.innerHTML='<span class="qa-sev '+tier.c+'">Severity: '+tier.k+"</span>"
+      +"<span>"+(right?"да, всё так ✓":"а вот и нет — "+tier.w)+"</span>";
+    if(right)hbBurst(innerWidth/2,innerHeight*.4,28);
+    setTimeout(()=>{ i++; busy=false; draw(); },1250);
+  };
+  draw();
+}
+function qaScore(box,team,score){
+  const tiers=[[2,"Отдушина · Not a bug"],[1,"Спокойно · Trivial"],[-1,"Нервы · Blocker"]];
+  const list=tiers.map(([t,label])=>{
+    const who=team.filter(p=>p.t===t);
+    if(!who.length)return "";
+    return '<div class="qa-row '+(t===2?"star":t===1?"ok":"bad")+'"><span>'+esc(label)+"</span><b>"
+      +who.map(p=>esc(p.n)).join(", ")+"</b></div>";
+  }).join("");
+  box.innerHTML='<div class="qa-g-h">📊 Итог<span>'+score+" из "+team.length+"</span></div>"
+    +'<p class="qa-g-p">'+(score===team.length?"Ты знаешь свою команду наизусть."
+      :score>=team.length-3?"Почти всё сошлось — это наша версия, а как на самом деле, знаешь только ты."
+      :"Мы явно ошиблись в расчётах. Верим тебе, а не себе.")+"</p>"
+    +list
+    +'<button type="button" class="qa-b again" id="qaAgain">ещё раз</button>';
+  const a=$("#qaAgain"); if(a)a.onclick=()=>qaGame();
+}
 /* ---- как сюда попасть: ссылка #hb или набрать секретное слово ---- */
 (function(){
   const byHash=()=>{ const h=location.hash;
-    if(h==="#hb")hbOpen("hb"); else if(h==="#sing")hbOpen("sing"); };
+    if(h==="#hb")hbOpen("hb"); else if(h==="#sing")hbOpen("sing"); else if(h==="#qa")hbOpen("qa"); };
   addEventListener("hashchange",byHash);
   if(document.readyState==="loading")addEventListener("DOMContentLoaded",byHash); else byHash();
   let buf="";
