@@ -654,6 +654,64 @@
   .qa-ph{width:74px;height:74px;border-radius:50%;object-fit:cover;flex:none;
     border:2px solid transparent;background:var(--grad) border-box}
   .qa-note p{flex:1 1 200px;margin:0;font:500 14px/1.62 var(--sans);color:var(--txt)}
+  /* красный диплом: бордовый бархат, золото, печать */
+  .qa-dip{max-width:640px;margin:20px auto 0;padding:7px;border-radius:20px;
+    background:linear-gradient(150deg,#8e1420,#5d0d16 45%,#3d070e);
+    box-shadow:0 30px 70px -26px rgba(0,0,0,.95),0 0 0 1px rgba(255,209,122,.28);
+    animation:qaDip .8s cubic-bezier(.2,.9,.3,1) both}
+  @keyframes qaDip{from{opacity:0;transform:translateY(26px) rotateX(12deg) scale(.96)}to{opacity:1;transform:none}}
+  .qa-dip-in{position:relative;padding:26px 22px 22px;border-radius:15px;text-align:center;
+    border:1.5px solid rgba(255,209,122,.5);
+    background:radial-gradient(120% 90% at 50% 0%,rgba(255,209,122,.09),transparent 60%),
+      linear-gradient(160deg,#7a1019,#4c0a12);
+    box-shadow:inset 0 0 0 5px rgba(255,209,122,.13)}
+  .qa-dip-in::before,.qa-dip-in::after{content:"";position:absolute;width:26px;height:26px;
+    border:2px solid rgba(255,209,122,.55)}
+  .qa-dip-in::before{top:9px;left:9px;border-right:0;border-bottom:0;border-radius:6px 0 0 0}
+  .qa-dip-in::after{bottom:9px;right:9px;border-left:0;border-top:0;border-radius:0 0 6px 0}
+  .qa-dip-top{font:600 10.5px var(--sans);letter-spacing:2.4px;text-transform:uppercase;
+    color:rgba(255,209,122,.72)}
+  .qa-dip h2{margin:8px 0 2px;font:800 clamp(30px,7.5vw,44px) Georgia,"Times New Roman",serif;
+    letter-spacing:7px;line-height:1;
+    background:linear-gradient(180deg,#ffeab5,#f0c473 45%,#c9922f);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,.55))}
+  .qa-dip-sub{font:italic 600 15px Georgia,serif;color:rgba(255,209,122,.9);letter-spacing:1.5px;margin-bottom:14px}
+  .qa-dip-ph{width:86px;height:86px;border-radius:50%;object-fit:cover;margin:2px auto 12px;display:block;
+    border:2.5px solid rgba(255,209,122,.75);box-shadow:0 10px 26px -8px rgba(0,0,0,.9)}
+  .qa-dip-p{margin:0 0 10px;font:400 13.5px/1.7 Georgia,serif;color:rgba(255,236,214,.86)}
+  .qa-dip-name{font:800 clamp(24px,6vw,34px) Georgia,serif;color:#fff5e2;margin:4px 0 12px;
+    letter-spacing:1px;text-shadow:0 3px 14px rgba(0,0,0,.6)}
+  .qa-dip-spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px;margin:16px 0 14px}
+  .qa-dip-spec div{padding:9px 11px;border-radius:10px;background:rgba(0,0,0,.24);
+    border:1px solid rgba(255,209,122,.22)}
+  .qa-dip-spec span{display:block;font:600 9.5px var(--sans);letter-spacing:1.2px;text-transform:uppercase;
+    color:rgba(255,209,122,.65)}
+  .qa-dip-spec b{font:700 13.5px var(--sans);color:#fff2dd}
+  .qa-grades{text-align:left;margin:0 auto 14px;max-width:430px}
+  .qa-grades div{display:flex;align-items:baseline;gap:7px;padding:5px 0;
+    font:500 13px var(--sans);color:rgba(255,236,214,.82)}
+  .qa-grades span{flex:0 1 auto}
+  .qa-grades div::after{content:"";flex:1;height:1px;margin:0 2px 4px;
+    background:repeating-linear-gradient(90deg,rgba(255,209,122,.4) 0 3px,transparent 3px 7px)}
+  .qa-grades b{flex:none;font:700 13px var(--sans);color:#ffd97a;order:3}
+  .qa-dip-avg{font:600 12.5px var(--sans);color:rgba(255,209,122,.8);margin-bottom:18px}
+  .qa-dip-avg b{color:#ffe6ae;font-size:15px}
+  .qa-dip-sign{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+    padding-top:14px;border-top:1px solid rgba(255,209,122,.22)}
+  .qa-dip-sign>div{flex:1 1 110px}
+  .qa-dip-sign i{display:block;font:italic 600 12px Georgia,serif;color:rgba(255,236,214,.8)}
+  .qa-dip-sign span{display:block;font:500 10px var(--sans);color:rgba(255,209,122,.55);margin-top:2px}
+  .qa-seal{flex:0 0 84px!important;width:84px;height:84px;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;transform:rotate(-11deg);
+    border:2.5px solid rgba(255,209,122,.62);box-shadow:inset 0 0 0 3px rgba(255,209,122,.22)}
+  .qa-seal span{font:800 8.5px var(--sans);letter-spacing:1.2px;line-height:1.5;
+    color:rgba(255,209,122,.85);text-align:center}
+  .qa-seal b{font-size:17px;letter-spacing:2px;display:block;margin:1px 0}
+  .qa-b.dip{margin-top:14px;width:100%;border-color:rgba(255,209,122,.5);
+    background:linear-gradient(135deg,rgba(142,20,32,.5),rgba(93,13,22,.5));color:#ffd97a}
+  .qa-b.dip:hover{border-color:#ffd97a}
+  @media (prefers-reduced-motion:reduce){ .qa-dip{animation:none} }
   .qa-game{max-width:640px;margin:0 auto;padding:18px 16px;border-radius:var(--radius);
     background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
   .qa-g-h{display:flex;justify-content:space-between;align-items:center;gap:10px;
@@ -9656,8 +9714,17 @@ function qaScore(box,team,score){
       :score>=team.length-3?"Почти всё сошлось — это наша версия, а как на самом деле, знаешь только ты."
       :"Мы явно ошиблись в расчётах. Верим тебе, а не себе.")+"</p>"
     +list
+    +'<button type="button" class="qa-b dip" id="qaGetDip">🎓 вручить красный диплом</button>'
     +'<button type="button" class="qa-b again" id="qaAgain">ещё раз</button>';
   const a=$("#qaAgain"); if(a)a.onclick=()=>qaGame();
+  const g=$("#qaGetDip");
+  if(g)g.onclick=()=>{
+    const d=$("#qaDip"); if(!d)return;
+    g.remove(); d.hidden=false;
+    hbBurst(innerWidth/2,innerHeight*.45,150);
+    for(let k=0;k<6;k++)setTimeout(()=>hbBurst(innerWidth*(.15+Math.random()*.7),innerHeight*.3,60),k*220);
+    if(d.scrollIntoView)d.scrollIntoView({block:"nearest",behavior:"smooth"});
+  };
 }
 /* ---- как сюда попасть: ссылка #hb или набрать секретное слово ---- */
 (function(){

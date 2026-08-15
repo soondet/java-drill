@@ -128,6 +128,37 @@ const HTML=`
 
 <div class="qa-game" id="qaGame" data-team='${JSON.stringify(TEAM).replace(/'/g,"&#39;")}'></div>
 
+<div class="qa-dip" id="qaDip" hidden>
+  <div class="qa-dip-in">
+    <div class="qa-dip-top">Республика QA · Комитет по качеству</div>
+    <h2>ДИПЛОМ</h2>
+    <div class="qa-dip-sub">с отличием</div>
+    ${IMG?'<img class="qa-dip-ph" src="'+IMG+'" alt="'+esc(NAME)+'">':""}
+    <p class="qa-dip-p">Настоящим удостоверяется, что</p>
+    <div class="qa-dip-name">${esc(NAME)}</div>
+    <p class="qa-dip-p">прошла путь от «а что будет, если нажать сюда»<br>
+      до «я же говорила» — и заслужила диплом того самого цвета,<br>
+      который видит чаще всех остальных.</p>
+    <div class="qa-dip-spec">
+      <div><span>Специальность</span><b>Обнаружение неочевидного</b></div>
+      <div><span>Квалификация</span><b>Мастер воспроизведения</b></div>
+    </div>
+    <div class="qa-grades">
+      <div><span>Внимание к деталям</span><b>отлично</b></div>
+      <div><span>Здоровый скепсис</span><b>отлично</b></div>
+      <div><span>Терпение к «у меня работает»</span><b>отлично</b></div>
+      <div><span>Умение сломать нерушимое</span><b>отлично</b></div>
+      <div><span>Оформление шагов</span><b>отлично</b></div>
+    </div>
+    <div class="qa-dip-avg">Средний балл <b>5.0</b> · регрессий не обнаружено</div>
+    <div class="qa-dip-sign">
+      <div><i>Ректор Вселенной</i><span>подпись неразборчива</span></div>
+      <div class="qa-seal"><span>ПРОВЕРЕНО<br><b>QA</b><br>ДОПУЩЕНО</span></div>
+      <div><i>Дата выдачи</i><span>${esc(TICKET)}</span></div>
+    </div>
+  </div>
+</div>
+
 <div id="qaConsole" hidden>${esc(CONSOLE_MSG)}</div>
 `;
 
