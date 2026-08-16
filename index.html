@@ -647,6 +647,48 @@
   .mus-task b{color:var(--cyan)}
   .mus-task .ok{color:#46d6a0}
   #viewMus .terms-wrap{max-width:900px}
+  .hk-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+  .hk-bar{flex:1 1 180px;height:7px;border-radius:5px;background:var(--panel-2);
+    border:1px solid var(--line-2);overflow:hidden}
+  .hk-bar i{display:block;height:100%;width:0;border-radius:5px;background:var(--grad);transition:width .3s}
+  .hk-top span{font:600 12px var(--sans);color:var(--mut);flex:none}
+  .hk-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .hk-f{font:600 12px var(--sans);cursor:pointer;padding:6px 12px;border-radius:9px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--mut)}
+  .hk-f:hover{color:var(--txt)}
+  .hk-f.on{color:#0a0b12;border-color:transparent;background:var(--grad)}
+  .hk-g h3{display:flex;align-items:center;gap:9px}
+  .hk-n{font:700 11px var(--mono);color:var(--mut);background:var(--panel-2);
+    border-radius:20px;padding:2px 9px}
+  .hk{border:1px solid var(--line-2);border-radius:12px;margin-bottom:8px;overflow:hidden;
+    background:var(--panel-2);transition:border-color .2s}
+  .hk.ok{border-color:rgba(70,214,160,.45);background:rgba(70,214,160,.06)}
+  .hk-h{display:flex;align-items:center;gap:10px;width:100%;text-align:left;cursor:pointer;
+    padding:12px 14px;background:none;border:0;color:var(--txt);font:700 14px var(--sans)}
+  .hk-h b{flex:1;font-weight:700}
+  .hk.ok .hk-h b::before{content:"✓ ";color:#46d6a0}
+  .hk-tags{display:flex;gap:6px;flex:none}
+  .hk-tags em{font:600 10.5px var(--sans);font-style:normal;color:var(--mut);
+    border:1px solid var(--line);border-radius:20px;padding:2px 8px;white-space:nowrap}
+  .hk-tags em.lvl{color:var(--acc);border-color:rgba(110,168,254,.35)}
+  .hk-arr{font-style:normal;color:var(--mut);transition:transform .22s;flex:none}
+  .hk.open .hk-arr{transform:rotate(180deg)}
+  .hk-b{display:none;padding:0 14px 14px}
+  .hk.open .hk-b{display:block}
+  .hk-b>p{margin:0 0 12px;font-size:14px;line-height:1.62;color:var(--txt)}
+  .hk-row{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin-bottom:10px}
+  .hk-row span{display:block;font:700 9.5px var(--sans);letter-spacing:1px;color:var(--mut)}
+  .hk-row p{margin:3px 0 0;font-size:13.5px;line-height:1.6;color:var(--txt)}
+  .hk-row.why{border-color:rgba(110,168,254,.5)}
+  .hk-row.why span{color:var(--acc)}
+  .hk-row.why p{color:var(--mut)}
+  .hk-row.bad{border-color:rgba(255,122,133,.5)}
+  .hk-row.bad span{color:#ff7a85}
+  .hk-row.bad p{color:var(--mut)}
+  .hk-do{font:600 12.5px var(--sans);cursor:pointer;padding:8px 14px;border-radius:9px;
+    border:1px solid var(--line);background:var(--panel);color:var(--mut);margin-top:2px}
+  .hk-do:hover{color:var(--txt);border-color:var(--acc)}
+  .hk.ok .hk-do{color:#46d6a0;border-color:rgba(70,214,160,.45)}
 
   /* ---- 🐞 комната для тестировщицы ---- */
   .hb-wrap.qa-room{background:radial-gradient(1000px 600px at 50% -8%,rgba(110,168,254,.18),transparent 60%),
@@ -1654,7 +1696,8 @@
   <div class="terms-wrap">
     <div class="bas-intro">🎵 <b>Музыка — бонус.</b> <span>К собесам отношения не имеет. Шпоры звучат: жми на любую строку и слушай.</span></div>
     <div class="mus-tabs">
-      <button class="mus-tab on" data-m="ref">📖 Шпоры</button>
+      <button class="mus-tab on" data-m="hack">💡 Лайфхаки</button>
+      <button class="mus-tab" data-m="ref">📖 Шпоры</button>
       <button class="mus-tab" data-m="ear">👂 Интервал на слух</button>
       <button class="mus-tab" data-m="voice">🎤 Спой интервал</button>
     </div>
@@ -1704,6 +1747,7 @@
 <script src="hb-data.js"></script>
 <script src="sing-data.js"></script>
 <script src="qa-data.js"></script>
+<script src="hacks.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[])];
@@ -9841,7 +9885,7 @@ const MUS_KEYS=[
 const MUS_DUR=[["целая","4 доли",100],["половинная","2 доли",50],["четверть","1 доля",25],
   ["восьмая","½ доли",12.5],["шестнадцатая","¼ доли",6.25]];
 const MUS_BASE=60;                                     /* до первой октавы */
-let MUSMIC=null, MUS_MODE="ref", MUS_Q=null;
+let MUSMIC=null, MUS_MODE="hack", MUS_Q=null;
 
 function musPlay(semis,together){
   const ac=sgAudio(); if(!ac)return;
@@ -9861,9 +9905,71 @@ function musMicStop(){ if(!MUSMIC)return;
 function musUI(){
   const b=$("#musBody"); if(!b)return;
   musMicStop();
+  if(MUS_MODE==="hack")return musHacks(b);
   if(MUS_MODE==="ref")return musRef(b);
   if(MUS_MODE==="ear")return musEar(b);
   return musVoice(b);
+}
+/* Лайфхаки: приёмы, которые дают результат за дни, а не «занимайся больше».
+   Данные лежат в hacks.js — window.MUSHACK. */
+function musDone(id,v){
+  let s={}; try{ s=JSON.parse(localStorage.getItem("jdMusDone")||"{}"); }catch(e){}
+  if(v!=null){ if(v)s[id]=1; else delete s[id]; try{localStorage.setItem("jdMusDone",JSON.stringify(s))}catch(e){} }
+  return s;
+}
+function musHacks(b){
+  const H=window.MUSHACK||[];
+  if(!H.length){ b.innerHTML='<div class="mus-card"><p class="mus-p">Лайфхаки не загрузились — нужен файл hacks.js рядом.</p></div>'; return; }
+  const done=musDone();
+  const all=H.reduce((n,g)=>n+g.hacks.length,0);
+  const cnt=Object.keys(done).length;
+  b.innerHTML='<div class="hk-top"><div class="hk-bar"><i style="width:'+(all?cnt/all*100:0)+'%"></i></div>'
+    +'<span id="hkCnt">'+cnt+" из "+all+" отмечено</span></div>"
+    +'<div class="hk-filter" id="hkFilter">'
+    +'<button class="hk-f on" data-l="все">все</button>'
+    +'<button class="hk-f" data-l="новичок">новичку</button>'
+    +'<button class="hk-f" data-l="средний">среднему</button>'
+    +'<button class="hk-f" data-l="быстрые">до 10 минут</button></div>'
+    +H.map((g,gi)=>'<div class="mus-card hk-g"><h3>'+esc(g.group)+'<span class="hk-n">'+g.hacks.length+"</span></h3>"
+      +g.hacks.map((h,hi)=>{
+        const id="h"+gi+"_"+hi;
+        return '<div class="hk'+(done[id]?" ok":"")+'" data-id="'+id+'" data-lvl="'+esc(h.level||"любой")
+          +'" data-min="'+(h.minutes||0)+'">'
+          +'<button class="hk-h"><b>'+esc(h.title)+"</b>"
+          +'<span class="hk-tags">'+(h.minutes?'<em>'+h.minutes+" мин</em>":"")
+          +'<em class="lvl">'+esc(h.level||"любой")+"</em></span>"
+          +'<i class="hk-arr">▾</i></button>'
+          +'<div class="hk-b">'
+          +"<p>"+esc(h.idea)+"</p>"
+          +'<div class="hk-row"><span>КАК ДЕЛАТЬ</span><p>'+esc(h.how)+"</p></div>"
+          +'<div class="hk-row why"><span>ПОЧЕМУ РАБОТАЕТ</span><p>'+esc(h.why)+"</p></div>"
+          +(h.mistake?'<div class="hk-row bad"><span>ЧАСТАЯ ОШИБКА</span><p>'+esc(h.mistake)+"</p></div>":"")
+          +'<button class="hk-do">'+(done[id]?"✓ применяю":"взять в работу")+"</button>"
+          +"</div></div>";
+      }).join("")+"</div>").join("");
+  [...b.querySelectorAll(".hk-h")].forEach(el=>el.onclick=()=>el.parentNode.classList.toggle("open"));
+  [...b.querySelectorAll(".hk-do")].forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    const card=el.closest(".hk"), id=card.dataset.id, now=!card.classList.contains("ok");
+    card.classList.toggle("ok",now); musDone(id,now);
+    el.textContent=now?"✓ применяю":"взять в работу";
+    const d=Object.keys(musDone()).length;
+    const c=$("#hkCnt"); if(c)c.textContent=d+" из "+all+" отмечено";
+    const bar=b.querySelector(".hk-bar i"); if(bar)bar.style.width=(all?d/all*100:0)+"%";
+  });
+  [...b.querySelectorAll(".hk-f")].forEach(el=>el.onclick=()=>{
+    [...b.querySelectorAll(".hk-f")].forEach(x=>x.classList.toggle("on",x===el));
+    const l=el.dataset.l;
+    [...b.querySelectorAll(".hk")].forEach(c=>{
+      const ok = l==="все" ? true
+        : l==="быстрые" ? (+c.dataset.min>0&&+c.dataset.min<=10)
+        : (c.dataset.lvl===l||c.dataset.lvl==="любой");
+      c.hidden=!ok;
+    });
+    [...b.querySelectorAll(".hk-g")].forEach(g=>{
+      g.hidden=![...g.querySelectorAll(".hk")].some(c=>!c.hidden);
+    });
+  });
 }
 function musRef(b){
   const row=(main,sub,extra,data)=>'<button class="mus-r" data-p="'+data+'"><span>'+main
