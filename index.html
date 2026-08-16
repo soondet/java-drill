@@ -622,6 +622,32 @@
   .mus-r span{display:block;font:700 13.5px var(--sans);color:var(--txt)}
   .mus-r i{display:block;font:600 11.5px var(--mono);color:var(--acc);font-style:normal;margin-top:2px}
   .mus-r em{display:block;font:400 11.5px var(--sans);color:var(--mut);font-style:normal;margin-top:3px}
+  .st-box{margin-bottom:14px;padding:12px;border-radius:12px;background:var(--panel-2);
+    border:1px solid var(--line-2)}
+  .st-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .st-h b{font:700 14px var(--sans);color:var(--txt)}
+  .st-h span{font:500 12px var(--sans);color:var(--mut)}
+  .st-scroll{overflow-x:auto}
+  .st{display:block;width:100%;min-width:520px;height:132px}
+  .st-l{stroke:rgba(255,255,255,.34);stroke-width:1.2}
+  .st-a{stroke:#ffb054;stroke-width:1.6;opacity:.55}
+  .st-cl{fill:var(--mut);font:600 8.5px var(--sans);letter-spacing:.8px;text-transform:uppercase}
+  .st-n{cursor:pointer;outline:none}
+  .st-n ellipse{fill:#cfd6e6;transition:fill .15s}
+  .st-n text{fill:var(--mut);font:600 10px var(--sans);text-anchor:middle}
+  .st-n .st-o{font-size:8px;opacity:.7}
+  .st-n:hover ellipse{fill:#fff}
+  .st-n.mark ellipse{fill:#ffb054}
+  .st-n.lit ellipse{fill:#54e6c8}
+  .st-n.lit text{fill:#8fe6c4}
+  .st-n:focus-visible ellipse{stroke:var(--acc);stroke-width:2}
+  .st-mn{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:8px;align-items:baseline}
+  .st-mn span{font:600 10px var(--sans);letter-spacing:.4px;text-transform:uppercase;color:var(--mut)}
+  .st-mn b{font:700 13px var(--mono);color:var(--cyan)}
+  .st-tip{font-size:12.5px;line-height:1.65;color:var(--mut);padding:10px 12px;border-radius:10px;
+    background:rgba(255,176,84,.07);border:1px solid rgba(255,176,84,.22)}
+  .st-tip b{color:#ffc98a}
+  .st-key{color:#ffb054}
   .mus-t{width:100%;border-collapse:collapse;font-size:13.5px}
   .mus-t th{text-align:left;font:700 10.5px var(--sans);letter-spacing:.5px;text-transform:uppercase;
     color:var(--mut);padding:6px 8px;border-bottom:1px solid var(--line)}
@@ -10115,11 +10141,56 @@ function musHacks(b){
     });
   });
 }
+/* ---- нотный стан ----
+   Ключи не рисую символами 𝄞/𝄢: их нет в системных шрифтах и они вылезают
+   квадратами (уже наступал на это с длительностями). Вместо этого подписываю
+   опорную линию — от неё ключ и получил имя, что честнее и понятнее. */
+const STAFF={
+  treble:{ name:"Скрипичный ключ", anchor:"вторая линия — соль первой октавы", base:67,
+    lines:"ми соль си ре фа", spaces:"фа ля до ми",
+    notes:[[60,-2],[62,-1],[64,0],[65,1],[67,2],[69,3],[71,4],[72,5],[74,6],[76,7],[77,8]] },
+  bass:{ name:"Басовый ключ", anchor:"четвёртая линия — фа малой октавы", base:53,
+    lines:"соль си ре фа ля", spaces:"ля до ми соль",
+    notes:[[43,0],[45,1],[47,2],[48,3],[50,4],[52,5],[53,6],[55,7],[57,8],[59,9],[60,10]] }
+};
+const STAFF_MARK={60:1,67:1,53:1,72:1,48:1};           /* пять якорей */
+function musStaffSvg(k){
+  const s=STAFF[k], g=13, top=26, h=top+g*4+40, x0=54, dx=40;
+  const w=x0+dx*s.notes.length+18;
+  let o='<svg class="st" viewBox="0 0 '+w+" "+h+'" preserveAspectRatio="xMinYMid meet">';
+  for(let i=0;i<5;i++){ const y=top+g*i; o+='<line x1="10" y1="'+y+'" x2="'+(w-10)+'" y2="'+y+'" class="st-l"/>'; }
+  const anchorStep=k==="treble"?2:6;
+  o+='<line x1="10" y1="'+(top+g*(4-anchorStep/2))+'" x2="'+(w-10)+'" y2="'+(top+g*(4-anchorStep/2))+'" class="st-a"/>';
+  o+='<text x="14" y="'+(top-8)+'" class="st-cl">'+(k==="treble"?"скрипичный":"басовый")+"</text>";
+  s.notes.forEach(([m,step],i)=>{
+    const x=x0+dx*i, y=top+g*4-step*(g/2);
+    if(step<0||step>8){                                /* добавочная линия */
+      for(let q=(step<0?-2:10);step<0?q>=step:q<=step;q+=(step<0?-2:2))
+        o+='<line x1="'+(x-13)+'" y1="'+(top+g*4-q*(g/2))+'" x2="'+(x+13)+'" y2="'+(top+g*4-q*(g/2))+'" class="st-l"/>';
+    }
+    const n=sgNote(sgHz(m)), mark=STAFF_MARK[m]?" mark":"";
+    o+='<g class="st-n'+mark+'" data-m="'+m+'" tabindex="0">'
+      +'<ellipse cx="'+x+'" cy="'+y+'" rx="8" ry="6.2" transform="rotate(-18 '+x+" "+y+')"/>'
+      +'<text x="'+x+'" y="'+(h-16)+'">'+SG_NAMES[n.i]+"</text>"
+      +'<text x="'+x+'" y="'+(h-4)+'" class="st-o">'+n.oct+"</text></g>";
+  });
+  o+="</svg>";
+  return '<div class="st-box"><div class="st-h"><b>'+s.name+"</b><span>"+s.anchor+"</span></div>"
+    +'<div class="st-scroll">'+o+"</div>"
+    +'<div class="st-mn"><span>линии снизу вверх</span><b>'+s.lines+"</b>"
+    +"<span>между линиями</span><b>"+s.spaces+"</b></div></div>";
+}
 function musRef(b){
   const row=(main,sub,extra,data)=>'<button class="mus-r" data-p="'+data+'"><span>'+main
     +'</span><i>'+sub+"</i>"+(extra?"<em>"+extra+"</em>":"")+"</button>";
   b.innerHTML=
-    '<div class="mus-card"><h3>Интервалы в полутонах</h3><p class="mus-p">Сколько ступеней между нотами. Жми — сыграет от до.</p>'
+    '<div class="mus-card"><h3>Ноты на нотном стане</h3>'
+    +'<p class="mus-p">Жми ноту — услышишь её и увидишь на клавишах. <b class="st-key">Оранжевым</b> — пять якорей: их запоминают наизусть, остальные читают относительно них.</p>'
+    +musStaffSvg("treble")+musStaffSvg("bass")
+    +'<div class="st-tip">Якоря: <b>до первой</b> (между станами), <b>соль первой</b> (2-я линия скрипичного), '
+    +'<b>фа малой</b> (4-я линия басового), <b>до второй</b> (3-е межстрочие скрипичного), '
+    +'<b>до малой</b> (2-е межстрочие басового).</div></div>'
+    +'<div class="mus-card"><h3>Интервалы в полутонах</h3><p class="mus-p">Сколько ступеней между нотами. Жми — сыграет от до.</p>'
     +'<div class="mus-grid">'+MUS_INT.map(([s,n,k])=>row(k+" · "+n,s+(s===1?" полутон":s<5&&s>1?" полутона":" полутонов"),"",[0,s].join(","))).join("")+"</div></div>"
     +'<div class="mus-card"><h3>Аккорды</h3><p class="mus-p">Цифры — полутоны от основного тона.</p>'
     +'<div class="mus-grid wide">'+MUS_CH.map(([n,a,d])=>row(n,a.join(" · "),d,a.join(","))).join("")+"</div></div>"
@@ -10130,6 +10201,16 @@ function musRef(b){
     +'<table class="mus-t"><tr><th>нота</th><th>сколько</th><th style="width:52%">длина</th></tr>'
     +MUS_DUR.map(([n,d,w])=>"<tr><td>"+n+"</td><td>"+d
       +'</td><td><span class="mus-bar" style="width:'+w+'%"></span></td></tr>').join("")+"</table></div>";
+  [...b.querySelectorAll(".st-n")].forEach(el=>{
+    const m=+el.dataset.m;
+    const tap=()=>{ musPlay([m-MUS_BASE],false); musLight([m],m);
+      const n=sgNote(sgHz(m));
+      musKbCap(SG_NAMES[n.i]+" "+n.oct+" · "+SG_LAT[n.i]+n.oct+(STAFF_MARK[m]?" · якорь":""));
+      [...b.querySelectorAll(".st-n")].forEach(x=>x.classList.remove("lit"));
+      el.classList.add("lit"); };
+    el.onclick=tap;
+    el.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); tap(); } };
+  });
   [...b.querySelectorAll(".mus-r")].forEach(el=>el.onclick=()=>{
     const a=el.dataset.p.split(",").map(Number);
     musPlay(a,a.length>2);
