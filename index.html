@@ -647,6 +647,30 @@
   .mus-task b{color:var(--cyan)}
   .mus-task .ok{color:#46d6a0}
   #viewMus .terms-wrap{max-width:900px}
+  /* клавиатура — общая для всех вкладок секции */
+  .kb-wrap{margin:0 0 16px}
+  .kb{position:relative;height:118px;border-radius:12px;overflow:hidden;
+    background:#0d0f16;border:1px solid var(--line);box-shadow:inset 0 -14px 26px -18px #000}
+  .kb button{position:absolute;top:0;padding:0;cursor:pointer;transition:background .12s,box-shadow .12s}
+  .kb-w{height:100%;background:linear-gradient(#f6f7fa,#dfe3ec);border:0;border-right:1px solid #aeb4c2;
+    border-radius:0 0 5px 5px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px}
+  .kb-w span{font:600 9.5px var(--sans);color:#7b8296;pointer-events:none;line-height:1}
+  .kb-w span i{display:block;font-style:normal;font-size:8px;opacity:.75}
+  .kb-w.mid{background:linear-gradient(#fff,#e6ebf5)}
+  .kb-w.mid span{color:#3f465a;font-weight:800}
+  .kb-w:hover{background:linear-gradient(#fff,#cfd6e4)}
+  .kb-w.on{background:linear-gradient(#a9c8ff,#6ea8fe)}
+  .kb-w.on span{color:#0a1830}
+  .kb-w.root{background:linear-gradient(#ffd6a6,#ffb054)}
+  .kb-w.root span{color:#3a1f00}
+  .kb-w.hit{background:linear-gradient(#9df0cf,#46d6a0)}
+  .kb-b{height:63%;background:linear-gradient(#3a3f4d,#12141b);border:0;border-radius:0 0 4px 4px;
+    z-index:2;box-shadow:0 3px 5px rgba(0,0,0,.5)}
+  .kb-b:hover{background:linear-gradient(#4c5364,#1c1f28)}
+  .kb-b.on{background:linear-gradient(#6ea8fe,#3a6fd0)}
+  .kb-b.root{background:linear-gradient(#ffb054,#c97a1c)}
+  .kb-b.hit{background:linear-gradient(#46d6a0,#1f9a6f)}
+  .kb-cap{margin-top:7px;text-align:center;font:600 12px var(--sans);color:var(--mut);min-height:16px}
   .hk-top{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
   .hk-bar{flex:1 1 180px;height:7px;border-radius:5px;background:var(--panel-2);
     border:1px solid var(--line-2);overflow:hidden}
@@ -1701,6 +1725,8 @@
       <button class="mus-tab" data-m="ear">👂 Интервал на слух</button>
       <button class="mus-tab" data-m="voice">🎤 Спой интервал</button>
     </div>
+    <div class="kb-wrap"><div class="kb" id="musKb"></div>
+      <div class="kb-cap" id="musKbCap">жми клавиши — или любую строку в шпорах</div></div>
     <div id="musBody"></div>
   </div>
 </section>
@@ -9887,6 +9913,49 @@ const MUS_DUR=[["целая","4 доли",100],["половинная","2 дол
 const MUS_BASE=60;                                     /* до первой октавы */
 let MUSMIC=null, MUS_MODE="hack", MUS_Q=null;
 
+/* ---- клавиатура: интервал и аккорд видно рукой, а не цифрами ----
+   Чёрные клавиши стоят не по центру между белыми — на настоящем рояле они
+   смещены, иначе аппликатура читается неверно. Смещения ниже в долях белой клавиши. */
+const KB_LO=60, KB_HI=84;
+const KB_BLACK={1:-.07,3:.07,6:-.09,8:0,10:.09};
+function musKb(){
+  const box=$("#musKb"); if(!box)return;
+  const whites=[];
+  for(let m=KB_LO;m<=KB_HI;m++) if(KB_BLACK[((m%12)+12)%12]===undefined)whites.push(m);
+  const w=100/whites.length;
+  let h="";
+  whites.forEach((m,i)=>{
+    const p=((m%12)+12)%12, oct=Math.floor(m/12)-1;
+    h+='<button class="kb-w'+(m===60?" mid":"")+'" data-m="'+m+'" style="left:'
+      +(i*w).toFixed(4)+"%;width:"+w.toFixed(4)+'%"><span>'+SG_NAMES[p]+(p===0?"<i>"+oct+"</i>":"")+"</span></button>";
+  });
+  for(let m=KB_LO;m<=KB_HI;m++){
+    const p=((m%12)+12)%12, off=KB_BLACK[p];
+    if(off===undefined)continue;
+    let idx=whites.findIndex(x=>x>m); if(idx<0)idx=whites.length;
+    const c=(idx+off)*w;
+    h+='<button class="kb-b" data-m="'+m+'" style="left:'+(c-w*.32).toFixed(4)+"%;width:"+(w*.64).toFixed(4)+'%"></button>';
+  }
+  box.innerHTML=h;
+  [...box.querySelectorAll("button")].forEach(el=>el.onclick=()=>{
+    const m=+el.dataset.m;
+    musPlay([m-MUS_BASE],false);
+    musLight([m],m);
+    const cap=$("#musKbCap");
+    if(cap){ const n=sgNote(sgHz(m)); cap.textContent=SG_NAMES[n.i]+" "+n.oct+" · "+SG_LAT[n.i]+n.oct+" · "+Math.round(sgHz(m))+" Гц"; }
+  });
+}
+function musLight(midis,root,cls){
+  const box=$("#musKb"); if(!box)return;
+  [...box.querySelectorAll("button")].forEach(el=>el.classList.remove("on","root","hit"));
+  (midis||[]).forEach(m=>{
+    let el=box.querySelector('button[data-m="'+m+'"]');
+    if(!el&&m>KB_HI)el=box.querySelector('button[data-m="'+(m-12)+'"]');   /* не влезло — показываем октавой ниже */
+    if(!el&&m<KB_LO)el=box.querySelector('button[data-m="'+(m+12)+'"]');
+    if(el)el.classList.add(cls||(m===root?"root":"on"));
+  });
+}
+function musKbCap(t){ const c=$("#musKbCap"); if(c)c.textContent=t; }
 function musPlay(semis,together){
   const ac=sgAudio(); if(!ac)return;
   if(ac.state==="suspended")ac.resume();
@@ -9989,7 +10058,10 @@ function musRef(b){
   [...b.querySelectorAll(".mus-r")].forEach(el=>el.onclick=()=>{
     const a=el.dataset.p.split(",").map(Number);
     musPlay(a,a.length>2);
-    el.classList.add("lit"); setTimeout(()=>el.classList.remove("lit"),700);
+    musLight(a.map(s=>MUS_BASE+s),MUS_BASE);
+    musKbCap(el.querySelector("span").textContent+" — от до первой октавы");
+    [...b.querySelectorAll(".mus-r")].forEach(x=>x.classList.remove("lit"));
+    el.classList.add("lit");
   });
 }
 function musBest(k,v){ try{
@@ -10030,7 +10102,9 @@ function musEar(b){
       if(streak>musBest("jdMusEar"))musBest("jdMusEar",streak);
       $("#musVerd").innerHTML=ok?'<b class="ok">верно — '+right[1]+"</b>"
         :'<b class="bad">это была '+right[1]+"</b>";
-      setTimeout(()=>{ ask(); musPlay([0,MUS_Q[0]]); },1400);
+      musLight([MUS_BASE,MUS_BASE+right[0]],MUS_BASE);   /* ответ показываем на клавишах */
+      musKbCap(right[1]+" — вот так это выглядит");
+      setTimeout(()=>{ ask(); musPlay([0,MUS_Q[0]]); },1900);
     });
     musPlay([0,right[0]]);
   };
@@ -10058,6 +10132,8 @@ function musVoice(b){
     task.innerHTML="от <b>до</b> спой <b>"+iv[1]+"</b> "+(up?"вверх ↑":"вниз ↓");
     held=0; lastMidi=null;
     musPlay([0],false);
+    musLight([MUS_BASE,MUS_BASE+target.semi],MUS_BASE);  /* куда целиться — видно на клавишах */
+    musKbCap("цель: "+iv[1]+" "+(up?"вверх":"вниз"));
   };
   $("#musNew").onclick=roll;
   $("#musHear").onclick=()=>{ if(target)musPlay([0,target.semi],false); else musPlay([0],false); };
@@ -10101,7 +10177,7 @@ function musVoice(b){
   };
 }
 (function(){
-  const t=$("#tabMus"); if(t)t.onclick=()=>{ setMode("mus"); musUI(); };
+  const t=$("#tabMus"); if(t)t.onclick=()=>{ setMode("mus"); musKb(); musUI(); };
   const box=$("#viewMus"); if(!box)return;
   [...box.querySelectorAll(".mus-tab")].forEach(el=>el.onclick=()=>{
     MUS_MODE=el.dataset.m;
