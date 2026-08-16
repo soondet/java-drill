@@ -9919,7 +9919,7 @@ let MUSMIC=null, MUS_MODE="hack", MUS_Q=null;
 const KB_LO=60, KB_HI=84;
 const KB_BLACK={1:-.07,3:.07,6:-.09,8:0,10:.09};
 function musKb(){
-  const box=$("#musKb"); if(!box)return;
+  const box=$("#musKb"); if(!box||box.children.length)return;   /* уже построена — не пересобираем */
   const whites=[];
   for(let m=KB_LO;m<=KB_HI;m++) if(KB_BLACK[((m%12)+12)%12]===undefined)whites.push(m);
   const w=100/whites.length;
@@ -9973,6 +9973,7 @@ function musMicStop(){ if(!MUSMIC)return;
 
 function musUI(){
   const b=$("#musBody"); if(!b)return;
+  musKb();                                             /* строим при любом входе, а не только по клику вкладки */
   musMicStop();
   if(MUS_MODE==="hack")return musHacks(b);
   if(MUS_MODE==="ref")return musRef(b);
