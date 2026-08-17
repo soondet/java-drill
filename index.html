@@ -40,7 +40,10 @@
   @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(9vmax,6vmax) scale(1.15)}66%{transform:translate(-7vmax,4vmax) scale(.9)}}
 
   /* верхняя панель */
-  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:16px;padding:12px 20px;
+  /* viewport-fit=cover раздвигает страницу под чёлку и домашний индикатор,
+     поэтому фиксированным элементам нужны отступы безопасной зоны */
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;flex-wrap:wrap;gap:16px;
+    padding:calc(12px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) 12px calc(20px + env(safe-area-inset-left));
     background:rgba(7,8,14,.62);backdrop-filter:blur(16px);border-bottom:1px solid var(--line-2)}
   .brand{font-weight:800;font-size:17px;letter-spacing:-.4px;display:flex;align-items:center;gap:7px}
   .brand span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -54,11 +57,18 @@
   .more-menu button{border:0;background:transparent;color:var(--txt);font:600 13px var(--sans);text-align:left;padding:10px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;box-shadow:none}
   .more-menu button:hover{background:var(--panel-2)}
   .more-menu button.active{background:rgba(110,168,254,.14);color:var(--acc)}
-  .onb{position:fixed;left:12px;right:12px;bottom:12px;z-index:50;display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(20,23,32,.97);backdrop-filter:blur(16px);border:1px solid var(--acc);border-radius:14px;box-shadow:var(--shadow);font-size:13.5px;line-height:1.5;max-width:560px;margin:0 auto}
+  .onb{position:fixed;left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(20,23,32,.97);backdrop-filter:blur(16px);border:1px solid var(--acc);border-radius:14px;box-shadow:var(--shadow);font-size:13.5px;line-height:1.5;max-width:560px;margin:0 auto}
   .onb button{flex:none;border:0;background:var(--panel-2);color:var(--mut);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px}
   .onb button:hover{color:var(--txt)}
   /* ─── 🗺 Роадмап ─── */
-  .rm-fab{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:40;width:40px;height:66px;border:1px solid var(--line);border-right:0;border-radius:14px 0 0 14px;background:rgba(20,23,32,.92);backdrop-filter:blur(12px);color:var(--txt);font-size:22px;cursor:pointer;box-shadow:-6px 0 20px -10px rgba(0,0,0,.6);transition:.18s}
+  .err-toast{position:fixed;left:50%;transform:translateX(-50%);
+    bottom:calc(16px + env(safe-area-inset-bottom));z-index:200;max-width:min(560px,92vw);
+    display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:13px;
+    background:rgba(30,12,16,.96);backdrop-filter:blur(12px);border:1px solid var(--bad);
+    color:var(--txt);font:500 13px/1.5 var(--sans);box-shadow:0 16px 40px -18px #000}
+  .err-toast b{color:var(--bad);font-family:var(--mono);font-size:12px}
+  .err-toast button{flex:none;border:0;background:none;color:var(--mut);cursor:pointer;font-size:15px}
+  .rm-fab{position:fixed;right:env(safe-area-inset-right);top:50%;transform:translateY(-50%);z-index:40;width:40px;height:66px;border:1px solid var(--line);border-right:0;border-radius:14px 0 0 14px;background:rgba(20,23,32,.92);backdrop-filter:blur(12px);color:var(--txt);font-size:22px;cursor:pointer;box-shadow:-6px 0 20px -10px rgba(0,0,0,.6);transition:.18s}
   .rm-fab:hover{background:var(--panel-2);color:var(--acc);width:48px}
   .rm-backdrop{position:fixed;inset:0;z-index:44;background:rgba(0,0,0,.45);backdrop-filter:blur(2px)}
   .rm-backdrop[hidden]{display:none}
@@ -581,7 +591,7 @@
   .fr-row button{border:1px solid var(--line);background:var(--panel);color:var(--mut);
     font:600 12px var(--sans);padding:6px 12px;border-radius:9px;cursor:pointer}
   .fr-row.on button.go{border-color:var(--good);color:var(--good)}
-  .fr-inv{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;
+  .fr-inv{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;
     display:flex;align-items:center;gap:12px;border:1px solid var(--good);border-radius:16px;
     background:var(--panel);padding:13px 18px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
   /* ---- 🎂 секретная комната ---- */
@@ -11204,6 +11214,31 @@ function musVoice(b){
     musInsUI(); musUI();
   });
 
+})();
+</script>
+<script>
+/* Если файл данных не подгрузился, раздел молча оказывался пустым.
+   Сбой <script src> не всплывает до window — ловим на фазе перехвата. */
+(function(){
+  let shown=0;
+  const say=(t)=>{
+    if(shown++)return;
+    const d=document.createElement("div");
+    d.className="err-toast";
+    d.innerHTML="⚠ "+t+' <button aria-label="закрыть">✕</button>';
+    d.querySelector("button").onclick=()=>d.remove();
+    (document.body||document.documentElement).appendChild(d);
+    setTimeout(()=>d.remove(),12000);
+  };
+  addEventListener("error",e=>{
+    const el=e.target;
+    if(el&&el!==window&&(el.tagName==="SCRIPT"||el.tagName==="LINK"||el.tagName==="IMG")){
+      let f=(el.src||el.href||"").split("/").pop();
+      try{ f=decodeURIComponent(f); }catch(x){}
+      say("не загрузился файл <b>"+f+"</b> — часть разделов будет пустой. Обнови страницу.");
+    }
+  },true);
+  addEventListener("unhandledrejection",()=>say("что-то пошло не так внутри страницы — если раздел пустой, обнови."));
 })();
 </script>
 <script>
