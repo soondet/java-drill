@@ -2836,7 +2836,10 @@ function buildTerms(q){
     }
   }
 }
-$("#termSearch").oninput=e=>buildTerms(e.target.value);
+/* Без задержки каждое нажатие клавиши пересобирало до 475 КБ разметки
+   и вешало ~830 обработчиков заново. 150 мс убирают 90% этой работы. */
+let termT=null;
+$("#termSearch").oninput=e=>{ const v=e.target.value; clearTimeout(termT); termT=setTimeout(()=>buildTerms(v),150); };
 
 /* ---------- «Для чайника» (простые объяснения) ---------- */
 const BASICS=Array.isArray(window.BASICS)?window.BASICS:[];
