@@ -692,6 +692,52 @@
   .inv span{font:700 14px var(--sans);color:var(--txt)}
   .inv em{display:block;margin-top:5px;font:500 12.5px var(--sans);font-style:normal;color:var(--txt)}
   .inv i{display:block;margin-top:3px;font:400 12px var(--sans);font-style:normal;color:var(--mut)}
+  .sv{width:96px;height:54px;flex:none;background:rgba(0,0,0,.25);border-radius:9px}
+  .sv-l{stroke:rgba(255,255,255,.28);stroke-width:1}
+  .sv-h{fill:#cfd6e6}.sv-h.hollow{fill:none;stroke:#cfd6e6;stroke-width:1.6}
+  .sv-h.sm{fill:#8fa0bd}
+  .sv-s{stroke:#cfd6e6;stroke-width:1.4}
+  .sv-c{fill:none;stroke:#54e6c8;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .sv-dash{fill:none;stroke:#54e6c8;stroke-width:1.4;stroke-dasharray:3 2.5;stroke-linecap:round}
+  .sv-d{fill:#54e6c8}
+  .sv-m{stroke:#54e6c8;stroke-width:2;stroke-linecap:round}
+  .sv-b{stroke:#cfd6e6;stroke-width:1.4}.sv-bb{stroke:#cfd6e6;stroke-width:3.4}
+  .sv-t{fill:#54e6c8;font:italic 700 11px Georgia,serif}
+  .sgn{display:flex;gap:13px;align-items:flex-start;padding:12px;border-radius:12px;
+    background:var(--panel-2);border:1px solid var(--line-2);margin-bottom:8px}
+  .sgn-b{flex:1;min-width:0}
+  .sgn-b h4{margin:0 0 4px;font:700 14px var(--sans);color:var(--txt)}
+  .sgn-b p{margin:0 0 5px;font-size:13px;line-height:1.55;color:var(--txt)}
+  .sgn-b .how{color:var(--mut);font-size:12.5px}
+  .sgn-b .bad{color:#ff9ba3;font-size:12px;margin:0}
+  .tmp{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;
+    background:var(--panel-2);border:1px solid var(--line-2);margin-bottom:6px;cursor:pointer;
+    width:100%;text-align:left;transition:.15s}
+  .tmp:hover{border-color:var(--acc)}
+  .tmp.on{border-color:var(--cyan);background:rgba(84,230,200,.09)}
+  .tmp b{flex:0 0 92px;font:700 13.5px var(--sans);color:var(--txt)}
+  .tmp .bpm{flex:0 0 74px;font:700 12px var(--mono);color:var(--cyan)}
+  .tmp .ru{flex:0 0 96px;font:600 12px var(--sans);color:var(--acc)}
+  .tmp .feel{flex:1;font:400 12px var(--sans);color:var(--mut);min-width:120px}
+  .dyn{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:8px}
+  .dyn div{padding:10px 12px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line-2)}
+  .dyn b{font:italic 800 17px Georgia,serif;color:#c58fff}
+  .dyn span{display:block;font:600 12px var(--sans);color:var(--txt);margin-top:2px}
+  .dyn em{display:block;font:400 11.5px var(--sans);font-style:normal;color:var(--mut);margin-top:3px;line-height:1.45}
+  .fg{margin-bottom:10px;padding:11px 12px;border-radius:12px;background:var(--panel-2);border:1px solid var(--line-2)}
+  .fg-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .fg-h b{font:700 14px var(--sans);color:var(--txt)}
+  .fg-h button{font:600 11.5px var(--sans);cursor:pointer;padding:4px 10px;border-radius:8px;
+    border:1px solid var(--line);background:var(--panel);color:var(--mut)}
+  .fg-h button:hover{color:var(--txt);border-color:var(--acc)}
+  .fg-g{display:grid;gap:3px;overflow-x:auto}
+  .fg-r{display:grid;grid-template-columns:34px repeat(8,minmax(30px,1fr));gap:3px;align-items:center}
+  .fg-r>span:first-child{font:700 10px var(--sans);color:var(--mut);letter-spacing:.4px}
+  .fg-r i{font:600 12px var(--mono);font-style:normal;text-align:center;padding:4px 0;border-radius:6px;
+    background:rgba(255,255,255,.04);color:var(--txt)}
+  .fg-r.f i{color:#ffcf6e;font-weight:800}
+  .fg-r.f i.tuck{background:rgba(255,207,110,.18);box-shadow:inset 0 0 0 1px rgba(255,207,110,.4)}
+  .fg-note{margin-top:7px;font:400 12px var(--sans);color:var(--mut);line-height:1.5}
   .mus-t{width:100%;border-collapse:collapse;font-size:13.5px}
   .mus-t th{text-align:left;font:700 10.5px var(--sans);letter-spacing:.5px;text-transform:uppercase;
     color:var(--mut);padding:6px 8px;border-bottom:1px solid var(--line)}
@@ -1866,6 +1912,7 @@
 <script src="sing-data.js"></script>
 <script src="qa-data.js"></script>
 <script src="hacks.js"></script>
+<script src="music-ref.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[])];
@@ -10290,6 +10337,66 @@ function musCircleSvg(){
   o+="</svg>";
   return o;
 }
+/* Значки рисую сам: символьные глифы нот в системных шрифтах неполны
+   и вылезают квадратами — уже проверено на длительностях и ключах. */
+function musSignSvg(id){
+  const W=96, H=54, mid=27;
+  const line=(y)=>'<line x1="4" y1="'+y+'" x2="92" y2="'+y+'" class="sv-l"/>';
+  const head=(x,y,fill)=>'<ellipse cx="'+x+'" cy="'+y+'" rx="7" ry="5.4" transform="rotate(-18 '+x+" "+y+')" class="sv-h'+(fill===0?" hollow":"")+'"/>';
+  const stem=(x,y)=>'<line x1="'+(x+6.6)+'" y1="'+(y-1)+'" x2="'+(x+6.6)+'" y2="'+(y-24)+'" class="sv-s"/>';
+  let g=line(mid-8)+line(mid)+line(mid+8);
+  const two=(f)=>head(30,mid,1)+stem(30,mid)+head(66,mid,1)+stem(66,mid)+f;
+  switch(id){
+    case "legato": g+=two('<path d="M30 mid-14 Q48 mid-26 66 mid-14" class="sv-c"/>'.replace(/mid-14/g,mid-14).replace(/mid-26/g,mid-26)); break;
+    case "tie":    g+=head(30,mid,1)+stem(30,mid)+head(66,mid,1)+stem(66,mid)
+                     +'<path d="M30 '+(mid+10)+' Q48 '+(mid+20)+' 66 '+(mid+10)+'" class="sv-c"/>'; break;
+    case "staccato": g+=head(30,mid,1)+stem(30,mid)+head(66,mid,1)+stem(66,mid)
+                     +'<circle cx="30" cy="'+(mid+12)+'" r="2.4" class="sv-d"/><circle cx="66" cy="'+(mid+12)+'" r="2.4" class="sv-d"/>'; break;
+    case "dot":    g+=head(38,mid,1)+stem(38,mid)+'<circle cx="52" cy="'+mid+'" r="2.6" class="sv-d"/>'; break;
+    case "tenuto": g+=head(48,mid,1)+stem(48,mid)+'<line x1="41" y1="'+(mid+12)+'" x2="55" y2="'+(mid+12)+'" class="sv-m"/>'; break;
+    case "accent": g+=head(48,mid,1)+stem(48,mid)
+                     +'<path d="M40 '+(mid+9)+' L56 '+(mid+13)+' L40 '+(mid+17)+'" class="sv-c"/>'; break;
+    case "fermata":g+=head(48,mid,1)+stem(48,mid)
+                     +'<path d="M36 '+(mid-16)+' Q48 '+(mid-30)+' 60 '+(mid-16)+'" class="sv-c"/>'
+                     +'<circle cx="48" cy="'+(mid-19)+'" r="2.4" class="sv-d"/>'; break;
+    case "repeat": g+='<line x1="78" y1="'+(mid-9)+'" x2="78" y2="'+(mid+9)+'" class="sv-b"/>'
+                     +'<line x1="84" y1="'+(mid-9)+'" x2="84" y2="'+(mid+9)+'" class="sv-bb"/>'
+                     +'<circle cx="71" cy="'+(mid-4)+'" r="2.4" class="sv-d"/><circle cx="71" cy="'+(mid+4)+'" r="2.4" class="sv-d"/>'
+                     +head(30,mid,1)+stem(30,mid); break;
+    case "volta":  g+='<path d="M16 '+(mid-20)+' L16 '+(mid-13)+' M16 '+(mid-20)+' L72 '+(mid-20)+' L72 '+(mid-13)+'" class="sv-c"/>'
+                     +'<text x="21" y="'+(mid-9)+'" class="sv-t">1.</text>'+head(40,mid,1)+stem(40,mid); break;
+    case "ottava": g+='<text x="8" y="'+(mid-14)+'" class="sv-t">8va</text>'
+                     +'<path d="M30 '+(mid-18)+' L86 '+(mid-18)+' L86 '+(mid-12)+'" class="sv-dash"/>'+head(50,mid,1)+stem(50,mid); break;
+    case "pedal":  g+=head(48,mid,1)+stem(48,mid)
+                     +'<text x="30" y="'+(mid+20)+'" class="sv-t">Ped.</text>'
+                     +'<text x="62" y="'+(mid+20)+'" class="sv-t">✻</text>'; break;
+    case "grace":  g+='<ellipse cx="34" cy="'+(mid-4)+'" rx="4" ry="3" class="sv-h sm"/>'
+                     +'<line x1="37.6" y1="'+(mid-5)+'" x2="37.6" y2="'+(mid-20)+'" class="sv-s"/>'
+                     +'<line x1="31" y1="'+(mid-10)+'" x2="40" y2="'+(mid-16)+'" class="sv-s"/>'
+                     +head(56,mid,1)+stem(56,mid); break;
+    case "trill":  g+='<text x="36" y="'+(mid-12)+'" class="sv-t">tr</text>'
+                     +'<path d="M50 '+(mid-15)+' q4 -4 8 0 t8 0 t8 0" class="sv-dash"/>'+head(48,mid,1)+stem(48,mid); break;
+    case "mordent":g+=head(48,mid,1)+stem(48,mid)
+                     +'<path d="M38 '+(mid-14)+' l5 -5 l5 5 l5 -5 l5 5" class="sv-c"/>'; break;
+    case "arpeggio":g+=head(56,mid-8,1)+head(56,mid,1)+head(56,mid+8,1)
+                     +'<path d="M44 '+(mid+13)+' q5 -4 0 -8 q-5 -4 0 -8 q5 -4 0 -8" class="sv-c"/>'; break;
+    case "fine":   g+='<line x1="80" y1="'+(mid-9)+'" x2="80" y2="'+(mid+9)+'" class="sv-b"/>'
+                     +'<line x1="86" y1="'+(mid-9)+'" x2="86" y2="'+(mid+9)+'" class="sv-bb"/>'
+                     +'<text x="46" y="'+(mid-13)+'" class="sv-t">Fine</text>'+head(34,mid,1)+stem(34,mid); break;
+    default:       g+=head(48,mid,1)+stem(48,mid);
+  }
+  return '<svg class="sv" viewBox="0 0 '+W+" "+H+'">'+g+"</svg>";
+}
+/* метроном: восемь щелчков в заданном темпе — чтобы услышать, а не прочитать цифру */
+function musClick(bpm){
+  const ac=sgAudio(); if(!ac)return;
+  if(ac.state==="suspended")ac.resume();
+  sgStopMelody();
+  SG_PLAY={oscs:[],timers:[],until:0};
+  const dt=60/bpm;
+  for(let i=0;i<8;i++)sgTone(ac,i%4===0?1560:1040,ac.currentTime+.08+i*dt,.035,i%4===0?.16:.1,"square");
+  SG_PLAY.until=performance.now()+(8*dt+.2)*1000;
+}
 function musRef(b){
   const row=(main,sub,extra,data)=>'<button class="mus-r" data-p="'+data+'"><span>'+main
     +'</span><i>'+sub+"</i>"+(extra?"<em>"+extra+"</em>":"")+"</button>";
@@ -10329,6 +10436,34 @@ function musRef(b){
     +'<p class="mus-p">Одни и те же три ноты, но снизу оказывается разная. Жми — услышишь и увидишь на клавишах.</p>'
     +INV.map((v,i)=>'<button class="inv" data-i="'+i+'"><b>'+v.short+"</b><span>"+v.name+"</span>"
       +'<em>'+v.look+"</em><i>"+v.use+"</i></button>").join("")+"</div>"
+    +'<div class="mus-card"><h3>Аппликатура мажорных гамм</h3>'
+    +'<p class="mus-p">Одно правило объясняет их все: <b class="st-key">большой палец никогда не встаёт на чёрную клавишу</b>. '
+    +'Отсюда и вся раскладка — он попадает ровно на те белые ступени, куда помещается. Жёлтым отмечены места, где он подкладывается.</p>'
+    +(window.MUSFING||[]).map((f,i)=>'<div class="fg"><div class="fg-h"><b>'+esc(f.key)+"</b>"
+      +'<button data-fg="'+i+'">▶ сыграть</button></div><div class="fg-g">'
+      +'<div class="fg-r"><span>НОТА</span>'+f.notes.map(n=>"<i>"+esc(n)+"</i>").join("")+"</div>"
+      +'<div class="fg-r f"><span>ПРАВАЯ</span>'+f.rh.map(x=>'<i class="'+(x===1?"tuck":"")+'">'+x+"</i>").join("")+"</div>"
+      +'<div class="fg-r f"><span>ЛЕВАЯ</span>'+f.lh.map(x=>'<i class="'+(x===1?"tuck":"")+'">'+x+"</i>").join("")+"</div></div>"
+      +(f.note?'<div class="fg-note">'+esc(f.note)+"</div>":"")+"</div>").join("")+"</div>"
+
+    +'<div class="mus-card"><h3>Темпы</h3>'
+    +'<p class="mus-p">Жми строку — метроном отстучит восемь ударов в этом темпе. Цифру можно прочитать, а темп надо услышать.</p>'
+    +((window.MUSTEMPO||{}).tempos||[]).map((t,i)=>'<button class="tmp" data-t="'+i+'"><b>'+esc(t.name)+"</b>"
+      +'<span class="bpm">'+t.from+"–"+t.to+"</span><span class=\"ru\">"+esc(t.ru)+"</span>"
+      +'<span class="feel">'+esc(t.feel)+"</span></button>").join("")
+    +'<div class="fg-note">'+esc((window.MUSTEMPO||{}).note||"")+"</div></div>"
+
+    +'<div class="mus-card"><h3>Динамика</h3>'
+    +'<div class="dyn">'+(((window.MUSTEMPO||{}).dynamics)||[]).map(d=>"<div><b>"+esc(d.sign)+"</b><span>"
+      +esc(d.ru)+" · "+esc(d.full)+"</span><em>"+esc(d.how)+"</em></div>").join("")+"</div></div>"
+
+    +'<div class="mus-card"><h3>Значки в нотах</h3>'
+    +'<p class="mus-p">То, обо что спотыкаешься, когда открываешь настоящие ноты: высоту прочитал, а что за крючок — непонятно.</p>'
+    +(window.MUSSIGN||[]).map(s=>'<div class="sgn">'+musSignSvg(s.id)
+      +'<div class="sgn-b"><h4>'+esc(s.name)+"</h4><p>"+esc(s.what)+"</p>"
+      +'<p class="how">'+esc(s.how)+"</p>"
+      +(s.mistake?'<p class="bad">путают: '+esc(s.mistake)+"</p>":"")+"</div></div>").join("")+"</div>"
+
     +'<div class="mus-card"><h3>Длительности</h3><p class="mus-p">Длина полоски — сколько нота звучит.</p>'
     +'<table class="mus-t"><tr><th>нота</th><th>сколько</th><th style="width:52%">длина</th></tr>'
     +MUS_DUR.map(([n,d,w])=>"<tr><td>"+n+"</td><td>"+d
@@ -10349,6 +10484,24 @@ function musRef(b){
     });
     sgDraw();
   }
+  const SEMI={"до":0,"до#":1,"ре♭":1,"ре":2,"ре#":3,"ми♭":3,"ми":4,"ми#":5,"фа":5,"фа#":6,"соль♭":6,
+    "соль":7,"соль#":8,"ля♭":8,"ля":9,"ля#":10,"си♭":10,"си":11,"си#":0};
+  [...b.querySelectorAll("[data-fg]")].forEach(el=>el.onclick=()=>{
+    const f=window.MUSFING[+el.dataset.fg];
+    let prev=-1, oct=0;
+    const semis=f.notes.map(n=>{ let s=SEMI[n]; if(s<=prev)oct+=12; prev=s; return s+oct; });
+    musPlay(semis,false);
+    musLight(semis.map(s=>MUS_BASE+s),MUS_BASE+semis[0]);
+    musKbCap(f.key+" — гамма вверх");
+  });
+  [...b.querySelectorAll(".tmp")].forEach(el=>el.onclick=()=>{
+    const t=window.MUSTEMPO.tempos[+el.dataset.t];
+    const bpm=Math.round((t.from+t.to)/2);
+    [...b.querySelectorAll(".tmp")].forEach(x=>x.classList.remove("on"));
+    el.classList.add("on");
+    musClick(bpm);
+    musKbCap(t.name+" — "+bpm+" ударов в минуту");
+  });
   [...b.querySelectorAll(".cq-s")].forEach(el=>{
     const c=CIRCLE[+el.dataset.i];
     const tap=()=>{
