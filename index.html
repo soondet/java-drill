@@ -10,9 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Java Drill">
 <title>JavaDrill — под капотом</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- системные шрифты: внешняя загрузка блокировала первый кадр, фолбэки в CSS полные -->
 <style>
   :root{
     --bg:#07080e; --txt:#eef1f7; --mut:#98a1b4;
@@ -1606,7 +1604,7 @@
     background:rgba(12,16,28,.5);border:2px solid rgba(110,168,254,.35);backdrop-filter:blur(3px);
     touch-action:none;cursor:grab;transition:border-color .15s,background .15s;display:flex;align-items:center;justify-content:center}
   .viz-stick.on{border-color:var(--acc);background:rgba(12,16,28,.72)}
-  .viz-knob{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 32%,#9dc4ff,#4f7fe0);
+  .viz-stick-knob{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 32%,#9dc4ff,#4f7fe0);
     box-shadow:0 4px 14px rgba(0,0,0,.5),inset 0 -3px 8px rgba(0,0,0,.3);pointer-events:none;transition:transform .05s}
   .viz-fs{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;
     background:rgba(12,16,28,.62);border:1px solid rgba(255,255,255,.16);color:#cfd6e6;font-size:15px;cursor:pointer;backdrop-filter:blur(3px)}
@@ -7068,7 +7066,7 @@ function buildViz3D(){
     <div class="viz-intro" id="vizIntro"></div>
     <div class="viz-screen"><canvas id="vizCv"></canvas>
       <canvas id="vizLbl" class="viz-lbl"></canvas>
-      <div class="viz-stick" id="vizStick"><div class="viz-knob" id="vizKnob"></div></div>
+      <div class="viz-stick" id="vizStick"><div class="viz-stick-knob" id="vizKnob"></div></div>
       <div class="viz-fs" id="vizFs" title="${tr("во весь экран")}">⛶</div></div>
     <div class="viz-legend" id="vizLegend"></div>
     <div class="viz-status" id="vizStatus"></div>
@@ -7089,6 +7087,7 @@ function v3Stop(){
   const el=document.querySelector(".viz-screen");
   if(el&&el.classList.contains("fs-css")){ el.classList.remove("fs-css"); document.body.classList.remove("fs-lock"); }
   if(!V3)return; if(V3.raf)cancelAnimationFrame(V3.raf);
+  if(V3.ac)V3.ac.abort();
   window.removeEventListener("keydown",V3.kd); window.removeEventListener("keyup",V3.ku); V3=null; }
 /* ---- прогресс по мирам: что обошёл, что покрутил, что нашёл ---- */
 const V3P=(()=>{try{return JSON.parse(localStorage.getItem("jd3d")||"{}")}catch(e){return{}}})();
@@ -7152,14 +7151,16 @@ const V3_CAM={
 };
 function v3Start(idx){
   const sc=V3_SCENES[idx], cv=$("#vizCv"); if(!cv)return;
+  if(V3&&V3.ac)V3.ac.abort();          /* снимаем слушатели прошлой сцены — иначе колесо мыши двигало камеру кратно числу заходов */
   if(V3){ if(V3.raf)cancelAnimationFrame(V3.raf); window.removeEventListener("keydown",V3.kd); window.removeEventListener("keyup",V3.ku); }
-  const G=v3InitGL(cv);
+  const G=cv._g||(cv._g=v3InitGL(cv));   /* шейдеры компилируются один раз на канвас, а не на сцену */
   const intro=$("#vizIntro"); if(intro)intro.innerHTML="<b>"+esc(tr(sc.name))+"</b> — "+esc(tr(sc.intro));
   if(!G){ const s=$("#vizStage"); if(s)s.insertAdjacentHTML("afterbegin",'<div class="muted" style="padding:14px">'+tr("WebGL недоступен в этом браузере")+"</div>"); return; }
   V3={G,lbl:$("#vizLbl").getContext("2d"),sc,S:sc.build(),keys:{},raf:null,
       p:{x:0,y:0,z:12,yaw:0,vx:0,vz:0,bob:0},yaw:0,pitch:.50,dist:19,
       cam:{x:0,y:6,z:26},zone:null,drag:null,move:{x:0,y:0},stick:false,W:480,H:290,cssW:480,cssH:290,
-      walkTo:null,tour:null,plock:false,ptrs:new Map(),pinch:0,lastVP:null,visited:{}};
+      walkTo:null,tour:null,plock:false,ptrs:new Map(),pinch:0,lastVP:null,visited:{},
+      ac:new AbortController()};
   (sc.knobs||[]).forEach(k=>{ if(V3.S[k.id]==null)V3.S[k.id]=k.def; });
   v3Knobs(sc,V3.S); v3ProgUI();
   const CM=V3_CAM[sc.id];                       /* мир открывается своим кадром */
@@ -7206,17 +7207,17 @@ function v3Start(idx){
     V3.move={x:dx/max,y:dy/max}; };
   stk.addEventListener("pointerdown",e=>{ e.preventDefault(); if(!V3)return; V3.stick=true;
     try{stk.setPointerCapture(e.pointerId);}catch(_){}
-    stk.classList.add("on"); stMove(e); });
-  stk.addEventListener("pointermove",stMove);
+    stk.classList.add("on"); stMove(e); },{signal:V3.ac.signal});
+  stk.addEventListener("pointermove",stMove,{signal:V3.ac.signal});
   const stEnd=e=>{ if(!V3)return; V3.stick=false; V3.move={x:0,y:0};
     knb.style.transform="translate(0,0)"; stk.classList.remove("on"); };
-  stk.addEventListener("pointerup",stEnd); stk.addEventListener("pointercancel",stEnd); stk.addEventListener("pointerleave",stEnd);
+  stk.addEventListener("pointerup",stEnd,{signal:V3.ac.signal}); stk.addEventListener("pointercancel",stEnd,{signal:V3.ac.signal}); stk.addEventListener("pointerleave",stEnd,{signal:V3.ac.signal});
   /* обзор: перетаскивание · пинч-зум · колесо · клик по объекту · захват мыши */
   const lc=$("#vizLbl");
   lc.addEventListener("pointerdown",e=>{ if(!V3)return;
     V3.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(V3.ptrs.size===1){ V3.drag={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t0:Date.now(),moved:0};
-      try{lc.setPointerCapture(e.pointerId);}catch(_){}} });
+      try{lc.setPointerCapture(e.pointerId);}catch(_){}} },{signal:V3.ac.signal});
   lc.addEventListener("pointermove",e=>{ if(!V3)return;
     if(V3.ptrs.has(e.pointerId))V3.ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
     if(V3.ptrs.size>=2){                                   /* пинч-зум */
@@ -7228,16 +7229,16 @@ function v3Start(idx){
     V3.drag.moved+=Math.abs(dx)+Math.abs(dy);
     V3.yaw-=dx*.008; V3.pitch=Math.max(.02,Math.min(.95,V3.pitch+dy*.005));
     V3.drag.x=e.clientX; V3.drag.y=e.clientY;
-    if(V3.drag.moved>8)V3.tour=null; });
+    if(V3.drag.moved>8)V3.tour=null; },{signal:V3.ac.signal});
   const upH=e=>{ if(!V3)return; V3.ptrs.delete(e.pointerId); if(V3.ptrs.size<2)V3.pinch=0;
     if(V3.drag&&V3.drag.moved<8&&Date.now()-V3.drag.t0<400)v3Pick(V3.drag.x0,V3.drag.y0);   /* тап = выбрать объект */
     V3.drag=null; };
-  lc.addEventListener("pointerup",upH); lc.addEventListener("pointercancel",upH);
+  lc.addEventListener("pointerup",upH,{signal:V3.ac.signal}); lc.addEventListener("pointercancel",upH,{signal:V3.ac.signal});
   lc.addEventListener("wheel",e=>{ if(!V3)return; e.preventDefault();
-    V3.dist=Math.max(5,Math.min(34,V3.dist+e.deltaY*0.014)); },{passive:false});
-  document.addEventListener("pointerlockchange",()=>{ if(V3)V3.plock=(document.pointerLockElement===lc); });
+    V3.dist=Math.max(5,Math.min(34,V3.dist+e.deltaY*0.014)); },{passive:false,signal:V3.ac.signal});
+  document.addEventListener("pointerlockchange",()=>{ if(V3)V3.plock=(document.pointerLockElement===lc); },{signal:V3.ac.signal});
   lc.addEventListener("mousemove",e=>{ if(!V3||!V3.plock)return;
-    V3.yaw-=e.movementX*.0035; V3.pitch=Math.max(.02,Math.min(.95,V3.pitch+e.movementY*.003)); V3.tour=null; });
+    V3.yaw-=e.movementX*.0035; V3.pitch=Math.max(.02,Math.min(.95,V3.pitch+e.movementY*.003)); V3.tour=null; },{signal:V3.ac.signal});
   /* полный экран */
   const fs=$("#vizFs"); if(fs)fs.onclick=()=>{
     const el=$("#vizStage").querySelector(".viz-screen"); if(!el)return;
@@ -7250,7 +7251,7 @@ function v3Start(idx){
       el.classList.toggle("fs-css"); document.body.classList.toggle("fs-lock",el.classList.contains("fs-css")); }
     fs.textContent=(el.classList.contains("fs-css")||document.fullscreenElement)?"✕":"⛶";
     setTimeout(v3Resize,120); setTimeout(v3Resize,400); };
-  window.addEventListener("resize",v3Resize);
+  window.addEventListener("resize",v3Resize,{signal:V3.ac.signal});
   v3Resize();
   V3.raf=requestAnimationFrame(v3Loop);
 }
@@ -8619,8 +8620,10 @@ function netIce(pc,ms){ return new Promise(res=>{                 /* ждём, �
     pc.removeEventListener("icegatheringstatechange",h); res(); };
   const h=()=>{ if(pc.iceGatheringState==="complete")fin(); };
   pc.addEventListener("icegatheringstatechange",h); setTimeout(fin,ms); }); }
-function netClose(){ if(!NET)return; clearInterval(NET.ping); clearTimeout(NET.wd);
-  try{NET.ch&&NET.ch.close()}catch(e){} try{NET.pc&&NET.pc.close()}catch(e){} NET=null; }
+function netClose(){ if(!NET)return; clearInterval(NET.ping); clearInterval(NET.hb); clearTimeout(NET.wd);
+  try{NET.ch&&NET.ch.close()}catch(e){} try{NET.pc&&NET.pc.close()}catch(e){}
+  try{NET.ws&&NET.ws.close()}catch(e){}   /* иначе брокер держит id комнаты занятым и войти повторно нельзя */
+  NET=null; }
 function netSend(o){ try{ if(NET&&NET.ch&&NET.ch.readyState==="open")NET.ch.send(JSON.stringify(o)); }catch(e){} }
 function netWire(ch){
   ch.onopen=()=>{ if(!NET)return; NET.up=true; netSend({t:"hi",n:duelName(),h:duelHash()}); netUI();
@@ -8760,7 +8763,6 @@ function roomSock(id,onMsg,onOpen,onErr){
     if(m.type==="ERROR"){ onErr&&onErr(m.payload&&m.payload.msg||"брокер отказал"); return; }
     onMsg&&onMsg(m); };
   ws.onerror=()=>onErr&&onErr("нет связи с брокером");
-  ws.onclose=()=>{ if(NET)NET.hb&&clearInterval(NET.hb); };
   return ws;
 }
 function roomSend(ws,type,dst,payload){ try{ ws.send(JSON.stringify({type,dst,payload})); }catch(e){} }
@@ -9235,7 +9237,8 @@ function renderMilestones(cl,container,focus){
 document.addEventListener("keydown",e=>{
   if(e.key==="Escape"){ if(gsModal&&!gsModal.hidden){closeSearch();return;} if(trefModal&&!trefModal.hidden){closeTermModal();return;} const d=$("#rmDrawer"); if(d&&!d.hidden){closeRoadmap();return;} }
   if(e.key==="/"&&e.target.tagName!=="INPUT"&&e.target.tagName!=="TEXTAREA"){ e.preventDefault(); openSearch(); return; }
-  if(e.target.tagName==="SELECT"||e.target.tagName==="INPUT")return;
+  if(e.target.tagName==="SELECT"||e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"
+     ||(e.target&&e.target.isContentEditable))return;
   if(mode==="fp"){
     if(e.key==="ArrowLeft"){fpPlaying=false;setFrame(fpFrame-1);}
     else if(e.key==="ArrowRight"){fpPlaying=false;setFrame(fpFrame+1);}
