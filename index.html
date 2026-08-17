@@ -813,6 +813,25 @@
   .gt-prog{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:9px 11px;border-radius:10px;
     background:var(--panel-2);margin-bottom:7px}
   .gt-prog b{font:800 13px var(--mono);color:#c58fff;flex:0 0 92px}
+  .gt-rl{display:grid;gap:9px}
+  .gt-r{padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);
+    cursor:pointer;transition:.15s}
+  .gt-r:hover{border-color:var(--acc)}
+  .gt-r.on{border-color:#54e6c8;background:rgba(84,230,200,.08)}
+  .gt-rh{display:flex;align-items:baseline;gap:9px}
+  .gt-rh b{font:700 14px var(--sans);color:var(--txt)}
+  .gt-rh span{font:600 11.5px var(--sans);color:var(--mut);flex:1}
+  .gt-rp{flex:none;width:26px;height:26px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--mut);cursor:pointer;font-size:11px}
+  .gt-r.on .gt-rp{color:#54e6c8;border-color:#54e6c8}
+  .gt-steps{display:flex;gap:5px;margin:9px 0 7px;flex-wrap:wrap}
+  .gt-step{flex:0 0 34px;height:34px;display:flex;align-items:center;justify-content:center;
+    border-radius:9px;background:rgba(255,255,255,.05);border:1px solid var(--line-2);
+    font:700 15px var(--sans);font-style:normal;color:var(--txt);transition:.1s}
+  .gt-step.off{color:var(--mut);opacity:.4}
+  .gt-step.now{background:linear-gradient(135deg,#ff8fb1,#a98bff);color:#0a0b12;border-color:transparent;
+    transform:scale(1.12)}
+  .gt-r em{display:block;font:400 12px var(--sans);font-style:normal;color:var(--mut);line-height:1.5}
   .gt-prog span{font:700 13px var(--sans);color:var(--txt);flex:0 0 auto}
   .gt-prog em{font:400 12px var(--sans);font-style:normal;color:var(--mut);flex:1 1 140px}
 
@@ -871,6 +890,12 @@
     border:1px solid var(--line);background:var(--panel-2);color:var(--mut)}
   .hk-f:hover{color:var(--txt)}
   .hk-f.on{color:#0a0b12;border-color:transparent;background:var(--grad)}
+  .hk-f.hide{margin-left:auto}
+  .hk-f.hide.on{background:linear-gradient(135deg,#46d6a0,#54e6c8)}
+  .hk-q{width:100%;padding:10px 13px;margin-bottom:10px;border-radius:11px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--txt);font:500 13.5px var(--sans)}
+  .hk-q:focus{outline:none;border-color:var(--acc)}
+  .hk-empty{padding:18px;text-align:center;color:var(--mut);font-size:13.5px}
   .hk-g h3{display:flex;align-items:center;gap:9px}
   .hk-n{font:700 11px var(--mono);color:var(--mut);background:var(--panel-2);
     border-radius:20px;padding:2px 9px}
@@ -2747,7 +2772,7 @@ function setMode(m){mode=m;
   $("#viewPath").hidden=(m!=="path");
   $("#viewViz").hidden=(m!=="viz");
   $("#viewMus").hidden=(m!=="mus");
-  if(m!=="mus"){ musMicStop(); sgStopMelody(); }
+  if(m!=="mus"){ musMicStop(); sgStopMelody(); if(typeof gtStopRhy==="function")gtStopRhy(); }
   stopFp(); clearInterval(gTimer); stopArcade(); if(behTimer){clearInterval(behTimer);behTimer=null;}
   if(m!=="game")presStop();
   if(ZQ){clearInterval(ZQ.tm); if(m!=="zero")ZQ=null;} if(m!=="viz")v3Stop(); if(m!=="game")netClose();
@@ -10407,9 +10432,10 @@ function gtShow(list){                                 /* показать ак�
 function musUI(){
   const b=$("#musBody"); if(!b)return;
   if(MUS_INS==="guitar")musFb(); else musKb();
-  musMicStop();
+  musMicStop(); gtStopRhy();
   if(MUS_INS==="guitar"){
     if(MUS_MODE==="gchord")return gtChords(b);
+    if(MUS_MODE==="grhy")return gtRhythm(b);
     if(MUS_MODE==="gtune")return gtTuner(b);
     if(MUS_MODE==="gref")return gtRef(b);
     return musHacks(b,window.GTHACK,"гитарные лайфхаки ещё не подгрузились");
@@ -10421,7 +10447,7 @@ function musUI(){
 }
 const MUS_TABS={
   piano:[["hack","💡 Лайфхаки"],["ref","📖 Шпоры"],["ear","👂 Интервал на слух"],["voice","🎤 Спой интервал"]],
-  guitar:[["ghack","💡 Лайфхаки"],["gchord","🎵 Аккорды"],["gtune","🎯 Тюнер"],["gref","📖 Гриф и строй"]]
+  guitar:[["ghack","💡 Лайфхаки"],["gchord","🎵 Аккорды"],["grhy","🥁 Бои и переборы"],["gtune","🎯 Тюнер"],["gref","📖 Гриф и строй"]]
 };
 /* Тюнер: переиспользует то же определение высоты, что и вокальные тренажёры.
    Струну не выбираем вручную — берём ближайшую по частоте, как делают настоящие тюнеры. */
@@ -10491,6 +10517,91 @@ function gtTuner(b){
     tick();
   };
 }
+/* Бои и переборы. Шаг сетки — восьмая.
+   d — удар вниз, u — вверх, x — глухой удар ребром ладони, «-» — пауза,
+   число — номер струны для перебора. */
+const GT_RHY=[
+  {name:"Четвёрка",   kind:"бой", steps:["d","-","d","-","d","-","d","-"], bpm:90,
+   tip:"Самый простой: четыре удара вниз на каждую долю. С него начинают все."},
+  {name:"Восьмёрка",  kind:"бой", steps:["d","u","d","u","d","u","d","u"], bpm:90,
+   tip:"Рука качается как маятник и не останавливается — вниз на доли, вверх между ними."},
+  {name:"Классический бой", kind:"бой", steps:["d","-","d","u","-","u","d","u"], bpm:95,
+   tip:"Тот самый дворовый. Рука всё время качается, просто иногда не задевает струны."},
+  {name:"Бой с глушением", kind:"бой", steps:["d","-","x","u","d","u","x","u"], bpm:95,
+   tip:"× — глухой удар: бьёшь и тут же кладёшь ребро ладони на струны. Даёт пульс, как барабан."},
+  {name:"Галоп",      kind:"бой", steps:["d","-","d","u","d","-","d","u"], bpm:100,
+   tip:"Тяжёлый рок-ритм. Держи руку жёстче обычного."},
+  {name:"Перебор 4",  kind:"перебор", steps:[6,3,2,1], bpm:80,
+   tip:"Бас и три тонкие по очереди. Бас берётся большим пальцем, остальные — указательным, средним, безымянным."},
+  {name:"Перебор 6",  kind:"перебор", steps:[6,3,2,1,2,3], bpm:80,
+   tip:"Тот же, но с возвратом — самый ходовой для медленных песен."},
+  {name:"Восьмёрка пальцами", kind:"перебор", steps:[6,3,2,1,3,2,1,2], bpm:85,
+   tip:"Плотнее звучит, годится вместо боя там, где бой слишком грубо."}
+];
+let GT_RHY_ON=null;
+function gtStopRhy(){
+  if(!GT_RHY_ON)return;
+  clearTimeout(GT_RHY_ON.t); sgStopMelody(); GT_RHY_ON=null;
+  [...document.querySelectorAll(".gt-r")].forEach(x=>x.classList.remove("on"));
+  [...document.querySelectorAll(".gt-step")].forEach(x=>x.classList.remove("now"));
+}
+function gtPlayRhy(i,card){
+  const r=GT_RHY[i], ac=sgAudio(); if(!ac)return;
+  if(ac.state==="suspended")ac.resume();
+  gtStopRhy();
+  const chord=(window.GTCHORD||[]).find(c=>c.name===(GT_CHORD_CUR||"Am"))||{frets:[-1,0,2,2,1,0]};
+  const ms=chord.frets.map((f,k)=>f<0?null:gtMidi(6-k,f));           /* от 6-й к 1-й, null — не играется */
+  const beat=60/(r.bpm||90)/2;                                       /* шаг сетки — восьмая */
+  SG_PLAY={oscs:[],timers:[],until:0};
+  const t0=ac.currentTime+.12;
+  const strum=(at,up,gain)=>{
+    const live=ms.map((m,k)=>({m,k})).filter(o=>o.m!=null);
+    const order=up?live.slice().reverse():live;
+    order.forEach((o,n)=>sgTone(ac,sgHz(o.m),at+n*.022,1.0,gain,"triangle"));
+  };
+  r.steps.forEach((st,n)=>{
+    const at=t0+n*beat;
+    if(r.kind==="перебор"){
+      /* 6 в рисунке значит «бас», а он у каждого аккорда свой: у Am шестая струна
+         глушится и басом работает пятая. Берём самую низкую звучащую. */
+      let m=ms[6-st];
+      if(st===6&&m==null)m=ms.find(x=>x!=null);
+      if(m!=null)sgTone(ac,sgHz(m),at,.9,.15,"triangle");
+    } else if(st==="d")strum(at,false,.13);
+    else if(st==="u")strum(at,true,.10);
+    else if(st==="x"){ sgTone(ac,110,at,.05,.10,"sawtooth"); sgTone(ac,190,at,.045,.07,"sawtooth"); }
+    SG_PLAY.timers.push(setTimeout(()=>{
+      if(!card)return;
+      [...card.querySelectorAll(".gt-step")].forEach((e,k)=>e.classList.toggle("now",k===n));
+    },(at-ac.currentTime)*1000));
+  });
+  const dur=r.steps.length*beat*1000;
+  SG_PLAY.until=performance.now()+dur+300;
+  GT_RHY_ON={i,t:setTimeout(()=>gtPlayRhy(i,card),dur+120)};          /* зациклено, пока не остановишь */
+}
+function gtRhythm(b){
+  const cur=GT_CHORD_CUR||"Am";
+  b.innerHTML='<div class="mus-card"><h3>Бои и переборы</h3>'
+    +'<p class="mus-p">Аккорды знать мало — правая рука решает, как это звучит. '
+    +'Жми рисунок, он зациклится на выбранном аккорде. Сейчас звучит <b class="st-key" id="gtRhCh">'+esc(cur)+'</b> — '
+    +'поменять можно во вкладке «Аккорды».</p>'
+    +'<div class="gt-rl">'+GT_RHY.map((r,i)=>'<div class="gt-r" data-i="'+i+'">'
+      +'<div class="gt-rh"><b>'+esc(r.name)+'</b><span>'+esc(r.kind)+" · "+r.bpm+" уд/мин</span>"
+      +'<button class="gt-rp">▶</button></div>'
+      +'<div class="gt-steps">'+r.steps.map(st=>'<i class="gt-step'+(st==="-"?" off":"")+'">'
+        +(r.kind==="перебор"?st:(st==="d"?"↓":st==="u"?"↑":st==="x"?"✕":"·"))+"</i>").join("")+"</div>"
+      +'<em>'+esc(r.tip)+"</em></div>").join("")+"</div>"
+    +'<div class="st-tip">Счёт восьмыми: «раз-и-два-и-три-и-четыре-и». Каждая клетка — одно «и». '
+    +'В бою рука качается непрерывно, даже когда не задевает струны — именно это держит ритм ровным.</div></div>';
+  [...b.querySelectorAll(".gt-r")].forEach(el=>{
+    const i=+el.dataset.i;
+    el.onclick=()=>{
+      if(GT_RHY_ON&&GT_RHY_ON.i===i)return gtStopRhy();
+      gtStopRhy(); el.classList.add("on"); gtPlayRhy(i,el);
+    };
+  });
+}
+let GT_CHORD_CUR=null;
 function gtChords(b){
   const C=(window.GTCHORD||[]);
   if(!C.length){ b.innerHTML='<div class="mus-card"><p class="mus-p">Аккорды ещё не подгрузились.</p></div>'; return; }
@@ -10503,6 +10614,7 @@ function gtChords(b){
     const c=C.find(x=>x.name===el.dataset.n); if(!c)return;
     [...b.querySelectorAll(".gt-c")].forEach(x=>x.classList.remove("on"));
     el.classList.add("on");
+    GT_CHORD_CUR=c.name;
     gtShow(c.frets);
     const ms=c.frets.map((f,i)=>f<0?null:gtMidi(6-i,f)).filter(x=>x!=null);
     const ac=sgAudio(); if(ac){ if(ac.state==="suspended")ac.resume();
@@ -10568,6 +10680,7 @@ function musInsUI(){
 }
 /* Лайфхаки: приёмы, которые дают результат за дни, а не «занимайся больше».
    Данные лежат в hacks.js — window.MUSHACK. */
+let HK_APPLY=null;
 function musDone(id,v){
   const KEY=MUS_INS==="guitar"?"jdGtDone":"jdMusDone";
   let s={}; try{ s=JSON.parse(localStorage.getItem(KEY)||"{}"); }catch(e){}
@@ -10582,11 +10695,13 @@ function musHacks(b,data,empty){
   const cnt=Object.keys(done).length;
   b.innerHTML='<div class="hk-top"><div class="hk-bar"><i style="width:'+(all?cnt/all*100:0)+'%"></i></div>'
     +'<span id="hkCnt">'+cnt+" из "+all+" отмечено</span></div>"
+    +'<input class="hk-q" id="hkQ" placeholder="🔍 поиск по приёмам — баррэ, ритм, метроном…">'
     +'<div class="hk-filter" id="hkFilter">'
     +'<button class="hk-f on" data-l="все">все</button>'
     +'<button class="hk-f" data-l="новичок">новичку</button>'
     +'<button class="hk-f" data-l="средний">среднему</button>'
-    +'<button class="hk-f" data-l="быстрые">до 10 минут</button></div>'
+    +'<button class="hk-f" data-l="быстрые">до 10 минут</button>'
+    +'<button class="hk-f hide" id="hkHide">✓ скрыть отмеченные</button></div>'
     +H.map((g,gi)=>'<div class="mus-card hk-g"><h3>'+esc(g.group)+'<span class="hk-n">'+g.hacks.length+"</span></h3>"
       +g.hacks.map((h,hi)=>{
         const id="h"+gi+"_"+hi;
@@ -10613,20 +10728,39 @@ function musHacks(b,data,empty){
     const d=Object.keys(musDone()).length;
     const c=$("#hkCnt"); if(c)c.textContent=d+" из "+all+" отмечено";
     const bar=b.querySelector(".hk-bar i"); if(bar)bar.style.width=(all?d/all*100:0)+"%";
+    if(HK_APPLY)HK_APPLY();
   });
-  [...b.querySelectorAll(".hk-f")].forEach(el=>el.onclick=()=>{
-    [...b.querySelectorAll(".hk-f")].forEach(x=>x.classList.toggle("on",x===el));
-    const l=el.dataset.l;
+  /* три условия разом: уровень, поиск по тексту и «скрыть уже взятые» */
+  let hkLvl="все", hkHide=false, hkQ="";
+  const apply=()=>{
+    let seen=0;
     [...b.querySelectorAll(".hk")].forEach(c=>{
-      const ok = l==="все" ? true
-        : l==="быстрые" ? (+c.dataset.min>0&&+c.dataset.min<=10)
-        : (c.dataset.lvl===l||c.dataset.lvl==="любой");
-      c.hidden=!ok;
+      const byLvl = hkLvl==="все" ? true
+        : hkLvl==="быстрые" ? (+c.dataset.min>0&&+c.dataset.min<=10)
+        : (c.dataset.lvl===hkLvl||c.dataset.lvl==="любой");
+      const byDone = !hkHide||!c.classList.contains("ok");
+      const byQ = !hkQ||c.textContent.toLowerCase().indexOf(hkQ)>=0;
+      const ok=byLvl&&byDone&&byQ;
+      c.hidden=!ok; if(ok)seen++;
     });
     [...b.querySelectorAll(".hk-g")].forEach(g=>{
       g.hidden=![...g.querySelectorAll(".hk")].some(c=>!c.hidden);
     });
+    const e=$("#hkEmpty");
+    if(e)e.hidden=seen>0;
+  };
+  b.insertAdjacentHTML("beforeend",'<div class="hk-empty" id="hkEmpty" hidden>Ничего не нашлось — сбрось поиск или фильтр.</div>');
+  [...b.querySelectorAll(".hk-f[data-l]")].forEach(el=>el.onclick=()=>{
+    hkLvl=el.dataset.l;
+    [...b.querySelectorAll(".hk-f[data-l]")].forEach(x=>x.classList.toggle("on",x===el));
+    apply();
   });
+  const hd=$("#hkHide");
+  if(hd)hd.onclick=()=>{ hkHide=!hkHide; hd.classList.toggle("on",hkHide); apply(); };
+  const q=$("#hkQ");
+  if(q){ let qt; q.oninput=()=>{ clearTimeout(qt);
+    qt=setTimeout(()=>{ hkQ=q.value.trim().toLowerCase(); apply(); },120); }; }
+  HK_APPLY=apply;
 }
 /* ---- нотный стан ----
    Ключи не рисую символами 𝄞/𝄢: их нет в системных шрифтах и они вылезают
