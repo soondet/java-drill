@@ -787,9 +787,17 @@
   .kb-foot{display:flex;align-items:center;gap:8px;margin-top:7px}
   .kb-cap{flex:1;text-align:center;font:600 12px var(--sans);color:var(--mut);min-height:16px;
     padding-left:64px}
-  .kb-pin,.kb-clr{flex:none;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:13px;
+  .kb-pin,.kb-clr,.kb-midi{flex:none;width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:13px;
     border:1px solid var(--line);background:var(--panel-2);color:var(--mut);transition:.16s}
-  .kb-pin:hover,.kb-clr:hover{color:var(--txt);border-color:var(--acc)}
+  .kb-pin:hover,.kb-clr:hover,.kb-midi:hover{color:var(--txt);border-color:var(--acc)}
+  .kb-midi.on{border-color:var(--good);background:rgba(70,214,160,.14)}
+  .kb-dev{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:6px;
+    font:600 11.5px var(--sans);color:var(--mut)}
+  .kb-dot{width:7px;height:7px;border-radius:50%;background:#46d6a0;flex:none;
+    box-shadow:0 0 8px rgba(70,214,160,.8)}
+  .kb-dot.off{background:#ff7a85;box-shadow:0 0 8px rgba(255,122,133,.6)}
+  .kb-snd{display:inline-flex;align-items:center;gap:5px;margin-left:6px;cursor:pointer}
+  .kb-snd input{accent-color:#46d6a0;width:13px;height:13px}
   .kb-pin.on{background:var(--grad);border-color:transparent;transform:rotate(-28deg)}
   .kb-hold{display:none}
   .kb-wrap.pin .kb-hold{display:block}
@@ -1857,9 +1865,11 @@
         <div class="kb" id="musKb"></div>
         <div class="kb-foot">
           <span class="kb-cap" id="musKbCap">жми клавиши — можно несколько, повторное нажатие снимает</span>
+          <button class="kb-midi" id="kbMidi" type="button" title="подключить MIDI-клавиатуру">🎹</button>
           <button class="kb-pin" id="kbPin" type="button" title="закрепить при прокрутке">📌</button>
           <button class="kb-clr" id="kbClr" type="button" title="снять все">✕</button>
         </div>
+        <div class="kb-dev" id="musDev" hidden></div>
       </div>
       <div class="kb-hold" id="musKbHold"></div>
     </div>
@@ -10117,9 +10127,87 @@ function musKb(){
   box.innerHTML=h;
   [...box.querySelectorAll("button")].forEach(el=>el.onclick=()=>musKeyTap(+el.dataset.m));
   const pin=$("#kbPin"); if(pin)pin.onclick=()=>musPin(!(localStorage.getItem("jdKbPin")==="1"));
+  const md=$("#kbMidi"); if(md)md.onclick=musMidiInit;
   const clr=$("#kbClr"); if(clr)clr.onclick=()=>{ KB_SEL=[]; musPaint(); musKbCap("жми клавиши — можно несколько, повторное нажатие снимает"); };
   musPin();
   addEventListener("resize",()=>musPin());
+}
+/* ---- MIDI: настоящая клавиатура по USB ----
+   Драйверов не нужно, браузер отдаёт «нажата нота 60». Ноты, которые держат
+   руками, звучат столько, сколько держишь — под тихий контроллер без своих динамиков. */
+let MIDI=null;
+const MIDI_V={};                                       /* живые голоса: нота → {osc,gain} */
+function musMidiVoice(m,on){
+  const ac=sgAudio(); if(!ac)return;
+  if(ac.state==="suspended")ac.resume();
+  if(on){
+    if(MIDI_V[m])return;
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type="triangle"; o.frequency.value=sgHz(m);
+    g.gain.setValueAtTime(.0001,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(.16,ac.currentTime+.02);
+    o.connect(g).connect(ac.destination); o.start();
+    MIDI_V[m]={o,g};
+  } else {
+    const v=MIDI_V[m]; if(!v)return;
+    delete MIDI_V[m];
+    try{ v.g.gain.cancelScheduledValues(ac.currentTime);
+      v.g.gain.setValueAtTime(v.g.gain.value,ac.currentTime);
+      v.g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+.09);
+      v.o.stop(ac.currentTime+.12); }catch(e){}
+  }
+}
+function musMidiNote(m,on){
+  const i=KB_SEL.indexOf(m);
+  if(on&&i<0)KB_SEL.push(m);
+  if(!on&&i>=0)KB_SEL.splice(i,1);
+  musPaint();
+  if(MIDI&&MIDI.sound)musMidiVoice(m,on);
+  musKbCap(KB_SEL.length?musName(KB_SEL):"играй — приложение слушает клавиатуру");
+}
+function musMidiMsg(e){
+  const d=e.data; if(!d||d.length<2)return;
+  const cmd=d[0]&0xf0, note=d[1], vel=d.length>2?d[2]:0;
+  if(cmd===0x90&&vel>0)musMidiNote(note,true);
+  else if(cmd===0x80||(cmd===0x90&&vel===0))musMidiNote(note,false);
+  else if(cmd===0xb0&&note===123){ KB_SEL.length=0; musPaint(); }   /* all notes off */
+}
+function musMidiUI(){
+  const box=$("#musDev"), btn=$("#kbMidi");
+  if(!box||!btn)return;
+  if(!MIDI){ box.hidden=true; btn.classList.remove("on"); return; }
+  const ins=MIDI.ins||[];
+  btn.classList.toggle("on",ins.length>0);
+  box.hidden=false;
+  box.innerHTML=ins.length
+    ? '<span class="kb-dot"></span>'+ins.map(i=>esc(i.name||"устройство")).join(" · ")
+      +'<label class="kb-snd"><input type="checkbox" id="kbSnd"'+(MIDI.sound?" checked":"")+"> звук от приложения</label>"
+    : '<span class="kb-dot off"></span>устройств не видно — воткни клавиатуру в USB и нажми 🎹 ещё раз';
+  const c=$("#kbSnd");
+  if(c)c.onchange=()=>{ MIDI.sound=c.checked;
+    if(!MIDI.sound)Object.keys(MIDI_V).forEach(m=>musMidiVoice(+m,false)); };
+}
+function musMidiInit(){
+  const box=$("#musDev");
+  if(!navigator.requestMIDIAccess){
+    if(box){ box.hidden=false;
+      box.innerHTML='<span class="kb-dot off"></span>этот браузер не умеет MIDI — нужен Chrome (в Safari поддержки нет)'; }
+    return;
+  }
+  if(box){ box.hidden=false; box.innerHTML='<span class="kb-dot"></span>ищу устройства…'; }
+  navigator.requestMIDIAccess({sysex:false}).then(acc=>{
+    MIDI={acc,ins:[],sound:true};
+    const bind=()=>{
+      MIDI.ins=[...acc.inputs.values()];
+      MIDI.ins.forEach(i=>{ i.onmidimessage=musMidiMsg; });
+      musMidiUI();
+    };
+    acc.onstatechange=bind;
+    bind();
+  }).catch(()=>{
+    if(box){ box.hidden=false;
+      box.innerHTML='<span class="kb-dot off"></span>доступ к MIDI не дали — разреши в настройках сайта и нажми ещё раз'; }
+  });
 }
 /* клавиши — переключатели: нажал ещё раз, и нота снимается.
    Набранное держится, поэтому аккорд можно собрать руками и услышать целиком. */
