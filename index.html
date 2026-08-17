@@ -4345,7 +4345,10 @@ function v3Render(A,vp,cam,p,t){
   const G=V3.G, gl=G.gl, W=V3.W, H=V3.H;
   const MD=v3Mood(), SUN=MD.sun;
   gl.bindBuffer(gl.ARRAY_BUFFER,G.buf);
-  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(A),gl.DYNAMIC_DRAW);
+  const need=A.length;                                  /* буфер переиспользуем, пока хватает размера */
+  if(!G.fa||G.fa.length<need)G.fa=new Float32Array(Math.ceil(need*1.3));
+  G.fa.set(A);
+  gl.bufferData(gl.ARRAY_BUFFER,G.fa.subarray(0,need),gl.DYNAMIC_DRAW);
   const n=A.length/11;
   /* --- 1. карта теней (ортопроекция от солнца) --- */
   let lvp=null;
@@ -7386,7 +7389,8 @@ function v3Loop(){ if(!V3)return;
   if(!zone&&sc.note&&V3.tick%10===0){ const el=$("#vizInfo");
     if(el&&!V3.zone){ el.innerHTML='<b>'+tr("Что сейчас происходит")+'</b><br>'+sc.note(S); el.classList.add("on"); } }
   /* геометрия */
-  const A=[], labels=[]; V3.glows=[];
+  const A=V3.A||(V3.A=[]); A.length=0;   /* переиспользуем массив: раньше на каждый кадр создавался новый */
+  const labels=[]; V3.glows=[];
   v3Box(A,0,-1.2,0,90,.6,90,"#0f1626",{noShadow:1});          /* большой пол */
   v3Arena(A,V3.frame||0);                                      /* борта, канты, колонны */
   if(!V3.low)v3Deco(A,S,V3.frame||0);                          /* площадки зон, лотки, разметка, силуэт */
@@ -9335,7 +9339,8 @@ function hbClose(){
   document.body.style.overflow="";
   hbMicStop(); sgStopMelody();                         /* закрыли комнату — микрофон и звук отпускаем сразу */
   if(HB){ cancelAnimationFrame(HB.raf); removeEventListener("resize",HB.fit); HB=null; }
-  if(location.hash==="#hb")history.replaceState(null,"",location.pathname+location.search);
+  if(Object.keys(HB_ROOMS).some(k=>location.hash==="#"+k))   /* иначе повторный вход в ту же комнату не срабатывает */
+    history.replaceState(null,"",location.pathname+location.search);
 }
 function hbLock(){
   if(!HBROOM.data()&&HBROOM.src){                      /* данные ещё не подтянуты — покажем это, а не пустой замок */
@@ -9423,7 +9428,7 @@ async function hbMicStart(btn,onBlow){
   btn.textContent="разрешаю…"; btn.disabled=true;
   let stream;
   try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }
-  catch(e){ btn.textContent="не дали доступ — жми на торт"; return; }
+  catch(e){ btn.textContent="не дали доступ — жми на торт"; btn.disabled=false; return; }
   const AC=window.AudioContext||window.webkitAudioContext;
   const ac=new AC(), an=ac.createAnalyser(); an.fftSize=1024;
   ac.createMediaStreamSource(stream).connect(an);
@@ -9487,13 +9492,19 @@ function hbConfetti(){
   const ctx=cv.getContext("2d"), dpr=Math.min(2,devicePixelRatio||1);
   const fit=()=>{ cv.width=innerWidth*dpr; cv.height=innerHeight*dpr; };
   fit(); addEventListener("resize",fit);
-  HB={p:[],raf:0,fit,t:0};
+  /* Праздник длится 14 секунд, дальше цикл засыпает: раньше канвас во весь экран
+     перерисовывался бесконечно и жёг батарею всё время, пока открыта комната.
+     Салют по клику будит его обратно. */
+  HB={p:[],raf:0,fit,t:0,until:performance.now()+14000,step:null};
   for(let i=0;i<110;i++)hbAdd(Math.random()*innerWidth,-Math.random()*innerHeight,3,1);
   const step=()=>{
+    if(!HB)return;
+    if(!HB.p.length&&performance.now()>HB.until){    /* всё осыпалось и подсыпать больше нечего */
+      HB.raf=0; ctx.clearRect(0,0,innerWidth,innerHeight); return; }
     HB.raf=requestAnimationFrame(step);
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,innerWidth,innerHeight);
-    if(++HB.t%9===0&&HB.p.length<170)hbAdd(Math.random()*innerWidth,-14,3,1);
+    if(++HB.t%9===0&&HB.p.length<170&&performance.now()<HB.until)hbAdd(Math.random()*innerWidth,-14,3,1);
     for(let i=HB.p.length-1;i>=0;i--){
       const q=HB.p[i];
       q.vy+=.055; q.vx*=.995; q.x+=q.vx; q.y+=q.vy; q.r+=q.vr;
@@ -9502,6 +9513,7 @@ function hbConfetti(){
       ctx.fillRect(-q.w/2,-q.h/2,q.w,q.h*Math.abs(Math.cos(q.r))); ctx.restore();
     }
   };
+  HB.step=step;
   step();
 }
 const HB_COL=["#6ea8fe","#a98bff","#54e6c8","#ffcf6e","#ff7a85","#46d6a0","#ffffff"];
@@ -9513,6 +9525,7 @@ function hbAdd(x,y,spread,up){
 }
 function hbBurst(x,y,n){
   if(!HB)return;
+  if(!HB.raf&&HB.step){ HB.until=performance.now()+2500; HB.raf=requestAnimationFrame(HB.step); }
   for(let i=0;i<n;i++){
     const a=Math.random()*6.28, v=2+Math.random()*7;
     HB.p.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2,w:4+Math.random()*6,h:7+Math.random()*9,
@@ -9809,7 +9822,7 @@ async function sgStart(btn){
   btn.textContent="разрешаю…"; btn.disabled=true;
   let stream;
   try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }
-  catch(e){ btn.textContent="не дали доступ к микрофону"; return; }
+  catch(e){ btn.textContent="не дали доступ — нажми ещё раз"; btn.disabled=false; return; }
   const AC=window.AudioContext||window.webkitAudioContext;
   const ac=new AC(), an=ac.createAnalyser();
   an.fftSize=2048; an.smoothingTimeConstant=.75;
@@ -10163,6 +10176,7 @@ function musPin(v){
   const b=$("#kbPin");
   if(b){ b.classList.toggle("on",on); b.title=on?"открепить":"закрепить при прокрутке"; }
   if(!on){ wrap.classList.remove("pin"); inn.removeAttribute("style"); hold.style.height=""; return; }
+  if(!wrap.offsetParent)return;                        /* секция скрыта — размеры нулевые, мерить нечего */
   const h=inn.offsetHeight||wrap.offsetHeight;
   const r=wrap.getBoundingClientRect();
   const tb=document.querySelector(".topbar");
@@ -10183,7 +10197,7 @@ function musPlay(semis,together){
   SG_PLAY.until=performance.now()+(together?1600:semis.length*450+400);
 }
 function musMicStop(){ if(!MUSMIC)return;
-  cancelAnimationFrame(MUSMIC.raf);
+  cancelAnimationFrame(MUSMIC.raf); clearTimeout(MUSMIC.next);
   try{ MUSMIC.stream.getTracks().forEach(t=>t.stop()); }catch(e){}
   try{ MUSMIC.ac.close(); }catch(e){}
   MUSMIC=null; }
@@ -10339,10 +10353,10 @@ const INV=[
   {name:"Основной вид",     short:"5/3", semis:[0,4,7],
    look:"Три ноты ровным столбиком через одну — все на линейках или все между ними.",
    use:"Самый устойчивый: им начинают и заканчивают, в басу основной тон."},
-  {name:"Секстаккорд",      short:"6",   semis:[0,3,8],
+  {name:"Секстаккорд",      short:"6",   semis:[4,7,12],
    look:"Две нижние рядом терцией, верхняя оторвана на кварту.",
    use:"В басу терцовый тон — берут в середине фразы ради плавного баса."},
-  {name:"Квартсекстаккорд", short:"6/4", semis:[0,5,9],
+  {name:"Квартсекстаккорд", short:"6/4", semis:[7,12,16],
    look:"Снизу разрыв в кварту, две верхние тесно — «пусто внизу, тесно вверху».",
    use:"Неустойчив, требует разрешения: кадансовый оборот перед доминантой."}
 ];
@@ -10647,12 +10661,16 @@ function musVoice(b){
   };
   $("#musNew").onclick=roll;
   $("#musHear").onclick=()=>{ if(target)musPlay([0,target.semi],false); else musPlay([0],false); };
+  let micPend=0;                                       /* второй клик во время запроса плодил второй поток */
   $("#musMicB").onclick=async e=>{
     const btn=e.target;
+    if(micPend)return;
     if(MUSMIC){ musMicStop(); btn.textContent="🎤 включить микрофон"; btn.classList.remove("primary"); return; }
     let stream;
+    micPend=1;
     try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}); }
-    catch(x){ btn.textContent="не дали доступ"; return; }
+    catch(x){ btn.textContent="не дали доступ — нажми ещё раз"; micPend=0; return; }
+    finally{ micPend=0; }
     const AC=window.AudioContext||window.webkitAudioContext;
     const ac=new AC(), an=ac.createAnalyser(); an.fftSize=2048; an.smoothingTimeConstant=.75;
     ac.createMediaStreamSource(stream).connect(an);
@@ -10680,7 +10698,7 @@ function musVoice(b){
         held=0;
         task.innerHTML='<b class="ok">попала — '+esc(target.name)+" ✓</b>";
         target=null;
-        setTimeout(roll,1100);
+        if(MUSMIC)MUSMIC.next=setTimeout(roll,1100);
       }
     };
     tick();
