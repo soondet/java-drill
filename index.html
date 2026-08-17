@@ -1908,9 +1908,6 @@
 <script src="viz-zero.js"></script>
 <script src="zdrill.js"></script>
 <script src="tricky.js"></script>
-<script src="hb-data.js"></script>
-<script src="sing-data.js"></script>
-<script src="qa-data.js"></script>
 <script src="hacks.js"></script>
 <script src="music-ref.js"></script>
 <!--INLINE-I18N-EN-->
@@ -9297,11 +9294,25 @@ const HB_WORD="tort";                                  /* набрать это 
 /* Комнат несколько, у каждой свой блок данных, своя заставка и своя обвязка после открытия.
    Всё остальное — замок, расшифровка, конфетти — общее. */
 const HB_ROOMS={
-  hb:  {cls:"",        data:()=>window.HBDATA, intro:hbLog,        wire:hbWireBd},
-  sing:{cls:"sg-room", data:()=>window.SGDATA, intro:sgSoundcheck, wire:sgWire},
-  qa:  {cls:"qa-room", data:()=>window.QADATA, intro:qaIntro,      wire:qaWire}
+  hb:  {cls:"",        data:()=>window.HBDATA, src:"hb-data.js",   intro:hbLog,        wire:hbWireBd},
+  sing:{cls:"sg-room", data:()=>window.SGDATA, src:"sing-data.js", intro:sgSoundcheck, wire:sgWire},
+  qa:  {cls:"qa-room", data:()=>window.QADATA, src:"qa-data.js",   intro:qaIntro,      wire:qaWire}
 };
 
+/* Данные комнат — 740 КБ шифртекста с фотографиями. Открывают их по паролю
+   считаные разы, поэтому на старте они не грузятся: подтягиваем при входе.
+   В однофайловой сборке они уже вшиты, и загрузчик сразу видит готовый объект. */
+function hbLoad(cfg){
+  return new Promise(res=>{
+    if(cfg.data())return res(true);
+    if(!cfg.src)return res(false);
+    const s=document.createElement("script");
+    s.src=cfg.src;
+    s.onload=()=>res(!!cfg.data());
+    s.onerror=()=>res(false);
+    document.head.appendChild(s);
+  });
+}
 function hbOpen(room){
   HBROOM=HB_ROOMS[room]||HB_ROOMS.hb;
   if($("#hbWrap"))return;
@@ -9321,6 +9332,15 @@ function hbClose(){
   if(location.hash==="#hb")history.replaceState(null,"",location.pathname+location.search);
 }
 function hbLock(){
+  if(!HBROOM.data()&&HBROOM.src){                      /* данные ещё не подтянуты — покажем это, а не пустой замок */
+    $("#hbIn").innerHTML='<div class="glass hb-lock"><div class="hb-em">🔒</div>'
+      +"<h2>Секретная комната</h2><p>загружаю…</p></div>";
+    return hbLoad(HBROOM).then(ok=>{
+      if(ok)return hbLock();
+      $("#hbIn").innerHTML='<div class="glass hb-lock"><div class="hb-em">📡</div>'
+        +"<h2>Не загрузилось</h2><p>Комната не подтянулась — проверь связь и попробуй ещё раз.</p></div>";
+    });
+  }
   const ok=HBROOM.data()&&window.crypto&&window.crypto.subtle;
   $("#hbIn").innerHTML='<div class="glass hb-lock"><div class="hb-em">🔒</div>'
     +'<h2>Секретная комната</h2>'

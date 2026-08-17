@@ -25,6 +25,19 @@ html = html.replace("<!--INLINE-I18N-EN-->", () => {
     return "<script>\n" + code + "\n</script>";
   } catch (e) { missing.push("i18n-en.js"); return "<!--i18n-en.js НЕ НАЙДЕН-->"; }
 });
+// Данные комнат на сайте грузятся лениво (их 740 КБ, а открывают по паролю),
+// но однофайловая сборка должна оставаться самодостаточной — вшиваем их сюда.
+const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js"];
+let roomKb = 0;
+const roomTags = ROOMS.map(f => {
+  try {
+    const code = fs.readFileSync(f, "utf8").replace(/<\/script/gi, "<\\/script");
+    roomKb += Buffer.byteLength(code) / 1024; inlined++;
+    return "<script>\n" + code + "\n</script>";
+  } catch (e) { return ""; }
+}).filter(Boolean).join("\n");
+if (roomTags) html = html.replace("</body>", roomTags + "\n</body>");
+
 fs.writeFileSync("java-drill.html", html);
 
 /* Service worker отдаёт файлы cache-first, а имя кэша раньше было зашито намертво —
@@ -46,5 +59,5 @@ try {
 } catch (e) { console.log("  ⚠ sw.js не обновлён:", e.message); }
 
 const kb = Math.round(Buffer.byteLength(html) / 1024);
-console.log("✓ java-drill.html собран:", kb + "KB, инлайнено скриптов:", inlined, inlineEN ? "(EN встроен)" : "(EN ленивый — держи i18n-en.js рядом)");
+console.log("✓ java-drill.html собран:", kb + "KB, инлайнено скриптов:", inlined, "(комнаты +" + Math.round(roomKb) + "KB)", inlineEN ? "(EN встроен)" : "(EN ленивый — держи i18n-en.js рядом)");
 if (missing.length) console.log("  не найдено (оставлены ссылками):", missing.join(", "));
