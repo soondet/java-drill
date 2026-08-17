@@ -2028,10 +2028,19 @@
 <script src="hacks.js"></script>
 <script src="music-ref.js"></script>
 <script src="guitar.js"></script>
+<script src="cards-new.js"></script>
+<script src="cards-new-aux.js"></script>
 <script src="books.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
-const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[])];
+const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[]),
+  ...(Array.isArray(window.CARDS_NEW)?window.CARDS_NEW:[])];
+/* спутники новых карточек подмешиваем в те же словари, чтобы остальной код о них не знал */
+(function(){ const add=(dst,src)=>{ if(!src)return; Object.keys(src).forEach(k=>{ if(dst[k]===undefined)dst[k]=src[k]; }); };
+  window.QUIZ=window.QUIZ||{}; add(window.QUIZ,window.QUIZ_NEW);
+  window.NOTES=window.NOTES||{}; add(window.NOTES,window.NOTES_NEW);
+  window.HOOKS=window.HOOKS||{}; window.HOOKS.cards=window.HOOKS.cards||{}; add(window.HOOKS.cards,window.HOOKS_NEW);
+})();
 const TIER=(window.TIER&&typeof window.TIER==="object")?window.TIER:{};   // id → "core" | "sec" (остальное — обычные)
 function tierOf(id){ return TIER[id]||""; }
 const TRICKY=(window.TRICKY&&typeof window.TRICKY==="object")?window.TRICKY:{};   // id → 1 (коварные вопросы 🦊)
