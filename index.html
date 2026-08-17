@@ -648,6 +648,50 @@
     background:rgba(255,176,84,.07);border:1px solid rgba(255,176,84,.22)}
   .st-tip b{color:#ffc98a}
   .st-key{color:#ffb054}
+  .sg-tabs{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:12px}
+  .sg-t{font:700 12.5px var(--sans);cursor:pointer;padding:7px 14px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--mut)}
+  .sg-t.on{color:#0a0b12;border-color:transparent;background:var(--grad)}
+  .sg-tabs input[type=range]{flex:1 1 130px;min-width:110px;accent-color:#a98bff}
+  .sg-tabs b{font:800 15px var(--mono);color:var(--txt);min-width:16px;text-align:center}
+  .sg-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+  .sg-ch{font:700 12px var(--mono);padding:5px 9px;border-radius:8px;
+    border:1px solid var(--line-2);background:var(--panel-2);color:var(--mut);opacity:.45}
+  .sg-ch.on{opacity:1;color:#0a0b12;background:linear-gradient(135deg,#ffd6a6,#ffb054);border-color:transparent}
+  .sg-rule{font-size:13.5px;line-height:1.6;color:var(--mut);margin-bottom:10px}
+  .sg-rule b{color:#ffc98a}
+  .sg-keys{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .sg-keys b{font:800 19px var(--sans);
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sg-keys span{font:500 12px var(--sans);color:var(--mut)}
+  .sg-list{font:600 12px var(--mono);color:var(--mut)}
+  .cq-box{display:flex;gap:18px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .cq{width:min(300px,100%);height:auto;flex:none;overflow:visible}
+  .cq-ring{fill:none;stroke:var(--line);stroke-width:1}
+  .cq-s{cursor:pointer;outline:none}
+  .cq-maj{fill:var(--panel-2);stroke:var(--line);stroke-width:1;transition:.16s}
+  .cq-min{fill:rgba(255,255,255,.03);stroke:var(--line-2);stroke-width:1;transition:.16s}
+  .cq-s text{fill:var(--txt);font:700 12px var(--sans);text-anchor:middle;pointer-events:none}
+  .cq-s .cq-mt{fill:var(--mut);font-size:10px;font-weight:600}
+  .cq-s:hover .cq-maj{stroke:var(--acc)}
+  .cq-s.on .cq-maj{fill:#a98bff;stroke:transparent}
+  .cq-s.on .cq-min{fill:rgba(169,139,255,.28);stroke:rgba(169,139,255,.5)}
+  .cq-s.on text{fill:#0a0b12}
+  .cq-s.on .cq-mt{fill:#cbb8ff}
+  .cq-s:focus-visible .cq-maj{stroke:var(--cyan);stroke-width:2}
+  .cq-info{flex:1 1 210px;min-width:190px;padding:14px;border-radius:12px;background:var(--panel-2);
+    border:1px solid var(--line-2);font-size:13.5px;line-height:1.7;color:var(--mut)}
+  .cq-info b{color:var(--txt)}
+  .cq-info span{display:block;margin-top:4px;font:600 12.5px var(--mono);color:var(--cyan)}
+  .cq-info .cq-alt{color:var(--warn);font-family:var(--sans);font-size:12px}
+  .inv{display:block;width:100%;text-align:left;cursor:pointer;padding:12px 14px;border-radius:12px;
+    border:1px solid var(--line);background:var(--panel-2);margin-bottom:8px;transition:.16s}
+  .inv:hover{border-color:var(--acc)}
+  .inv.on{border-color:#a98bff;background:rgba(169,139,255,.1)}
+  .inv b{display:inline-block;min-width:34px;font:800 15px var(--mono);color:#c58fff}
+  .inv span{font:700 14px var(--sans);color:var(--txt)}
+  .inv em{display:block;margin-top:5px;font:500 12.5px var(--sans);font-style:normal;color:var(--txt)}
+  .inv i{display:block;margin-top:3px;font:400 12px var(--sans);font-style:normal;color:var(--mut)}
   .mus-t{width:100%;border-collapse:collapse;font-size:13.5px}
   .mus-t th{text-align:left;font:700 10.5px var(--sans);letter-spacing:.5px;text-transform:uppercase;
     color:var(--mut);padding:6px 8px;border-bottom:1px solid var(--line)}
@@ -10180,6 +10224,72 @@ function musStaffSvg(k){
     +'<div class="st-mn"><span>линии снизу вверх</span><b>'+s.lines+"</b>"
     +"<span>между линиями</span><b>"+s.spaces+"</b></div></div>";
 }
+/* Порядок знаков железный, и на нём же держится правило определения тональности. */
+const SHARPS=["фа","до","соль","ре","ля","ми","си"];
+const KEYS_SHARP=["до","соль","ре","ля","ми","си","фа#","до#"];
+const KEYS_FLAT=["до","фа","си♭","ми♭","ля♭","ре♭","соль♭","до♭"];
+const MINORS_SHARP=["ля","ми","си","фа#","до#","соль#","ре#","ля#"];
+const MINORS_FLAT=["ля","ре","соль","до","фа","си♭","ми♭","ля♭"];
+function musSignsUI(n,kind){
+  const list=(kind==="b"?[...SHARPS].reverse():SHARPS).slice(0,n);
+  const maj=(kind==="b"?KEYS_FLAT:KEYS_SHARP)[n], min=(kind==="b"?MINORS_FLAT:MINORS_SHARP)[n];
+  const chips=(kind==="b"?[...SHARPS].reverse():SHARPS)
+    .map((x,i)=>'<span class="sg-ch'+(i<n?" on":"")+'">'+x+(kind==="b"?"♭":"#")+"</span>").join("");
+  let rule;
+  if(!n)rule="Знаков нет — до мажор или ля минор.";
+  else if(kind==="d")rule="Последний диез — <b>"+list[n-1]+"#</b>. Тоника на полтона выше: <b>"+maj+" мажор</b>.";
+  else if(n===1)rule="Один бемоль — это всегда <b>фа мажор</b>, запомни как исключение.";
+  else rule="Предпоследний бемоль — он и есть тоника: <b>"+maj+" мажор</b>.";
+  const el=$("#sgOut");
+  if(el)el.innerHTML='<div class="sg-chips">'+chips+"</div>"
+    +'<div class="sg-rule">'+rule+"</div>"
+    +'<div class="sg-keys"><b>'+maj+" мажор</b><span>или</span><b>"+min+" минор</b></div>"
+    +(n?'<div class="sg-list">по порядку: '+list.map(x=>x+(kind==="b"?"♭":"#")).join(" · ")+"</div>":"");
+}
+/* Круг квинт: 12 положений по часовой, каждый шаг — плюс один знак.
+   Три нижних позиции энгармоничны, поэтому подписаны парой. */
+const CIRCLE=[
+  {maj:"до",     min:"ля",      n:0, k:"нет",    l:"—",                   root:0},
+  {maj:"соль",   min:"ми",      n:1, k:"диезы",  l:"фа",                  root:7},
+  {maj:"ре",     min:"си",      n:2, k:"диезы",  l:"фа до",               root:2},
+  {maj:"ля",     min:"фа#",     n:3, k:"диезы",  l:"фа до соль",          root:9},
+  {maj:"ми",     min:"до#",     n:4, k:"диезы",  l:"фа до соль ре",       root:4},
+  {maj:"си",     min:"соль#",   n:5, k:"диезы",  l:"фа до соль ре ля",    root:11, alt:"до♭ · 7 бемолей"},
+  {maj:"фа#",    min:"ре#",     n:6, k:"диезы",  l:"фа до соль ре ля ми", root:6,  alt:"соль♭ · 6 бемолей"},
+  {maj:"до#",    min:"ля#",     n:7, k:"диезы",  l:"фа до соль ре ля ми си", root:1, alt:"ре♭ · 5 бемолей"},
+  {maj:"ля♭",    min:"фа",      n:4, k:"бемоли", l:"си ми ля ре",         root:8},
+  {maj:"ми♭",    min:"до",      n:3, k:"бемоли", l:"си ми ля",            root:3},
+  {maj:"си♭",    min:"соль",    n:2, k:"бемоли", l:"си ми",               root:10},
+  {maj:"фа",     min:"ре",      n:1, k:"бемоли", l:"си",                  root:5}
+];
+const INV=[
+  {name:"Основной вид",     short:"5/3", semis:[0,4,7],
+   look:"Три ноты ровным столбиком через одну — все на линейках или все между ними.",
+   use:"Самый устойчивый: им начинают и заканчивают, в басу основной тон."},
+  {name:"Секстаккорд",      short:"6",   semis:[0,3,8],
+   look:"Две нижние рядом терцией, верхняя оторвана на кварту.",
+   use:"В басу терцовый тон — берут в середине фразы ради плавного баса."},
+  {name:"Квартсекстаккорд", short:"6/4", semis:[0,5,9],
+   look:"Снизу разрыв в кварту, две верхние тесно — «пусто внизу, тесно вверху».",
+   use:"Неустойчив, требует разрешения: кадансовый оборот перед доминантой."}
+];
+function musCircleSvg(){
+  const R=124, r=80, cx=150, cy=150;
+  let o='<svg class="cq" viewBox="0 0 300 300">';
+  o+='<circle cx="150" cy="150" r="'+R+'" class="cq-ring"/><circle cx="150" cy="150" r="'+r+'" class="cq-ring"/>';
+  CIRCLE.forEach((c,i)=>{
+    const a=(i/12)*Math.PI*2-Math.PI/2;
+    const x=cx+Math.cos(a)*R, y=cy+Math.sin(a)*R;
+    const xi=cx+Math.cos(a)*r, yi=cy+Math.sin(a)*r;
+    o+='<g class="cq-s" data-i="'+i+'" tabindex="0">'
+      +'<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="22" class="cq-maj"/>'
+      +'<text x="'+x.toFixed(1)+'" y="'+(y+4).toFixed(1)+'">'+c.maj+"</text>"
+      +'<circle cx="'+xi.toFixed(1)+'" cy="'+yi.toFixed(1)+'" r="16" class="cq-min"/>'
+      +'<text x="'+xi.toFixed(1)+'" y="'+(yi+3.5).toFixed(1)+'" class="cq-mt">'+c.min+"</text></g>";
+  });
+  o+="</svg>";
+  return o;
+}
 function musRef(b){
   const row=(main,sub,extra,data)=>'<button class="mus-r" data-p="'+data+'"><span>'+main
     +'</span><i>'+sub+"</i>"+(extra?"<em>"+extra+"</em>":"")+"</button>";
@@ -10190,17 +10300,82 @@ function musRef(b){
     +'<div class="st-tip">Якоря: <b>до первой</b> (между станами), <b>соль первой</b> (2-я линия скрипичного), '
     +'<b>фа малой</b> (4-я линия басового), <b>до второй</b> (3-е межстрочие скрипичного), '
     +'<b>до малой</b> (2-е межстрочие басового).</div></div>'
+    +'<div class="mus-card"><h3>Где до на клавиатуре</h3>'
+    +'<p class="mus-p">Чёрные клавиши сбиты в группы по две и по три — это и есть разметка. '
+    +'<b class="st-key">До</b> всегда слева от группы из <b>двух</b>, <b class="st-key">фа</b> — слева от группы из <b>трёх</b>. '
+    +'Больше на клавиатуре запоминать нечего: остальное отсчитывается от них.</p>'
+    +'<div class="mus-play"><button class="btn primary" id="mkC">показать все до</button>'
+    +'<button class="btn" id="mkF">показать все фа</button>'
+    +'<button class="btn" id="mkMid">где до первой октавы</button></div></div>'
+
+    +'<div class="mus-card"><h3>Тональность по ключевым знакам</h3>'
+    +'<p class="mus-p">Не зубри 24 тональности — есть правило. Подвигай, чтобы увидеть, как оно работает.</p>'
+    +'<div class="sg-tabs"><button class="sg-t on" data-k="d">диезы</button><button class="sg-t" data-k="b">бемоли</button>'
+    +'<input type="range" id="sgN" min="0" max="7" value="1" step="1"><b id="sgNum">1</b></div>'
+    +'<div id="sgOut"></div>'
+    +'<div class="st-tip"><b>Диезы:</b> последний диез — седьмая ступень, тоника на полтона выше. '
+    +'<b>Бемоли:</b> предпоследний бемоль и есть тоника. Один бемоль — исключение, это фа мажор. '
+    +'Порядок диезов <b>фа до соль ре ля ми си</b>, бемолей — ровно наоборот.</div></div>'
+
     +'<div class="mus-card"><h3>Интервалы в полутонах</h3><p class="mus-p">Сколько ступеней между нотами. Жми — сыграет от до.</p>'
     +'<div class="mus-grid">'+MUS_INT.map(([s,n,k])=>row(k+" · "+n,s+(s===1?" полутон":s<5&&s>1?" полутона":" полутонов"),"",[0,s].join(","))).join("")+"</div></div>"
     +'<div class="mus-card"><h3>Аккорды</h3><p class="mus-p">Цифры — полутоны от основного тона.</p>'
     +'<div class="mus-grid wide">'+MUS_CH.map(([n,a,d])=>row(n,a.join(" · "),d,a.join(","))).join("")+"</div></div>"
-    +'<div class="mus-card"><h3>Знаки при ключе</h3><p class="mus-p">Мажор и его параллельный минор делят одни знаки.</p>'
-    +'<table class="mus-t"><tr><th>мажор</th><th>минор</th><th>знаки</th></tr>'
-    +MUS_KEYS.map(([a,c,k])=>"<tr><td>"+a+"</td><td>"+c+"</td><td>"+k+"</td></tr>").join("")+"</table></div>"
+    +'<div class="mus-card"><h3>Круг квинт</h3>'
+    +'<p class="mus-p">По часовой — плюс диез, против — плюс бемоль. Снаружи мажор, внутри параллельный минор. Жми — прозвучит тоническое трезвучие.</p>'
+    +'<div class="cq-box">'+musCircleSvg()+'<div class="cq-info" id="cqInfo">выбери тональность</div></div></div>'
+
+    +'<div class="mus-card"><h3>Обращения трезвучия</h3>'
+    +'<p class="mus-p">Одни и те же три ноты, но снизу оказывается разная. Жми — услышишь и увидишь на клавишах.</p>'
+    +INV.map((v,i)=>'<button class="inv" data-i="'+i+'"><b>'+v.short+"</b><span>"+v.name+"</span>"
+      +'<em>'+v.look+"</em><i>"+v.use+"</i></button>").join("")+"</div>"
     +'<div class="mus-card"><h3>Длительности</h3><p class="mus-p">Длина полоски — сколько нота звучит.</p>'
     +'<table class="mus-t"><tr><th>нота</th><th>сколько</th><th style="width:52%">длина</th></tr>'
     +MUS_DUR.map(([n,d,w])=>"<tr><td>"+n+"</td><td>"+d
       +'</td><td><span class="mus-bar" style="width:'+w+'%"></span></td></tr>').join("")+"</table></div>";
+  const all=p=>{ const a=[]; for(let m=KB_LO;m<=KB_HI;m++)if(((m%12)+12)%12===p)a.push(m); return a; };
+  const mkC=$("#mkC"), mkF=$("#mkF"), mkMid=$("#mkMid");
+  if(mkC)mkC.onclick=()=>{ musLight(all(0),60); musPlay([0],false); musKbCap("все до — каждая слева от пары чёрных"); };
+  if(mkF)mkF.onclick=()=>{ musLight(all(5),65); musPlay([5],false); musKbCap("все фа — каждая слева от тройки чёрных"); };
+  if(mkMid)mkMid.onclick=()=>{ musLight([60],60); musPlay([0],false); musKbCap("до первой октавы — тот самый средний якорь"); };
+  const sgN=$("#sgN"); let sgKind="d";
+  const sgDraw=()=>{ const v=+sgN.value; $("#sgNum").textContent=v; musSignsUI(v,sgKind); };
+  if(sgN){
+    sgN.oninput=sgDraw;
+    [...b.querySelectorAll(".sg-t")].forEach(el=>el.onclick=()=>{
+      sgKind=el.dataset.k;
+      [...b.querySelectorAll(".sg-t")].forEach(x=>x.classList.toggle("on",x===el));
+      sgDraw();
+    });
+    sgDraw();
+  }
+  [...b.querySelectorAll(".cq-s")].forEach(el=>{
+    const c=CIRCLE[+el.dataset.i];
+    const tap=()=>{
+      [...b.querySelectorAll(".cq-s")].forEach(x=>x.classList.remove("on"));
+      el.classList.add("on");
+      const t=MUS_BASE+c.root;
+      musPlay([c.root,c.root+4,c.root+7],true);
+      musLight([t,t+4,t+7],t);
+      musKbCap(c.maj+" мажор — тоническое трезвучие");
+      const inf=$("#cqInfo");
+      if(inf)inf.innerHTML="<b>"+c.maj+" мажор</b> · параллельный <b>"+c.min+" минор</b><br>"
+        +(c.n?"<span>"+c.n+" "+c.k+": "+c.l+"</span>":"<span>ключевых знаков нет</span>")
+        +(c.alt?'<span class="cq-alt">то же самое, что '+c.alt+"</span>":"");
+    };
+    el.onclick=tap;
+    el.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); tap(); } };
+  });
+  [...b.querySelectorAll(".inv")].forEach(el=>{
+    const v=INV[+el.dataset.i];
+    el.onclick=()=>{
+      [...b.querySelectorAll(".inv")].forEach(x=>x.classList.remove("on"));
+      el.classList.add("on");
+      musPlay(v.semis,true);
+      musLight(v.semis.map(s=>MUS_BASE+s),MUS_BASE+v.semis[0]);
+      musKbCap(v.name+" · "+v.short+" — от до первой октавы");
+    };
+  });
   [...b.querySelectorAll(".st-n")].forEach(el=>{
     const m=+el.dataset.m;
     const tap=()=>{ musPlay([m-MUS_BASE],false); musLight([m],m);
