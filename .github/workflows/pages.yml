@@ -1,12 +1,15 @@
-# Явный деплой на GitHub Pages.
-# Классическая сборка «из ветки» перестала запускаться на пуш: коммиты приходят,
-# а прогон не создаётся вовсе. Здесь триггер описан явно, поэтому виден и чинится.
+# Сборка и публикация сайта.
+# Классическая сборка «из ветки» перестала запускаться на пуш — коммиты приходили,
+# а прогон не создавался вовсе. Здесь всё описано явно, поэтому видно и чинится.
+#
+# java-drill.html (однофайловая версия) собирается ЗДЕСЬ и в гит не коммитится:
+# иначе он весит 8.4 МБ на каждый коммит и легко разъезжается с index.html.
 name: Deploy site
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:        # ручной запуск кнопкой, если понадобится
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -25,9 +28,22 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Собрать однофайловую версию
+        run: node build.js
+
+      - name: Проверить перед публикацией
+        run: node check.js
+        env:
+          CHROME_BIN: /usr/bin/google-chrome   # предустановлен на ubuntu-latest
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .           # сайт лежит в корне репозитория
+          path: .
       - id: deploy
         uses: actions/deploy-pages@v4
