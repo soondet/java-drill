@@ -2028,6 +2028,7 @@
 <script src="hacks.js"></script>
 <script src="music-ref.js"></script>
 <script src="guitar.js"></script>
+<script src="more-term-new.js"></script>
 <script src="cards-new.js"></script>
 <script src="cards-new-aux.js"></script>
 <script src="books.js"></script>
@@ -2953,7 +2954,7 @@ const TERMS=Array.isArray(window.TERMS)?window.TERMS:[];
 function termRow(t){
   const key=t.t+"|"+t.term;
   const ex=window.TERM_EXTRA&&window.TERM_EXTRA[key];
-  const tm=window.MORE_TERM&&window.MORE_TERM[key];
+  const tm=(window.MORE_TERM&&window.MORE_TERM[key])||(window.MORE_TERM_NEW&&window.MORE_TERM_NEW[key]);
   const hasX=ex||tm;
   return `<div class="term${hasX?" has-extra":""}" data-key="${esc(key)}">`
     +`<div class="term-head"><button class="fav-btn term-fav${isFav('tm:'+key)?' on':''}" data-k="${esc(key)}" title="${tr('★ избранное')}">${isFav('tm:'+key)?'★':'☆'}</button>${ex&&ex.icon?`<span class="term-ico">${ex.icon}</span>`:""}<b>${esc(T('terms',key,'term',t.term))}</b> — ${esc(T('terms',key,'def',t.def))}</div>`
