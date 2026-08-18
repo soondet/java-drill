@@ -178,8 +178,8 @@
 
   /* карточка дрила */
   .glass{background:var(--panel);backdrop-filter:blur(22px);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
-  .card{width:100%;max-width:680px;padding:30px}
-  .card-tags{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+  .card{width:100%;max-width:680px;padding:30px;overflow-wrap:anywhere}
+  .card-tags{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
   .src{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-top:16px;padding-top:11px;
     border-top:1px solid var(--line-2);opacity:.42;transition:opacity .2s}
   .src:hover{opacity:.85}
@@ -221,7 +221,7 @@
   .term-fav{font-size:14px;margin-right:5px;vertical-align:middle}
   .pip{width:8px;height:8px;border-radius:50%;background:var(--line)}
   .pip.on{background:var(--grad)}
-  .q{font:680 22px/1.42 var(--sans);margin:0}
+  .q{font:680 22px/1.42 var(--sans);margin:0;overflow-wrap:anywhere}
   .ans{margin-top:22px;border-top:1px solid var(--line-2);padding-top:20px;display:none}
   .ans.show{display:block;animation:rise .28s ease}
   .ans.show>*{animation:kitIn .45s var(--ease) both}
@@ -286,7 +286,7 @@
   .player-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
   .player-head h2{font:700 18px var(--sans);margin:0}
   .film{position:relative;min-height:250px;display:grid;margin:6px 0}
-  .frame{grid-area:1/1;opacity:0;transform:translateY(12px) scale(.97);transition:.42s cubic-bezier(.2,.7,.2,1);pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:8px}
+  .frame{grid-area:1/1;overflow-x:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(12px) scale(.97);transition:.42s cubic-bezier(.2,.7,.2,1);pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:8px}
   .frame.active{opacity:1;transform:none;pointer-events:auto}
   .frame.active>*{animation:kitIn .5s var(--ease) both}
   .frame.active>*:nth-child(2){animation-delay:.09s}
@@ -300,7 +300,7 @@
   .controls{display:flex;align-items:center;justify-content:center;gap:10px}
   .controls .play{min-width:122px}
   /* концепт-картинка на карточке (один кадр) */
-  .pic{margin:0 0 20px;padding:20px 16px 14px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(110,168,254,.07),transparent);display:flex;flex-direction:column;align-items:center;gap:12px;position:relative}
+  .pic{margin:0 0 20px;padding:20px 16px 14px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(110,168,254,.07),transparent);display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .pic-tag{position:absolute;top:9px;left:13px;font:700 9px var(--sans);text-transform:uppercase;letter-spacing:1.5px;color:var(--mut)}
   .pic-cap{font-size:13px;color:var(--mut);text-align:center;max-width:92%}
   /* словарь терминов */
@@ -538,7 +538,7 @@
   .beh-tm b{font:800 15px var(--mono);color:var(--fg)}
   #viewZero .terms-wrap{max-width:1180px}       /* маршрут + текст + схема */
   .zero-step.has-viz{align-items:flex-start}
-  .zv{flex:0 0 236px;max-width:236px;box-sizing:border-box;align-self:flex-start;
+  .zv{flex:0 0 236px;max-width:236px;box-sizing:border-box;align-self:flex-start;overflow-x:auto;-webkit-overflow-scrolling:touch;
     border:1px solid var(--line);border-radius:14px;background:var(--panel-2);padding:11px 12px;overflow:hidden}
   .zv .fp-row{margin:5px 0}
   .zv .fp-box{font-size:11.5px;padding:5px 8px}
@@ -573,7 +573,7 @@
   .zero-step.done .zero-t{color:var(--mut)}
   .zero-b{flex:1;min-width:0}
   .zero-t{font:700 16px/1.4 var(--sans);margin-bottom:7px}
-  .zero-p{font-size:14.5px;line-height:1.65;color:var(--txt)}
+  .zero-p{font-size:14.5px;line-height:1.65;color:var(--txt);overflow-wrap:anywhere}
   .zero-p code{font:600 13px var(--mono);background:var(--panel-2);padding:1px 5px;border-radius:5px}
   .zero-an{margin-top:9px;font-size:13.5px;line-height:1.6;color:var(--mut);
     border-left:2px solid var(--acc);padding-left:11px;background:linear-gradient(90deg,rgba(169,139,255,.07),transparent)}
@@ -1427,6 +1427,10 @@
   .more-text p{margin:0 0 11px} .more-text p:last-child{margin-bottom:0}
   .more-text ul{margin:9px 0;padding-left:20px} .more-text li{margin:5px 0}
   .more-text b{color:var(--acc2)}
+  /* `hibernate.jdbc.time_zone` и подобные не переносились и распирали страницу вбок на телефоне */
+  .more-text{overflow-wrap:anywhere}
+  .more-text code{font:.88em var(--mono);background:var(--panel-2);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;color:var(--acc2)}
+  .more-text pre.md-code{margin:11px 0;padding:11px 13px;background:#0a0c12;border:1px solid var(--line);border-radius:10px;font:12.5px/1.6 var(--mono);color:#cdd3df;white-space:pre;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .term-extra .more-text{border-top:0;padding-top:0;margin-top:0;width:100%;text-align:left;font-size:13.5px}
   /* мобильная вёрстка */
   @media(max-width:620px){
@@ -1547,6 +1551,9 @@
   @media(max-width:760px){
     .kpis{display:none}
     #viewFp{flex-direction:column}
+    /* правило в блоке 620px стояло ВЫШЕ базового #viewPrin{row} и не срабатывало —
+       на телефоне схемы жались в 48px рядом с навигацией */
+    #viewPrin{flex-direction:column}
     .sidebar{width:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line-2)}
     .topbar{flex-wrap:wrap}
     .q{font-size:20px}
@@ -2032,6 +2039,12 @@
 <script src="cards-new.js"></script>
 <script src="cards-new-aux.js"></script>
 <script src="books.js"></script>
+<script src="more-fp-new.js"></script>
+<script src="bugs-new.js"></script>
+<script src="behav-new.js"></script>
+<script src="principles-new.js"></script>
+<script src="pics-new.js"></script>
+<script src="more-new.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[]),
@@ -2572,8 +2585,16 @@ function setLang(l){
 function refreshView(){ if(mode==="drill"){buildDrillCats();buildFilter();rebuild();} else if(mode==="fp"){buildFpNav($("#fpSearch").value);renderFingers();} else if(mode==="terms"){buildTerms($("#termSearch").value);} else if(mode==="prin"){buildPrinNav($("#prinSearch").value);renderPrin();} else if(mode==="prog"){buildProg();} else if(mode==="sand"){buildSand();} else if(mode==="game"){gameMenu();} }
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function fmt(t){
-  const s=esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+  let s=esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+  /* Блоки ```…``` вынимаем ДО разбивки на абзацы: внутри них бывают пустые строки. */
+  const fence=[];
+  s=s.replace(/```[a-z]*\n?([\s\S]*?)```/g,(m,code)=>{
+    fence.push('<pre class="md-code">'+code.replace(/\n+$/,"")+"</pre>");
+    return "\n\n\u0000"+(fence.length-1)+"\u0000\n\n";
+  });
+  s=s.replace(/`([^`\n]+)`/g,"<code>$1</code>");
   return s.split(/\n\s*\n/).map(b=>{
+    const f=b.trim().match(/^\u0000(\d+)\u0000$/); if(f)return fence[+f[1]];
     const lines=b.split(/\n/);
     if(lines.length&&lines.every(l=>/^\s*[-•]\s+/.test(l)))
       return "<ul>"+lines.map(l=>"<li>"+l.replace(/^\s*[-•]\s+/,"")+"</li>").join("")+"</ul>";
