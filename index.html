@@ -14,6 +14,9 @@
 <style>
   :root{
     --bg:#07080e; --txt:#eef1f7; --mut:#98a1b4;
+    /* Для длинного чтения текст мягче заголовочного: почти белое на тёмном даёт ореол
+       вокруг букв и быстрее утомляет. 12:1 — всё ещё выше требований AAA (7:1). */
+    --read:#d5dae7;
     --panel:rgba(20,23,32,.66); --panel-2:rgba(255,255,255,.045);
     --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.06);
     --acc:#6ea8fe; --acc2:#a98bff; --cyan:#54e6c8; --good:#46d6a0; --bad:#ff7a85; --warn:#ffcf6e;
@@ -231,11 +234,11 @@
   .ans.show>*:nth-child(n+5){animation-delay:.28s}
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
   .lbl{font:700 10px var(--sans);text-transform:uppercase;letter-spacing:1.6px;color:var(--acc);margin-bottom:7px}
-  .ishak{font-size:17px;line-height:1.62}
-  .deep{margin-top:15px;font-size:13.5px;color:var(--mut)}
-  .qk{margin-top:14px;font-size:13.5px;background:linear-gradient(90deg,rgba(110,168,254,.13),transparent);border-left:2px solid var(--acc);padding:9px 13px;border-radius:0 10px 10px 0}
+  .ishak{font-size:17px;line-height:1.62;color:var(--read);max-width:55ch}
+  .deep{margin-top:15px;font-size:14.5px;line-height:1.6;color:var(--mut);max-width:55ch}
+  .qk{margin-top:14px;font-size:14.5px;line-height:1.6;background:linear-gradient(90deg,rgba(110,168,254,.13),transparent);border-left:2px solid var(--acc);padding:9px 13px;border-radius:0 10px 10px 0}
   .qk b{color:var(--acc)}
-  .note{margin-top:14px;font-size:13.5px;line-height:1.55;background:linear-gradient(90deg,rgba(255,207,110,.14),transparent);border-left:2px solid var(--warn);padding:10px 14px;border-radius:0 10px 10px 0;display:flex;gap:9px;align-items:flex-start}
+  .note{margin-top:14px;font-size:14.5px;line-height:1.6;background:linear-gradient(90deg,rgba(255,207,110,.14),transparent);border-left:2px solid var(--warn);padding:10px 14px;border-radius:0 10px 10px 0;display:flex;gap:9px;align-items:flex-start}
   .note .ni{font-size:15px;line-height:1.4;flex:none}
   .note b{color:var(--warn)}
   pre.code{background:#0a0c12;border:1px solid var(--line);border-radius:12px;padding:13px 15px;overflow-x:auto;margin-top:16px;font:12.5px/1.65 var(--mono);color:#cdd3df;white-space:pre;-webkit-overflow-scrolling:touch}
@@ -302,6 +305,10 @@
   /* концепт-картинка на карточке (один кадр) */
   .pic{margin:0 0 20px;padding:20px 16px 14px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,rgba(110,168,254,.07),transparent);display:flex;flex-direction:column;align-items:center;gap:12px;position:relative;overflow-x:auto;-webkit-overflow-scrolling:touch}
   .pic-tag{position:absolute;top:9px;left:13px;font:700 9px var(--sans);text-transform:uppercase;letter-spacing:1.5px;color:var(--mut)}
+  /* На узком экране flex-элементы сжимались уже содержимого, и подписи вставали
+     столбиком: «гру/ппа/СТО/ИТ». flex:none запрещает сжатие — строка переносится
+     целыми блоками, а что не влезло, скроллится внутри .pic. */
+  .pic .fp-box,.pic .fp-node,.pic .fp-token,.pic .fp-slot,.pic .fp-ver,.pic .fp-tag,.pic .fp-cell{flex:none}
   .pic-cap{font-size:13px;color:var(--mut);text-align:center;max-width:92%}
   /* словарь терминов */
   .terms-wrap{width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;flex:1;min-height:0;padding:18px 22px}
@@ -319,7 +326,7 @@
   .term{padding:10px 13px;border:1px solid var(--line-2);border-radius:11px;margin-bottom:7px;background:var(--panel-2);font-size:14px;line-height:1.5}
   .term b{color:var(--txt);font-weight:700}
   /* 🧠 мнемоника-аналогия (приём для памяти) */
-  .hook{margin-top:14px;font-size:13.5px;line-height:1.55;background:linear-gradient(90deg,rgba(169,139,255,.16),transparent);border-left:2px solid var(--acc2);padding:9px 13px;border-radius:0 11px 11px 0}
+  .hook{margin-top:14px;font-size:14.5px;line-height:1.6;background:linear-gradient(90deg,rgba(169,139,255,.16),transparent);border-left:2px solid var(--acc2);padding:9px 13px;border-radius:0 11px 11px 0}
   /* раскрывающийся термин */
   .term.has-extra{cursor:pointer}
   .term.has-extra .term-head::after{content:"▾";float:right;color:var(--mut);font-size:12px;margin-left:8px}
@@ -1422,16 +1429,29 @@
   /* кнопка «Подробнее» + развёрнутый текст */
   .more-btn{margin-top:18px;background:var(--panel-2);border:1px solid var(--line);color:var(--acc);border-radius:11px;padding:9px 15px;cursor:pointer;font:650 13px var(--sans);transition:.14s}
   .more-btn:hover{border-color:var(--acc);transform:translateY(-1px)}
-  .more-text{margin-top:14px;font-size:14.5px;line-height:1.68;color:var(--txt);border-top:1px solid var(--line-2);padding-top:15px}
+  /* Строка была ~80 символов — за верхней границей комфортной меры (45–75):
+     на возврате к началу строки глаз теряет место. 64ch держит ~66 символов. */
+  .more-text{margin-top:14px;font-size:16px;line-height:1.7;color:var(--read);border-top:1px solid var(--line-2);padding-top:15px;max-width:55ch}
   .more-text[hidden]{display:none}
-  .more-text p{margin:0 0 11px} .more-text p:last-child{margin-bottom:0}
+  .more-text p{margin:0 0 .92em} .more-text p:last-child{margin-bottom:0}
+  .more-text>p:first-child{font-size:1.05em}   /* зачин чуть крупнее — вход в текст легче */
+  /* Практический вывод — единственный абзац с якорем: глаз находит его, не читая всё. */
+  .more-text p.md-out{margin-top:1.1em;padding:11px 14px;border-left:2px solid var(--good);
+    border-radius:0 10px 10px 0;background:linear-gradient(90deg,rgba(70,214,160,.10),transparent)}
+  .more-text p.md-out b:first-child{color:var(--good)}
   .more-text ul{margin:9px 0;padding-left:20px} .more-text li{margin:5px 0}
   .more-text b{color:var(--acc2)}
   /* `hibernate.jdbc.time_zone` и подобные не переносились и распирали страницу вбок на телефоне */
   .more-text{overflow-wrap:anywhere}
-  .more-text code{font:.88em var(--mono);background:var(--panel-2);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;color:var(--acc2)}
+  /* Код был того же цвета, что и жирный: 13 фиолетовых вставок на абзац — рябь.
+     Моноширинного начертания и подложки достаточно, акцент остаётся один — жирный. */
+  /* Рамка у каждого чипа рябила: в абзаце их до восьми, и текст читался рывками.
+     Моноширинного начертания и еле заметной подложки достаточно. line-height:1 —
+     чтобы чип не раздвигал строку и межстрочный оставался ровным. */
+  .more-text code{font:.88em/1 var(--mono);background:rgba(255,255,255,.05);border-radius:4px;
+    padding:.12em .34em;color:var(--read);box-decoration-break:clone;-webkit-box-decoration-break:clone}
   .more-text pre.md-code{margin:11px 0;padding:11px 13px;background:#0a0c12;border:1px solid var(--line);border-radius:10px;font:12.5px/1.6 var(--mono);color:#cdd3df;white-space:pre;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .term-extra .more-text{border-top:0;padding-top:0;margin-top:0;width:100%;text-align:left;font-size:13.5px}
+  .term-extra .more-text{border-top:0;padding-top:0;margin-top:0;width:100%;max-width:none;text-align:left;font-size:14.5px}
   /* мобильная вёрстка */
   @media(max-width:620px){
     .topbar{padding:9px 12px;gap:8px;flex-wrap:wrap}
@@ -1453,7 +1473,9 @@
     .game-q{font-size:18px}
     .opts{grid-template-columns:1fr}
     pre.code{font-size:11.5px}
-    .more-text{font-size:14px}
+    .more-text{font-size:15px;max-width:none}
+    .ishak{font-size:16px;max-width:none}
+    .deep{max-width:none}
     #viewPrin{flex-direction:column}
   }
   /* раздел «Принцип» — живые схемы */
@@ -2595,10 +2617,13 @@ function fmt(t){
   s=s.replace(/`([^`\n]+)`/g,"<code>$1</code>");
   return s.split(/\n\s*\n/).map(b=>{
     const f=b.trim().match(/^\u0000(\d+)\u0000$/); if(f)return fence[+f[1]];
+    /* «Где рвётся» и «На собесе спросят» — практический вывод, он есть в 268 текстах. */
+    const out=/^\s*(<b>)?(Где рвётся|На собесе спросят)/.test(b);
+    if(out)b=b.replace(/^(\s*)(Где рвётся|На собесе спросят)(:?)/,"$1<b>$2$3</b>");   // зачин вывода — меткой
     const lines=b.split(/\n/);
     if(lines.length&&lines.every(l=>/^\s*[-•]\s+/.test(l)))
       return "<ul>"+lines.map(l=>"<li>"+l.replace(/^\s*[-•]\s+/,"")+"</li>").join("")+"</ul>";
-    return "<p>"+b.replace(/\n/g,"<br>")+"</p>";
+    return "<p"+(out?' class="md-out"':"")+">"+b.replace(/\n/g,"<br>")+"</p>";
   }).join("");
 }
 function hl(code){
