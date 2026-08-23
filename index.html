@@ -2098,7 +2098,14 @@ const today=()=>Math.floor(Date.now()/86400000);
 let prog=load();
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(prog))}catch(e){}}
-function st(id){return prog[id]||(prog[id]={box:1,due:0})}
+/* st() создаёт запись прогресса как побочный эффект чтения — это нужно только
+   там, где мы собираемся писать (оценка, пиявки). Счётчики, очередь и рендер
+   просто читают, и раньше они звали st() по всем 794 карточкам: после первого
+   же открытия приложения prog заполнялся целиком, из-за чего счётчик «новых»
+   навсегда показывал 0, а все карточки числились «в процессе». */
+const ST_NEW=Object.freeze({box:1,due:0});
+function st(id){return prog[id]||(prog[id]={box:1,due:0})}   // для записи
+function stR(id){return prog[id]||ST_NEW}                    // только чтение
 const LEECH_N=4;   // порог «пиявки» — карточка, проваленная столько раз
 function isLeech(id){ const p=prog[id]; return !!p && (p.lapses||0)>=LEECH_N; }
 const ordC=id=>{const o=window.ORD&&window.ORD.cards&&window.ORD.cards[id];return o==null?1e9:o;};
@@ -2638,8 +2645,8 @@ function bumpStreak(){const s=getStreak(),t=today();
   localStorage.setItem(SKEY,JSON.stringify(s));}
 function streakCount(){const s=getStreak(),t=today();return (s.last===t||s.last===t-1)?s.count:0;}
 function updateKpis(){
-  $("#kDue").textContent=CARDS.filter(c=>st(c.id).due<=today()).length;
-  $("#kMast").textContent=CARDS.filter(c=>st(c.id).box>=5).length;
+  $("#kDue").textContent=CARDS.filter(c=>stR(c.id).due<=today()).length;
+  $("#kMast").textContent=CARDS.filter(c=>stR(c.id).box>=5).length;
   $("#kStreak").textContent=streakCount();
 }
 
@@ -2740,7 +2747,7 @@ function rebuild(){
   const pool=CARDS.filter(inFilter);
   queue=cramEl.checked
     ? pool.slice().sort((a,b)=>ordC(a.id)-ordC(b.id))   // «зубрить всё» — по порядку темы
-    : shuffle(pool.filter(c=>st(c.id).due<=today()));    // обычный режим — SRS, вперемешку
+    : shuffle(pool.filter(c=>stR(c.id).due<=today()));   // обычный режим — SRS, вперемешку
   if(pendingTopic){                                      // roadmap → этот вопрос первым
     let i=queue.findIndex(c=>c.id===pendingTopic);
     if(i<0){ const pc=pool.find(c=>c.id===pendingTopic); if(pc){ queue.unshift(pc); i=0; } }
@@ -2775,7 +2782,7 @@ function srcLine(c){
     +(s.why?"<em>"+esc(s.why)+"</em>":"")+"</div>";
 }
 function pips(box){let s="";for(let i=1;i<=5;i++)s+=`<i class="pip${i<box?" on":""}"></i>`;return s;}
-function render(){const c=cur,s=st(c.id);
+function render(){const c=cur,s=stR(c.id);
   const pic=window.PICS&&window.PICS[c.id];
   const hook=window.HOOKS&&window.HOOKS.cards&&window.HOOKS.cards[c.id];
   const more=window.MORE&&window.MORE[c.id];
@@ -3567,7 +3574,9 @@ function buildProg(){
   CARDS.forEach(c=>{
     const s=cardState(c.id);
     if(s==="mastered")mastered++; else if(s==="learning")learning++; else fresh++;
-    const p=prog[c.id]; if(p&&p.due<=today())due++;
+    /* «к повтору» должно совпадать со счётчиком в шапке дрила и с очередью:
+       новая карточка тоже к повтору. Требование существующей записи давало 0. */
+    if(stR(c.id).due<=today())due++;
     const b=byCl[c.t]||(byCl[c.t]={t:c.t,total:0,m:0,l:0});
     b.total++; if(s==="mastered")b.m++; else if(s==="learning")b.l++;
   });
@@ -9442,7 +9451,10 @@ function renderMilestones(cl,container,focus){
 
 /* ---------- клавиатура ---------- */
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ if(gsModal&&!gsModal.hidden){closeSearch();return;} if(trefModal&&!trefModal.hidden){closeTermModal();return;} const d=$("#rmDrawer"); if(d&&!d.hidden){closeRoadmap();return;} }
+  if(e.key==="Escape"){ if(gsModal&&!gsModal.hidden){closeSearch();return;} if(trefModal&&!trefModal.hidden){closeTermModal();return;} const d=$("#rmDrawer"); if(d&&!d.hidden){closeRoadmap();return;}
+    /* Поповеры закрывались только кликом мимо. С клавиатуры выйти из них было нельзя,
+       хотя «Ещё» объявлено как меню (aria-haspopup) и Escape там ожидаем. */
+    for(const sel of ["#moreMenu","#dDDPanel","#fsPop"]){ const p=$(sel); if(p&&!p.hidden){ p.hidden=true; return; } } }
   if(e.key==="/"&&e.target.tagName!=="INPUT"&&e.target.tagName!=="TEXTAREA"){ e.preventDefault(); openSearch(); return; }
   if(e.target.tagName==="SELECT"||e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"
      ||(e.target&&e.target.isContentEditable))return;
@@ -9463,7 +9475,9 @@ document.addEventListener("keydown",e=>{
   else if(revealed&&e.key==="1")grade(0);
   else if(revealed&&e.key==="2")grade(1);
   else if(revealed&&e.key==="3")grade(2);
-  else if((e.key==="f"||e.key==="F")&&e.target.tagName!=="TEXTAREA"&&cur){ toggleFav(cur.id); const fb=$("#favBtn"); if(fb){fb.classList.toggle("on",isFav(cur.id));fb.textContent=isFav(cur.id)?"★":"☆";} }
+  /* Русская раскладка: на той же клавише «а». В 3D-мире это уже учтено, а здесь
+     звезда с русской раскладки просто не срабатывала. Поля ввода отсеяны выше. */
+  else if((e.key==="f"||e.key==="F"||e.key==="а"||e.key==="А")&&cur){ toggleFav(cur.id); const fb=$("#favBtn"); if(fb){fb.classList.toggle("on",isFav(cur.id));fb.textContent=isFav(cur.id)?"★":"☆";} }
 });
 /* фильтр-чипсы вызывают rebuild сами */
 cramEl.onchange=rebuild;
