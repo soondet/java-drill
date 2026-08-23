@@ -1494,12 +1494,34 @@
   .pr-scene.pr-still .pr-glow,.pr-scene.pr-still .pr-dash,
   .pr-scene.pr-still .fp-box.acc,.pr-scene.pr-still [class*="pulse"]{filter:none;box-shadow:none}
   .pr-scene.pr-still .pr-dash,.pr-scene.pr-still .fp-conn{background-position:0 0}
+  /* Пустые кружки — это маркеры движения: они существуют, только пока летят.
+     Без анимации они замирают посреди схемы поверх подписей. В статичной
+     иллюстрации им не место, а те, что несут текст, остаются. */
+  /* Летящие маркеры — точки и эмодзи-сообщения — существуют, только пока движутся.
+     Без анимации они замирают в точке старта, а это ровно там, где стоит подпись
+     дорожки: в Kafka сообщения садились поверх P0/P1/P2. В книжной иллюстрации
+     сообщение в полёте не рисуют — сама дорожка уже говорит, что поток здесь.
+     Скрываем только абсолютные: те, что стоят в потоке, держат своё место честно. */
+  .pr-scene.pr-still .pr-flow[style*="absolute"],
+  .pr-scene.pr-still .fp-travel[style*="absolute"],
+  .pr-scene.pr-still .pr-orbit[style*="absolute"],
+  .pr-scene.pr-still .pr-flow:empty,
+  .pr-scene.pr-still .fp-travel:empty,
+  .pr-scene.pr-still .pr-orbit:empty,
+  .pr-scene.pr-still [style*="prFlow"],
+  .pr-scene.pr-still [style*="fpTravel"]{display:none!important}   /* inline display:flex иначе побеждает; анимация бывает прописана и прямо в style */
   /* переключатель у заголовка схемы */
   .pr-mode{float:right;margin-right:8px;border:1px solid var(--line);background:var(--panel-2);
     color:var(--mut);font:600 11.5px var(--sans);padding:5px 11px;border-radius:9px;cursor:pointer;
     transition:color .15s var(--ease),border-color .15s var(--ease)}
   .pr-mode:hover{color:var(--txt);border-color:var(--acc)}
   .pr-mode.on{color:var(--acc);border-color:var(--acc)}
+  /* Сцена внутри .pr-scene была флекс-ЭЛЕМЕНТОМ и сжималась до своего содержимого:
+     при рамке 646px внутренний блок получался 278px. Схемы, построенные на
+     space-between и абсолютных координатах в процентах, от этого схлопывались
+     в середину — элементы наезжали друг на друга, а по краям зияла пустота.
+     Растягиваем на всю рамку; если содержимое шире, его ужмёт fitScene(). */
+  .pr-scene>*{width:100%}
   .pr-scene.pr-measure *{animation:none!important;transition:none!important}
   .pr-flow{animation:prFlow 2.8s cubic-bezier(.4,0,.6,1) infinite;filter:drop-shadow(0 0 7px rgba(110,168,254,.55))}
   @keyframes kitIn{from{opacity:0;transform:translateY(10px) scale(.96)}60%{opacity:1}to{opacity:1;transform:none}}
