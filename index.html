@@ -3593,6 +3593,24 @@ function fitScene(){   // ужать фикс-пиксельную сцену п
   const cw=sc.clientWidth-44;   // минус padding pr-scene (22*2)
   if(cw>0 && maxR>cw+1){ inner.style.width=Math.ceil(maxR)+"px"; inner.style.transform="scale("+(cw/maxR)+")"; }  // масштаб от центра
   else { inner.style.width=""; }   // помещается — не трогаем
+  hideDanglingArrows(sc);
+}
+/* Горизонтальная стрелка, у которой сосед справа перенёсся на строку ниже, остаётся
+   в конце строки и указывает в пустоту. Раньше это ловилось глазами по одной схеме;
+   правило общее, поэтому новые схемы получают его даром. Прячем, а не удаляем:
+   при следующем пересчёте (поворот экрана, смена ширины) стрелка вернётся. */
+function hideDanglingArrows(sc){
+  sc.querySelectorAll(".fp-arrow").forEach(a=>{
+    a.style.visibility="";
+    const t=(a.textContent||"").trim();
+    if(t.indexOf("→")<0 && t.indexOf("←")<0) return;          // вертикальные в конце колонки — норма
+    const r=a.getBoundingClientRect(); if(!r.width) return;
+    let nx=a.nextElementSibling;
+    while(nx && !nx.getBoundingClientRect().width) nx=nx.nextElementSibling;
+    if(!nx) return;
+    const q=nx.getBoundingClientRect();
+    if(q.left < r.left-2 && q.top > r.top+4) a.style.visibility="hidden";
+  });
 }
 $("#prinSearch").oninput=e=>buildPrinNav(e.target.value);
 window.addEventListener("resize",()=>{ if(mode==="prin")fitScene(); });
