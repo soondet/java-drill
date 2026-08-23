@@ -1485,6 +1485,21 @@
   .prin-title{font:800 22px var(--sans);text-align:center;margin:0 0 4px}
   .prin-what{font-size:13px;color:var(--mut);text-align:center;margin:0 0 18px}
   .pr-scene{position:relative;min-height:330px;border:1px solid var(--line);border-radius:16px;background:radial-gradient(circle at 50% 38%,rgba(110,168,254,.07),transparent 70%);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:22px}
+  /* «Как в книге» — схема без движения: статичная иллюстрация, а не сцена.
+     animation:none не замораживает кадр, а возвращает элементу базовое значение,
+     поэтому ничего не прячется и не съезжает: pr-rise снова непрозрачен,
+     fp-travel стоит на месте. Дополнительно гасим свечение и пульсирующие тени —
+     на бумаге их не бывает, а без движения они читаются как грязь. */
+  .pr-scene.pr-still *{animation:none!important;transition:none!important}
+  .pr-scene.pr-still .pr-glow,.pr-scene.pr-still .pr-dash,
+  .pr-scene.pr-still .fp-box.acc,.pr-scene.pr-still [class*="pulse"]{filter:none;box-shadow:none}
+  .pr-scene.pr-still .pr-dash,.pr-scene.pr-still .fp-conn{background-position:0 0}
+  /* переключатель у заголовка схемы */
+  .pr-mode{float:right;margin-right:8px;border:1px solid var(--line);background:var(--panel-2);
+    color:var(--mut);font:600 11.5px var(--sans);padding:5px 11px;border-radius:9px;cursor:pointer;
+    transition:color .15s var(--ease),border-color .15s var(--ease)}
+  .pr-mode:hover{color:var(--txt);border-color:var(--acc)}
+  .pr-mode.on{color:var(--acc);border-color:var(--acc)}
   .pr-scene.pr-measure *{animation:none!important;transition:none!important}
   .pr-flow{animation:prFlow 2.8s cubic-bezier(.4,0,.6,1) infinite;filter:drop-shadow(0 0 7px rgba(110,168,254,.55))}
   @keyframes kitIn{from{opacity:0;transform:translateY(10px) scale(.96)}60%{opacity:1}to{opacity:1;transform:none}}
@@ -3508,6 +3523,12 @@ function hideToast(){ const el=$("#toast"); if(!el)return; el.classList.remove("
 
 /* ---------- раздел «Принцип» (живые схемы) ---------- */
 const PRIN=Array.isArray(window.PRINCIPLES)?window.PRINCIPLES:[];
+/* Статичный режим схем. По умолчанию включён у тех, кто в системе просил меньше
+   движения: там анимация не украшение, а помеха. Остальным — как было. */
+let prinStill=(function(){ const v=localStorage.getItem("jdPrinStill");
+  if(v!=null) return v==="1";
+  try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } })();
+function prinStillSet(v){ prinStill=v; try{localStorage.setItem("jdPrinStill",v?"1":"0");}catch(e){} renderPrin(); }
 let prinCur=0;
 function buildPrinNav(q){
   const nav=$("#prinNav");
@@ -3532,7 +3553,8 @@ function buildPrinNav(q){
 function renderPrin(){
   if(!PRIN.length){prinStage.innerHTML='<div class="empty"><h2>Скоро ⚙️</h2><div>Живые схемы «принципа работы» генерируются — обнови позже.</div></div>';return;}
   const p=PRIN[Math.min(prinCur,PRIN.length-1)];
-  prinStage.innerHTML=`<div class="prin-card glass"><div class="prin-title">${esc(T('prin',p.id,'title',p.title))}<button class="fav-btn${isFav("pr:"+p.id)?' on':''}" id="prFav" title="${tr('★ избранное')}" style="float:right">${isFav("pr:"+p.id)?'★':'☆'}</button></div>${p.what?`<div class="prin-what">${esc(T('prin',p.id,'what',p.what))}</div>`:""}<div class="pr-scene">${p.html}</div></div>`;
+  prinStage.innerHTML=`<div class="prin-card glass"><div class="prin-title">${esc(T('prin',p.id,'title',p.title))}<button class="fav-btn${isFav("pr:"+p.id)?' on':''}" id="prFav" title="${tr('★ избранное')}" style="float:right">${isFav("pr:"+p.id)?'★':'☆'}</button><button class="pr-mode${prinStill?' on':''}" id="prMode" title="${tr('статичная схема, без движения')}">${prinStill?tr('📖 как в книге'):tr('▶ с анимацией')}</button></div>${p.what?`<div class="prin-what">${esc(T('prin',p.id,'what',p.what))}</div>`:""}<div class="pr-scene${prinStill?' pr-still':''}">${p.html}</div></div>`;
+  const pm=$("#prMode"); if(pm)pm.onclick=()=>prinStillSet(!prinStill);
   const pf=$("#prFav"); if(pf)pf.onclick=()=>{toggleFav("pr:"+p.id);pf.classList.toggle("on",isFav("pr:"+p.id));pf.textContent=isFav("pr:"+p.id)?"★":"☆";buildPrinNav($("#prinSearch").value);};
   requestAnimationFrame(fitScene); setTimeout(fitScene,140);   // 2-й пересчёт: на мобиле лейаут/шрифты «доезжают» позже кадра
 }
