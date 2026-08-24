@@ -1729,6 +1729,36 @@
   .ach.got{opacity:1;filter:none;border-color:var(--warn);background:rgba(255,207,110,.1);box-shadow:0 0 14px -4px var(--warn)}
   .ach-i{font-size:20px;line-height:1}
   .ach-n{font:700 9.5px var(--sans);color:var(--txt);text-align:center;line-height:1.25}
+  /* Экранный пад: у .ar-btn не было ни одного правила, и браузер рисовал
+     системные белые кнопки поверх тёмной темы. Касается и аркады. */
+  .ar-pad{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 4px}
+  .ar-side{display:flex;gap:8px}
+  .ar-btn{border:1px solid var(--line);background:var(--panel-2);color:var(--txt);
+    border-radius:12px;font:700 17px var(--sans);cursor:pointer;user-select:none;
+    -webkit-tap-highlight-color:transparent;touch-action:none;
+    transition:background .1s var(--ease),transform .1s var(--ease)}
+  .ar-btn:active,.ar-btn.on{background:var(--acc);color:#0b0f19;transform:scale(.94)}
+  .ar-btn.fire{border-color:var(--bad);color:var(--bad)}
+  .ar-btn.fire:active,.ar-btn.fire.on{background:var(--bad);color:#0b0f19}
+  .tk-off{color:#ff9aa4}
+  .net-game{display:flex;gap:8px;justify-content:center;margin:0 0 12px;flex-wrap:wrap}
+  .ng-b{border:1px solid var(--line);background:var(--panel-2);color:var(--mut);border-radius:11px;
+    padding:8px 14px;font:600 12.5px var(--sans);cursor:pointer;transition:.15s var(--ease)}
+  .ng-b.on{color:var(--acc);border-color:var(--acc)}
+  /* ── танчики ─────────────────────────────────────────────────────────── */
+  .tk-wrap{max-width:520px}
+  .tk-screen{display:flex;justify-content:center}
+  #tkCv{width:100%;max-width:460px;display:block;image-rendering:pixelated;
+    border:2px solid var(--line);border-radius:10px;background:#0d1220;touch-action:none}
+  .tk-hud{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font:700 12px var(--mono);
+    color:var(--mut);padding:2px 0}
+  .tk-hud-i{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+  .tk-pad{align-items:center}
+  /* крестовина: как на приставке, большим пальцем не промахнёшься */
+  .tk-dpad{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .tk-dpad>div{display:flex;gap:5px}
+  .tk-dpad .ar-btn{width:52px;height:46px}
+  .tk-fire{width:82px;height:82px;border-radius:50%;font-size:26px}
   .ar-screen{position:relative}
   #arCv{width:100%;display:block;image-rendering:pixelated;border:2px solid var(--line);border-radius:10px;background:#101a33;touch-action:none}
   /* подсказка-знание — ПОД экраном, не перекрывает игру */
@@ -3949,7 +3979,7 @@ function gameMenu(){
     <p class="muted2">${tr("Быстрое запоминание разными способами: скорость, связи, сортировка, чутьё.")}</p>
     <div id="gCats" class="g-cats"></div>
     <div class="mode-cards">
-      <button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
+      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
       <button class="mode-card duo" id="mMock" style="grid-column:1/-1"><div class="mc-emoji">🎯</div><b>${tr("Mock-интервью")}</b><span>${tr("20 вопросов миксом, без подсказок — разбор по темам в конце")}</span></button>
       <button class="mode-card duo" id="mDuo" style="grid-column:1/-1"><div class="mc-emoji">👥</div><b>${tr("2 игрока")}</b><span>${tr("по очереди на одном телефоне — кто наберёт больше")}</span></button>
       <button class="mode-card duo" id="mDuel" style="grid-column:1/-1"><div class="mc-emoji">🤝</div><b>${tr("Дуэль с другом")}</b><span>${tr("одни и те же вопросы на разных телефонах — код через мессенджер")}</span></button>
@@ -3977,6 +4007,7 @@ function gameMenu(){
   $("#mDuo").onclick=()=>startHotseat();
   $("#mDuel").onclick=()=>duelMenu();
   $("#mArcade").onclick=()=>startArcade();
+  $("#mTank").onclick=()=>startTanks(null);
   $("#mMock").onclick=()=>startMock(gcatVal());
 }
 /* ---------- режим «найди баг» ---------- */
@@ -8893,6 +8924,9 @@ function duelHelp(){
 
 /* ---------- ⚡ Живая связь: прямой канал браузер↔браузер, без сервера ---------- */
 let NET=null;
+/* Что запускаем после коннекта: гонку по уровню или общее поле танчиков. */
+let netGame=(localStorage.getItem("jdNetGame")==="tank")?"tank":"race";
+function netGameSet(v){ netGame=v; try{localStorage.setItem("jdNetGame",v)}catch(e){} netMenu(); }
 function netStun(v){ if(v!=null){try{localStorage.setItem("jdNetStun",v?"1":"0")}catch(e){}}
   return localStorage.getItem("jdNetStun")==="1"; }
 function netCfg(){ return netStun()?{iceServers:[{urls:"stun:stun.l.google.com:19302"}]}:{iceServers:[]}; }
@@ -8931,6 +8965,7 @@ function netWire(ch){
 }
 function netOn(m){
   if(!NET)return;
+  if(tkNetMsg(m))return;   /* сообщения танчиков разбирает игра */
   if(m.t==="hi"){ NET.name2=m.n; netUI();
     if(m.h&&m.h!==duelHash()){                                 /* разные сборки файла — вопросы не совпадут */
       NET.badVer=1;
@@ -8940,8 +8975,8 @@ function netOn(m){
         <div class="du-acts"><button class="btn primary" id="bvBack" style="flex:none">${tr("← Меню")}</button></div></div>`;
       const bb=$("#bvBack"); if(bb)bb.onclick=()=>{ netClose(); duelMenu(); };
       return; }
-    if(NET.role==="host"&&!NET.started&&!NET.badVer){ NET.started=1; netSend({t:"go",s:NET.seed,n:duelName()}); netRace(); } }
-  else if(m.t==="go"){ if(NET.started)return; NET.started=1; NET.seed=m.s; if(m.n)NET.name2=m.n; netRace(); }
+    if(NET.role==="host"&&!NET.started&&!NET.badVer){ NET.started=1; netSend({t:"go",s:NET.seed,n:duelName(),g:netGame}); netRace(); } }
+  else if(m.t==="go"){ if(NET.started)return; NET.started=1; NET.seed=m.s; if(m.n)NET.name2=m.n; if(m.g)netGame=m.g; netRace(); }
   else if(m.t==="p")netSend({t:"q",n:m.n});
   else if(m.t==="q")NET.rtt=Date.now()-m.n;
   else if(m.t==="r"){ m.at=Date.now(); NET.peer=m; }
@@ -9277,8 +9312,12 @@ function netWatchIce(){                                       /* состоян�
 function netMenu(msg){
   netClose();
   gameStage.innerHTML=`<div class="game-menu glass"><div class="game-emoji">⚡</div><h2>${tr("Живая гонка")}</h2>
-    <p class="muted2">${tr("Оба бежите один и тот же уровень каждый на своём телефоне и видите призрак и счёт друг друга вживую. Соединение прямое, между браузерами — сервера нет.")}</p>
+    <p class="muted2">${netGame==="tank"?tr("Одно поле на двоих: обороняете орла от волн танков, за помеченный танк дают вопрос и трофей. Соединение прямое, между браузерами — сервера нет."):tr("Оба бежите один и тот же уровень каждый на своём телефоне и видите призрак и счёт друг друга вживую. Соединение прямое, между браузерами — сервера нет.")}</p>
     ${msg?`<div class="q-pill" style="margin:0 auto 10px;display:inline-block">${msg}</div>`:""}
+    <div class="net-game">
+      <button class="ng-b${netGame==="race"?" on":""}" id="ngRace">⚡ ${tr("Гонка по уровню")}</button>
+      <button class="ng-b${netGame==="tank"?" on":""}" id="ngTank">🚜 ${tr("Танчики вместе")}</button>
+    </div>
     <div class="mode-cards">
       <button class="mode-card duo" id="frBtn" style="grid-column:1/-1"><div class="mc-emoji">👥</div><b>${tr("Друзья")}</b><span>${tr("видно, кто сейчас в сети — зовёшь в один клик")}</span></button>
       <button class="mode-card duo" id="roomNew" style="grid-column:1/-1"><div class="mc-emoji">🔢</div><b>${tr("Создать комнату")}</b><span>${tr("получишь код из 4 символов — просто продиктуй его")}</span></button>
@@ -9291,6 +9330,8 @@ function netMenu(msg){
     <div class="du-acts"><button class="btn" id="netDiagB" style="flex:none">🩺 ${tr("Диагностика")}</button>
       <button class="btn" id="netHelp" style="flex:none">❓ ${tr("Инструкция")}</button>
       <button class="btn" id="netBack" style="flex:none;color:var(--mut)">${tr("← Меню")}</button></div></div>`;
+  $("#ngRace").onclick=()=>netGameSet("race");
+  $("#ngTank").onclick=()=>netGameSet("tank");
   $("#netStun").onchange=e=>netStun(e.target.checked);
   $("#netDiagB").onclick=netDiagUI;
   $("#netHelp").onclick=duelHelp;
@@ -9356,6 +9397,7 @@ async function netGuestUI(){
 /* ---- гонка ---- */
 function netRace(){
   setMode("game");
+  if(netGame==="tank"){ startTanks(NET); return; }   /* общее поле вместо гонки по уровню */
   startArcade("new",{seed:NET.seed,type:"r",n:5,fi:0,hash:duelHash(),live:1});
 }
 function netWait(){
@@ -9374,6 +9416,757 @@ function netShowResult(){
 }
 
 /* ---- аркада-дуэль: старт по seed и сравнение пробегов ---- */
+
+/* ── 🚜 Танчики: 8-битная оборона базы ────────────────────────────────────
+   Классика с Денди: поле из кирпича и брони, волны вражеских танков, орёл
+   внизу. Стреляешь — кирпич крошится по кусочкам, броню берёт только
+   прокачанный снаряд. Разница одна: бонусы тут не падают с неба, их надо
+   заслужить — сбил помеченный танк, подобрал «?», ответил на вопрос.
+
+   По сети играем ВМЕСТЕ на одном поле, а не порознь: считает хост и
+   рассылает снимок состояния, гость шлёт нажатия. Канал данных уже есть —
+   тот же, что у дуэли, ненадёжный и без переупорядочивания, что для
+   снимков состояния как раз правильно. */
+const TK_CELL = 8, TK_N = 26;                 /* 26×26 клеток по 8px */
+const TK_W = TK_N * TK_CELL, TK_H = TK_W;
+const TK_EMPTY = 0, TK_BRICK = 1, TK_STEEL = 2, TK_WATER = 3, TK_BASE = 4, TK_TREE = 5, TK_WRECK = 6;
+const TK_UP = 0, TK_RIGHT = 1, TK_DOWN = 2, TK_LEFT = 3;
+const TK_DX = [0, 1, 0, -1], TK_DY = [-1, 0, 1, 0];
+let TK = null;
+
+/* Палитра в духе NES: мало цветов, каждый узнаваем с одного взгляда. */
+const TK_COL = {
+  brick: "#a05a2c", brick2: "#7a4420", steel: "#b9c4d6", steel2: "#7c869b",
+  water: "#1d5fb0", water2: "#2a79d8", tree: "#2e7d32", ground: "#0d1220",
+  p1: "#e8d44d", p1d: "#b8a52f", p2: "#4fd39a", p2d: "#2f9a6f",
+  foe: "#c8ced8", foeFast: "#7fd4ff", foeArm: "#ff8f5a", foeBonus: "#ff5f8a",
+  shot: "#fff3c4", base: "#e8b84d", flash: "#ffffff"
+};
+
+/* Спрайты — построчный ASCII, как у аркады: читаются глазами прямо в коде. */
+const TK_SPR = {
+  tank: [
+    "X.XXXXXX.X",
+    "X.XXXXXX.X",
+    "X.XX..XX.X",
+    "XXXX..XXXX",
+    "XXXXXXXXXX",
+    "XXXX..XXXX",
+    "X.XXXXXX.X",
+    "X.XXXXXX.X"
+  ],
+  eagle: [
+    "..XXXX..",
+    ".XXXXXX.",
+    "XX.XX.XX",
+    "XXXXXXXX",
+    "X.XXXX.X",
+    "XX.XX.XX",
+    ".XX..XX.",
+    "XXXXXXXX"
+  ]
+};
+
+/* Карта: рисуем строкой, чтобы правки были видны глазами.
+   # кирпич · @ броня · ~ вода · ^ куст · . пусто */
+const TK_MAPS = [
+  [
+    "..........................",
+    "..##..##..##..##..##..##..",
+    "..##..##..##..##..##..##..",
+    "..........................",
+    ".####..####..####..####...",
+    "..........................",
+    "..##..@@@@@@@@@@..##......",
+    "..##..............##......",
+    "..........................",
+    "..####..~~~~~~..####......",
+    "........~~~~~~............",
+    "..........................",
+    ".##..##..######..##..##...",
+    ".##..##..######..##..##...",
+    "..........................",
+    "..^^^^......^^^^..........",
+    "..........................",
+    "..####..##########..####..",
+    "..........................",
+    "..##..##..........##..##..",
+    "..##..##..........##..##..",
+    "..........................",
+    "..........................",
+    "..........................",
+    "..........................",
+    ".........................."
+  ]
+];
+
+function tkIdx(cx, cy) { return cy * TK_N + cx; }
+function tkAt(cx, cy) {
+  if (cx < 0 || cy < 0 || cx >= TK_N || cy >= TK_N) return TK_STEEL;   /* за краем — стена */
+  return TK.map[tkIdx(cx, cy)];
+}
+function tkSet(cx, cy, v) {
+  if (cx < 0 || cy < 0 || cx >= TK_N || cy >= TK_N) return;
+  const i = tkIdx(cx, cy);
+  if (TK.map[i] === v) return;
+  TK.map[i] = v;
+  if (TK.host) TK.dirty.push(i, v);      /* хосту достаточно слать только изменения */
+}
+
+/* Проходима ли клетка для гусениц. Вода — нет, куст — да (в нём прячешься). */
+function tkDrivable(v) { return v === TK_EMPTY || v === TK_TREE || v === TK_WRECK; }
+/* Пропускает ли клетка снаряд. */
+function tkShotPass(v) { return v === TK_EMPTY || v === TK_WATER || v === TK_TREE || v === TK_WRECK; }
+
+function tkBuildMap() {
+  const src = TK_MAPS[0];
+  TK.map = new Uint8Array(TK_N * TK_N);
+  for (let y = 0; y < TK_N; y++) for (let x = 0; x < TK_N; x++) {
+    const ch = (src[y] || "")[x] || ".";
+    TK.map[tkIdx(x, y)] = ch === "#" ? TK_BRICK : ch === "@" ? TK_STEEL :
+      ch === "~" ? TK_WATER : ch === "^" ? TK_TREE : TK_EMPTY;
+  }
+  /* Орёл внизу по центру, в кирпичном гнезде. */
+  const bx = (TK_N >> 1) - 1, by = TK_N - 2;
+  TK.base = { cx: bx, cy: by, dead: false };
+  for (let y = by; y < by + 2; y++) for (let x = bx; x < bx + 2; x++) TK.map[tkIdx(x, y)] = TK_BASE;
+  tkWall(TK_BRICK);
+}
+/* Гнездо вокруг орла: кирпич обычно, броня — когда ответил верно. */
+function tkWall(kind) {
+  const b = TK.base;
+  for (let y = b.cy - 1; y <= b.cy + 2; y++) for (let x = b.cx - 1; x <= b.cx + 2; x++) {
+    if (x >= b.cx && x < b.cx + 2 && y >= b.cy && y < b.cy + 2) continue;
+    if (y > TK_N - 1) continue;
+    const v = tkAt(x, y);
+    if (v === TK_EMPTY || v === TK_BRICK || v === TK_STEEL) tkSet(x, y, kind);
+  }
+}
+
+/* ── танки и снаряды ────────────────────────────────────────────────────── */
+const TK_SIZE = 15;                     /* корпус чуть меньше двух клеток — легче вписываться в проходы */
+const TK_FOE = {                        /* вид · скорость · брони · очков */
+  basic: { spd: .55, hp: 1, sc: 100, col: TK_COL.foe },
+  fast: { spd: 1.0, hp: 1, sc: 200, col: TK_COL.foeFast },
+  armor: { spd: .45, hp: 3, sc: 400, col: TK_COL.foeArm }
+};
+
+function tkNewTank(o) {
+  return Object.assign({ x: 0, y: 0, dir: TK_UP, spd: .8, hp: 1, cd: 0, kind: "basic",
+    ai: 0, aiT: 0, foe: false, bonus: false, shield: 0, frozen: 0, dead: false, power: 0 }, o);
+}
+
+/* Можно ли поставить корпус в эту точку: проверяем все клетки под ним. */
+function tkFits(x, y, ignore) {
+  if (x < 0 || y < 0 || x + TK_SIZE > TK_W || y + TK_SIZE > TK_H) return false;
+  const x0 = Math.floor(x / TK_CELL), x1 = Math.floor((x + TK_SIZE - 1) / TK_CELL);
+  const y0 = Math.floor(y / TK_CELL), y1 = Math.floor((y + TK_SIZE - 1) / TK_CELL);
+  for (let cy = y0; cy <= y1; cy++) for (let cx = x0; cx <= x1; cx++)
+    if (!tkDrivable(tkAt(cx, cy))) return false;
+  /* танки друг сквозь друга не ездят */
+  for (const t of TK.tanks) {
+    if (t === ignore || t.dead) continue;
+    if (x < t.x + TK_SIZE && x + TK_SIZE > t.x && y < t.y + TK_SIZE && y + TK_SIZE > t.y) return false;
+  }
+  return true;
+}
+
+function tkMove(t, dir) {
+  if (t.frozen > 0) { t.dir = dir; return; }
+  t.dir = dir;
+  const nx = t.x + TK_DX[dir] * t.spd, ny = t.y + TK_DY[dir] * t.spd;
+  if (tkFits(nx, ny, t)) { t.x = nx; t.y = ny; return; }
+  /* Подравнивание: в оригинале танк «соскальзывает» в проход, если промахнулся
+     на пару пикселей. Без этого управление ощущается деревянным. */
+  const s = 2.2;
+  if (dir === TK_UP || dir === TK_DOWN) {
+    for (const d of [-s, s]) if (tkFits(t.x + d, ny, t)) { t.x += d; t.y = ny; return; }
+  } else {
+    for (const d of [-s, s]) if (tkFits(nx, t.y + d, t)) { t.y += d; t.x = nx; return; }
+  }
+}
+
+function tkFire(t) {
+  if (t.cd > 0 || t.dead || t.frozen > 0) return;
+  const mine = TK.shots.filter(b => b.own === t).length;
+  if (mine >= (t.power >= 1 ? 2 : 1)) return;      /* прокачка даёт второй снаряд в воздухе */
+  t.cd = t.foe ? 46 : (t.power >= 1 ? 16 : 26);
+  const c = TK_SIZE / 2;
+  TK.shots.push({
+    x: t.x + c + TK_DX[t.dir] * c, y: t.y + c + TK_DY[t.dir] * c,
+    dir: t.dir, own: t, foe: t.foe, spd: t.foe ? 2.4 : 3.2, power: t.power
+  });
+  if (!t.foe) tkSnd("fire");
+}
+
+/* Снаряд летит по прямой, крошит кирпич по одной клетке, броню — только
+   прокачанный. Клетка = 8px, поэтому стена рушится кусочками, как в оригинале. */
+function tkShotStep(b) {
+  b.x += TK_DX[b.dir] * b.spd; b.y += TK_DY[b.dir] * b.spd;
+  if (b.x < 0 || b.y < 0 || b.x > TK_W || b.y > TK_H) return false;
+  const cx = Math.floor(b.x / TK_CELL), cy = Math.floor(b.y / TK_CELL);
+  const v = tkAt(cx, cy);
+  if (!tkShotPass(v)) {
+    if (v === TK_BASE) { tkBaseDown(); return false; }
+    if (v === TK_BRICK) { tkSet(cx, cy, TK_EMPTY); tkBoom(b.x, b.y, 3); tkSnd("hitBrick"); return false; }
+    if (v === TK_STEEL) {
+      if (b.power >= 2) { tkSet(cx, cy, TK_EMPTY); tkBoom(b.x, b.y, 4); tkSnd("hitBrick"); }
+      else tkSnd("clink");
+      return false;
+    }
+    return false;
+  }
+  /* попадание в танк */
+  for (const t of TK.tanks) {
+    if (t.dead || t === b.own) continue;
+    if (t.foe === b.foe) continue;                  /* свои по своим не стреляют */
+    if (b.x > t.x && b.x < t.x + TK_SIZE && b.y > t.y && b.y < t.y + TK_SIZE) {
+      tkHit(t, b); return false;
+    }
+  }
+  return true;
+}
+
+function tkHit(t, b) {
+  if (t.shield > 0) { tkBoom(b.x, b.y, 4); tkSnd("clink"); return; }
+  t.hp--;
+  if (t.hp > 0) { tkBoom(b.x, b.y, 4); tkSnd("clink"); return; }
+  t.dead = true; tkBoom(t.x + 7, t.y + 7, 14); tkSnd("boom");
+  if (t.foe) {
+    TK.killed++; TK.score += (TK_FOE[t.kind] || TK_FOE.basic).sc;
+    if (t.bonus) tkDropBonus();
+    TK.foesLeft = Math.max(0, TK.foesLeft - 1);
+  } else {
+    t.lives--;
+    if (t.lives > 0) setTimeout(() => tkRespawn(t), 900);
+    else if (TK.tanks.every(x => x.foe || x.lives <= 0)) tkOver(false);
+  }
+}
+
+function tkBaseDown() {
+  if (TK.base.dead) return;
+  TK.base.dead = true;
+  const b = TK.base;
+  for (let y = b.cy; y < b.cy + 2; y++) for (let x = b.cx; x < b.cx + 2; x++) tkSet(x, y, TK_EMPTY);
+  tkBoom(b.cx * TK_CELL + 8, b.cy * TK_CELL + 8, 26); tkSnd("boom");
+  tkOver(false);
+}
+
+/* ── ИИ, волны, бонусы ──────────────────────────────────────────────────── */
+function tkFreeSpawn(list) {
+  for (const [cx, cy] of list) {
+    const x = cx * TK_CELL, y = cy * TK_CELL;
+    if (tkFits(x, y, null)) return { x, y };
+  }
+  return null;
+}
+const TK_FOE_SPAWN = [[0, 0], [TK_N / 2 - 1, 0], [TK_N - 2, 0]];
+const TK_P_SPAWN = [[TK_N / 2 - 6, TK_N - 3], [TK_N / 2 + 4, TK_N - 3]];
+
+function tkSpawnFoe() {
+  if (TK.foesQueue <= 0) return;
+  const alive = TK.tanks.filter(t => t.foe && !t.dead).length;
+  if (alive >= TK.maxAlive) return;
+  const p = tkFreeSpawn(TK_FOE_SPAWN.slice().sort(() => tkRnd() - .5));
+  if (!p) return;
+  TK.foesQueue--;
+  const roll = tkRnd();
+  const kind = roll < .18 ? "armor" : roll < .45 ? "fast" : "basic";
+  const f = TK_FOE[kind];
+  const t = tkNewTank({
+    x: p.x, y: p.y, dir: TK_DOWN, spd: f.spd, hp: f.hp, kind, foe: true,
+    bonus: (TK.spawned % 4 === 3), aiT: 20 + Math.floor(tkRnd() * 40), shield: 90
+  });
+  TK.spawned++;
+  TK.tanks.push(t);
+  tkBoom(p.x + 7, p.y + 7, 10);
+}
+
+/* ИИ простой и честный: едет вперёд, на перекрёстке или у стены выбирает
+   направление — чаще вниз, к орлу. Стреляет, когда перед ним чисто. */
+function tkAiStep(t) {
+  if (t.frozen > 0) { t.frozen--; return; }
+  t.aiT--;
+  const blocked = !tkFits(t.x + TK_DX[t.dir] * t.spd, t.y + TK_DY[t.dir] * t.spd, t);
+  if (blocked || t.aiT <= 0) {
+    const w = [TK_DOWN, TK_DOWN, TK_DOWN, TK_LEFT, TK_RIGHT, TK_UP];
+    /* немного охоты: если игрок ниже и рядом по вертикали — идём на него */
+    const me = TK.tanks.find(x => !x.foe && !x.dead);
+    if (me && tkRnd() < .35) {
+      const dx = me.x - t.x, dy = me.y - t.y;
+      t.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? TK_RIGHT : TK_LEFT) : (dy > 0 ? TK_DOWN : TK_UP);
+    } else t.dir = w[Math.floor(tkRnd() * w.length)];
+    t.aiT = 30 + Math.floor(tkRnd() * 70);
+  }
+  tkMove(t, t.dir);
+  if (t.cd <= 0 && tkRnd() < .035) tkFire(t);
+}
+
+function tkDropBonus() {
+  if (TK.bonus) return;
+  for (let i = 0; i < 60; i++) {
+    const cx = 1 + Math.floor(tkRnd() * (TK_N - 3)), cy = 1 + Math.floor(tkRnd() * (TK_N - 5));
+    if (tkDrivable(tkAt(cx, cy)) && tkDrivable(tkAt(cx + 1, cy))) {
+      TK.bonus = { x: cx * TK_CELL, y: cy * TK_CELL, t: 0 };
+      tkSnd("bonus"); return;
+    }
+  }
+}
+
+/* Подобрал «?» — игра замирает и спрашивает. Верно — награда как в оригинале
+   (звезда, каска, лопата, часы), неверно — на поле выходит лишний танк. */
+const TK_REWARD = [
+  { id: "star", txt: "⭐ Прокачка: снаряд быстрее и по два в воздухе" },
+  { id: "steel", txt: "🧱 Гнездо орла стало бронёй на 25 секунд" },
+  { id: "helmet", txt: "🪖 Щит на 12 секунд" },
+  { id: "clock", txt: "⏱ Враги замерли на 8 секунд" },
+  { id: "life", txt: "❤️ Ещё одна жизнь" }
+];
+
+function tkApplyReward(who, r) {
+  const me = who || TK.tanks.find(t => !t.foe && !t.dead) || TK.tanks[0];
+  if (r === "star") { if (me) me.power = Math.min(2, me.power + 1); }
+  else if (r === "steel") { tkWall(TK_STEEL); TK.steelT = 25 * 60; }
+  else if (r === "helmet") { if (me) me.shield = 12 * 60; }
+  else if (r === "clock") { TK.tanks.forEach(t => { if (t.foe) t.frozen = 8 * 60; }); }
+  else if (r === "life") { if (me) me.lives++; }
+  tkSnd("reward");
+}
+
+function tkRespawn(t) {
+  const p = tkFreeSpawn([TK_P_SPAWN[t.pi] || TK_P_SPAWN[0], ...TK_P_SPAWN]);
+  if (!p) { setTimeout(() => tkRespawn(t), 500); return; }
+  t.x = p.x; t.y = p.y; t.dir = TK_UP; t.dead = false; t.hp = 1;
+  t.shield = 150; t.power = 0; t.cd = 0;
+}
+
+function tkWaveDone() {
+  return TK.foesQueue <= 0 && !TK.tanks.some(t => t.foe && !t.dead);
+}
+function tkNextWave() {
+  TK.wave++;
+  if (TK.wave > TK.waves) { tkOver(true); return; }
+  TK.foesQueue = 6 + TK.wave * 2;
+  TK.maxAlive = Math.min(6, 3 + Math.floor(TK.wave / 2));
+  TK.spawned = 0;
+  tkBanner(tr("Волна") + " " + TK.wave + " / " + TK.waves);
+}
+
+/* ── звук, взрывы, служебное ────────────────────────────────────────────── */
+function tkRnd() { return TK && TK.rng ? TK.rng() : Math.random(); }
+function tkSnd(k) {
+  if (arMute) return;
+  if (k === "fire") arTone(620, .05, "square", .05, -260);
+  else if (k === "hitBrick") arNoise(.07, .05, 900);
+  else if (k === "clink") arTone(1400, .04, "square", .035, -400);
+  else if (k === "boom") { arNoise(.22, .09, 260); arTone(150, .18, "sawtooth", .05, -90); }
+  else if (k === "bonus") { arTone(880, .07, "square", .05); setTimeout(() => arTone(1320, .09, "square", .05), 70); }
+  else if (k === "reward") { [660, 880, 1320].forEach((f, i) => setTimeout(() => arTone(f, .09, "square", .05), i * 80)); }
+}
+function tkBoom(x, y, n) {
+  for (let i = 0; i < n; i++) TK.parts.push({
+    x, y, vx: (Math.random() - .5) * 2.6, vy: (Math.random() - .5) * 2.6,
+    life: 16 + Math.random() * 14, c: i % 3 ? "#ffcf6e" : "#ff7a85"
+  });
+}
+function tkBanner(text) {
+  const b = document.getElementById("tkBanner"); if (!b) return;
+  b.textContent = text; b.hidden = false;
+  clearTimeout(TK.bt); TK.bt = setTimeout(() => { if (b) b.hidden = true; }, 1400);
+}
+
+/* ── вопрос ─────────────────────────────────────────────────────────────── */
+/* Пул вопросов берём тот же, что у аркады: карточки с готовой викториной.
+   Порядок задаёт сид, поэтому у обоих игроков вопросы совпадут. */
+function tkPool() {
+  const p = CARDS.filter(c => QUIZ[c.id] && QUIZ[c.id].wrong && QUIZ[c.id].wrong.length >= 3 && !isHidden(c.id));
+  for (let i = p.length - 1; i > 0; i--) { const j = Math.floor(tkRnd() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+  return p;
+}
+function tkAsk(who) {
+  if (TK.quizOn) return;
+  const c = TK.pool[TK.qi % TK.pool.length]; TK.qi++;
+  if (!c) return;
+  TK.quizOn = true; TK.keys = {}; TK.keys2 = {};
+  const rw = TK_REWARD[Math.floor(tkRnd() * TK_REWARD.length)];
+  TK.pending = { id: c.id, rw: rw.id, who };
+  if (TK.host && TK.net) tkSend({ t: "tkq", id: c.id, rw: rw.id });
+  tkShowQuiz(c, rw);
+}
+function tkShowQuiz(c, rw) {
+  const q = QUIZ[c.id], qc = T('cards', c.id, 'quizCorrect', q.correct), qw = Ta('cards', c.id, 'quizWrong', q.wrong);
+  const opts = [{ t: qc, ok: 1 }, ...qw.slice(0, 3).map(w => ({ t: w, ok: 0 }))];
+  for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(tkRnd() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  const m = document.getElementById("tkQuiz"); if (!m) return;
+  m.innerHTML = `<div class="arq-box">
+    <div class="arq-tag">🎁 ${tr("Трофей за танк")} · ${esc(clName(c.t))}</div>
+    <div class="arq-q">${esc(T('cards', c.id, 'q', q.q || c.q))}</div>
+    <div class="arq-opts">${opts.map((o, i) => `<button class="arq-opt" data-ok="${o.ok}">${esc(o.t)}</button>`).join("")}</div>
+    <div class="arq-prize">${tr("Верно")} → ${esc(rw.txt)}<br><span class="mut">${tr("Мимо")} → ${tr("на поле выйдет лишний танк")}</span></div>
+  </div>`;
+  m.hidden = false;
+  m.querySelectorAll(".arq-opt").forEach(b => b.onclick = () => {
+    const ok = b.dataset.ok === "1";
+    m.querySelectorAll(".arq-opt").forEach(x => {
+      if (x.dataset.ok === "1") x.classList.add("correct");
+      else if (x === b) x.classList.add("wrong"); else x.classList.add("dim");
+    });
+    setTimeout(() => tkAnswer(ok), ok ? 420 : 1100);
+  });
+}
+function tkAnswer(ok) {
+  const m = document.getElementById("tkQuiz"); if (m) { m.hidden = true; m.innerHTML = ""; }
+  TK.quizOn = false;
+  if (TK.net && !TK.host) { tkSend({ t: "tka", ok: ok ? 1 : 0 }); return; }   /* решает хост */
+  tkResolve(ok);
+}
+function tkResolve(ok) {
+  const p = TK.pending; TK.pending = null;
+  /* Ответить может любой из двоих, поэтому снимаем паузу здесь, а не в tkAnswer:
+     иначе сторона, которая не нажимала, застынет насовсем. */
+  TK.quizOn = false;
+  const box = document.getElementById("tkQuiz");
+  if (box) { box.hidden = true; box.innerHTML = ""; }
+  if (!p) return;
+  if (ok) { TK.ok++; tkApplyReward(p.who, p.rw); tkBanner("✓ " + (TK_REWARD.find(r => r.id === p.rw) || {}).txt); }
+  else { TK.bad++; TK.foesQueue++; tkBanner(tr("Мимо — прибыло подкрепление")); }
+  if (TK.host && TK.net) tkSend({ t: "tkr", ok: ok ? 1 : 0, rw: p.rw });
+}
+
+/* ── отрисовка ──────────────────────────────────────────────────────────── */
+function tkDraw() {
+  const g = TK.ctx;
+  g.fillStyle = TK_COL.ground; g.fillRect(0, 0, TK_W, TK_H);
+
+  /* поле. Кирпич рисуем клеточкой 4×4 — на глаз это та самая кладка. */
+  for (let cy = 0; cy < TK_N; cy++) for (let cx = 0; cx < TK_N; cx++) {
+    const v = TK.map[tkIdx(cx, cy)]; if (v === TK_EMPTY || v === TK_TREE) continue;
+    const x = cx * TK_CELL, y = cy * TK_CELL;
+    if (v === TK_BRICK) {
+      g.fillStyle = TK_COL.brick; g.fillRect(x, y, TK_CELL, TK_CELL);
+      g.fillStyle = TK_COL.brick2;
+      g.fillRect(x, y + 3, TK_CELL, 1); g.fillRect(x, y + 7, TK_CELL, 1);
+      g.fillRect(x + 3, y, 1, 3); g.fillRect(x + 6, y + 4, 1, 3);
+    } else if (v === TK_STEEL) {
+      g.fillStyle = TK_COL.steel; g.fillRect(x, y, TK_CELL, TK_CELL);
+      g.fillStyle = TK_COL.steel2; g.fillRect(x + 1, y + 1, 3, 3); g.fillRect(x + 4, y + 4, 3, 3);
+    } else if (v === TK_WATER) {
+      g.fillStyle = TK_COL.water; g.fillRect(x, y, TK_CELL, TK_CELL);
+      g.fillStyle = TK_COL.water2;
+      const w = (TK.t >> 3) % 2 ? 0 : 4;
+      g.fillRect(x + w, y + 2, 4, 1); g.fillRect(x + (4 - w), y + 5, 4, 1);
+    }
+  }
+
+  /* Орёл — один спрайт 8×8 на квадрат 2×2 клетки. Собирать его по клеткам,
+     как остальную карту, было ошибкой: половинки не сходились. */
+  {
+    const b = TK.base, bx = b.cx * TK_CELL, by = b.cy * TK_CELL, sp = TK_SPR.eagle;
+    g.fillStyle = b.dead ? "#5a5f70" : TK_COL.base;
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++)
+      if (sp[r][c] === "X") g.fillRect(bx + c * 2, by + r * 2, 2, 2);
+  }
+
+  /* танки */
+  for (const t of TK.tanks) {
+    if (t.dead) continue;
+    const col = t.foe ? (t.bonus && (TK.t >> 3) % 2 ? TK_COL.foeBonus : (TK_FOE[t.kind] || TK_FOE.basic).col)
+      : (t.pi ? TK_COL.p2 : TK_COL.p1);
+    const dark = t.foe ? "#4a5163" : (t.pi ? TK_COL.p2d : TK_COL.p1d);
+    tkDrawTank(g, t, col, dark);
+    if (t.shield > 0 && (TK.t >> 2) % 2) {
+      g.strokeStyle = "#7fd4ff"; g.lineWidth = 1;
+      g.strokeRect(t.x - 1.5, t.y - 1.5, TK_SIZE + 3, TK_SIZE + 3);
+    }
+  }
+
+  /* кусты рисуем ПОВЕРХ танков — в них прячешься, как в оригинале */
+  for (let cy = 0; cy < TK_N; cy++) for (let cx = 0; cx < TK_N; cx++) {
+    if (TK.map[tkIdx(cx, cy)] !== TK_TREE) continue;
+    const x = cx * TK_CELL, y = cy * TK_CELL;
+    g.fillStyle = TK_COL.tree; g.fillRect(x, y, TK_CELL, TK_CELL);
+    g.fillStyle = "#1f5c23"; g.fillRect(x + 1, y + 1, 2, 2); g.fillRect(x + 5, y + 4, 2, 2);
+  }
+
+  /* снаряды */
+  g.fillStyle = TK_COL.shot;
+  for (const b of TK.shots) g.fillRect(b.x - 1.5, b.y - 1.5, 3, 3);
+
+  /* бонус «?» */
+  if (TK.bonus && (TK.t >> 3) % 2) {
+    const b = TK.bonus;
+    g.fillStyle = "#ffcf6e"; g.fillRect(b.x, b.y, 16, 16);
+    g.fillStyle = "#1a1200"; g.font = "bold 12px monospace"; g.textAlign = "center";
+    g.fillText("?", b.x + 8, b.y + 12); g.textAlign = "left";
+  }
+
+  /* искры */
+  for (const p of TK.parts) { g.fillStyle = p.c; g.fillRect(p.x, p.y, 2, 2); }
+}
+
+/* Корпус: две гусеницы, башня и ствол по направлению. */
+function tkDrawTank(g, t, col, dark) {
+  const x = Math.round(t.x), y = Math.round(t.y), S = TK_SIZE;
+  g.fillStyle = dark;
+  if (t.dir === TK_UP || t.dir === TK_DOWN) {
+    g.fillRect(x, y, 4, S); g.fillRect(x + S - 4, y, 4, S);
+    g.fillStyle = col; g.fillRect(x + 3, y + 2, S - 6, S - 4);
+    g.fillRect(x + 6, t.dir === TK_UP ? y - 3 : y + S - 4, 3, 7);
+  } else {
+    g.fillRect(x, y, S, 4); g.fillRect(x, y + S - 4, S, 4);
+    g.fillStyle = col; g.fillRect(x + 2, y + 3, S - 4, S - 6);
+    g.fillRect(t.dir === TK_LEFT ? x - 3 : x + S - 4, y + 6, 7, 3);
+  }
+  g.fillStyle = dark; g.fillRect(x + 5, y + 5, 5, 5);
+}
+
+/* ── табло ──────────────────────────────────────────────────────────────── */
+function tkHud() {
+  const h = document.getElementById("tkHud"); if (!h) return;
+  const me = TK.tanks.find(t => !t.foe && t.pi === (TK.myIdx || 0)) || TK.tanks[0];
+  const mate = TK.net ? TK.tanks.find(t => !t.foe && t.pi !== (TK.myIdx || 0)) : null;
+  h.innerHTML =
+    (TK.net && !TK.net.up ? `<span class="tk-hud-i tk-off">⚠ ${tr("нет связи")}</span>` : "") +
+    `<span class="tk-hud-i">❤️ ${me ? me.lives : 0}</span>` +
+    (mate ? `<span class="tk-hud-i">🤝 ${mate.lives}</span>` : "") +
+    `<span class="tk-hud-i">🎯 ${TK.score}</span>` +
+    `<span class="tk-hud-i">🌊 ${TK.wave}/${TK.waves}</span>` +
+    `<span class="tk-hud-i">👾 ${TK.foesQueue + TK.tanks.filter(t => t.foe && !t.dead).length}</span>` +
+    (TK.ok + TK.bad ? `<span class="tk-hud-i">✓ ${TK.ok}/${TK.ok + TK.bad}</span>` : "");
+}
+
+/* ── сеть: считает хост, гость шлёт нажатия ─────────────────────────────── */
+/* Канал ненадёжный и без порядка — для снимков состояния это правильно:
+   потерянный кадр не нужен, важен последний. Поэтому у снимка есть номер,
+   и гость просто игнорирует всё, что пришло с опозданием. */
+function tkSend(o) { if (TK && TK.net) netSend(o); }
+
+function tkSnapshot() {
+  return {
+    t: "tks", n: ++TK.seq, w: TK.wave, sc: TK.score, q: TK.foesQueue, bd: TK.base.dead ? 1 : 0,
+    ok: TK.ok, bad: TK.bad,
+    tk: TK.tanks.filter(t => !t.dead).map(t => [
+      Math.round(t.x), Math.round(t.y), t.dir, t.foe ? 1 : 0, t.pi || 0,
+      t.foe ? (t.kind === "fast" ? 1 : t.kind === "armor" ? 2 : 0) : 0,
+      t.bonus ? 1 : 0, t.shield > 0 ? 1 : 0, t.lives || 0, t.frozen > 0 ? 1 : 0
+    ]),
+    sh: TK.shots.map(b => [Math.round(b.x), Math.round(b.y), b.dir]),
+    bo: TK.bonus ? [TK.bonus.x, TK.bonus.y] : null,
+    d: TK.dirty.splice(0, TK.dirty.length)
+  };
+}
+function tkApplySnapshot(m) {
+  if (m.n <= TK.seq) return;                 /* пришло с опозданием — прежний кадр свежее */
+  TK.seq = m.n;
+  TK.wave = m.w; TK.score = m.sc; TK.foesQueue = m.q; TK.ok = m.ok; TK.bad = m.bad;
+  TK.base.dead = !!m.bd;
+  for (let i = 0; i < m.d.length; i += 2) TK.map[m.d[i]] = m.d[i + 1];
+  TK.tanks = m.tk.map(a => tkNewTank({
+    x: a[0], y: a[1], dir: a[2], foe: !!a[3], pi: a[4],
+    kind: a[3] ? ["basic", "fast", "armor"][a[5]] : "basic",
+    bonus: !!a[6], shield: a[7] ? 1 : 0, lives: a[8], frozen: a[9] ? 1 : 0
+  }));
+  TK.shots = m.sh.map(a => ({ x: a[0], y: a[1], dir: a[2] }));
+  TK.bonus = m.bo ? { x: m.bo[0], y: m.bo[1], t: 0 } : null;
+}
+/* Разбор сетевых сообщений игры. Возвращает true, если сообщение наше. */
+function tkNetMsg(m) {
+  if (!TK || !m || !m.t || m.t.slice(0, 2) !== "tk") return false;
+  if (m.t === "tks") { if (!TK.host) tkApplySnapshot(m); }
+  else if (m.t === "tki") { if (TK.host) TK.keys2 = m.k || {}; }
+  else if (m.t === "tkq") { if (!TK.host) { TK.quizOn = true; TK.keys = {}; const c = CARDS.find(x => x.id === m.id); if (c) tkShowQuiz(c, TK_REWARD.find(r => r.id === m.rw) || TK_REWARD[0]); } }
+  else if (m.t === "tka") { if (TK.host) tkResolve(!!m.ok); }
+  else if (m.t === "tkr") { if (!TK.host) { TK.quizOn = false; const q = document.getElementById("tkQuiz"); if (q) { q.hidden = true; q.innerHTML = ""; } tkBanner(m.ok ? "✓" : tr("Мимо")); } }
+  else if (m.t === "tke") { if (!TK.host) tkOver(!!m.win, true); }
+  return true;
+}
+
+/* ── цикл ───────────────────────────────────────────────────────────────── */
+function tkLoop(ts) {
+  if (!TK) return;
+  TK.raf = requestAnimationFrame(tkLoop);
+  if (TK.last == null) TK.last = ts;
+  let dt = Math.min(100, ts - TK.last); TK.last = ts;
+  TK.acc += dt;
+  while (TK.acc >= 16.67) { TK.acc -= 16.67; tkStep(); }
+  tkDraw();
+}
+function tkStep() {
+  TK.t++;
+  for (let i = TK.parts.length - 1; i >= 0; i--) {
+    const p = TK.parts[i]; p.x += p.vx; p.y += p.vy; p.vy += .08;
+    if (--p.life <= 0) TK.parts.splice(i, 1);
+  }
+  if (TK.over || TK.quizOn) return;
+
+  /* гость только шлёт нажатия и показывает снимок */
+  if (TK.net && !TK.host) {
+    const k = TK.keys, s = JSON.stringify(k);
+    if (s !== TK.lastKeys) { TK.lastKeys = s; tkSend({ t: "tki", k }); }
+    return;
+  }
+
+  /* дальше — только хост (или одиночная игра) */
+  const p1 = TK.tanks.find(t => !t.foe && t.pi === 0);
+  const p2 = TK.net ? TK.tanks.find(t => !t.foe && t.pi === 1) : null;
+  tkDrive(p1, TK.keys);
+  if (p2) tkDrive(p2, TK.keys2);
+
+  for (const t of TK.tanks) {
+    if (t.cd > 0) t.cd--;
+    if (t.shield > 0) t.shield--;
+    if (t.dead) continue;
+    if (t.foe) tkAiStep(t);
+  }
+  for (let i = TK.shots.length - 1; i >= 0; i--) if (!tkShotStep(TK.shots[i])) TK.shots.splice(i, 1);
+
+  /* бонус подобран */
+  if (TK.bonus) {
+    for (const t of TK.tanks) {
+      if (t.foe || t.dead) continue;
+      if (t.x < TK.bonus.x + 16 && t.x + TK_SIZE > TK.bonus.x && t.y < TK.bonus.y + 16 && t.y + TK_SIZE > TK.bonus.y) {
+        TK.bonus = null; tkAsk(t); break;
+      }
+    }
+  }
+  if (TK.steelT > 0 && --TK.steelT === 0) tkWall(TK_BRICK);
+
+  if (TK.spawnCd > 0) TK.spawnCd--; else { tkSpawnFoe(); TK.spawnCd = 90; }
+  if (tkWaveDone()) tkNextWave();
+
+  if (TK.net && TK.t % 3 === 0) tkSend(tkSnapshot());   /* 20 снимков в секунду */
+  if (TK.t % 15 === 0) tkHud();
+}
+function tkDrive(t, keys) {
+  if (!t || t.dead) return;
+  if (keys.up) tkMove(t, TK_UP);
+  else if (keys.down) tkMove(t, TK_DOWN);
+  else if (keys.left) tkMove(t, TK_LEFT);
+  else if (keys.right) tkMove(t, TK_RIGHT);
+  if (keys.fire) tkFire(t);
+}
+
+/* ── запуск, управление, конец ──────────────────────────────────────────── */
+function tkStop() {
+  if (!TK) return;
+  cancelAnimationFrame(TK.raf);
+  clearTimeout(TK.bt);
+  if (TK.onKey) { removeEventListener("keydown", TK.onKey); removeEventListener("keyup", TK.onKey); }
+  TK = null;
+}
+function tkKeyMap(k) {
+  const s = k.toLowerCase();
+  if (k === "ArrowUp" || s === "w" || s === "ц") return "up";
+  if (k === "ArrowDown" || s === "s" || s === "ы") return "down";
+  if (k === "ArrowLeft" || s === "a" || s === "ф") return "left";
+  if (k === "ArrowRight" || s === "d" || s === "в") return "right";
+  if (k === " " || s === "x" || s === "ч" || k === "Enter") return "fire";
+  return null;
+}
+
+function startTanks(net) {
+  gameAct({});
+  const host = !net || net.role === "host";
+  gameStage.innerHTML = `<div class="arcade glass tk-wrap">
+    <div class="ar-head"><b>🚜 ${tr("Танчики")}</b>
+      <span class="ar-hint">${tr("стрелки — ехать · пробел — огонь")}</span>
+      <button class="ar-mute" id="tkMute" title="${tr("звук")}">${arMute ? "🔇" : "🔊"}</button></div>
+    <div class="tk-hud" id="tkHud"></div>
+    <div class="ar-screen tk-screen">
+      <canvas id="tkCv" width="${TK_W}" height="${TK_H}"></canvas>
+      <div class="ar-banner" id="tkBanner" hidden></div>
+      <div class="arq" id="tkQuiz" hidden></div>
+    </div>
+    <div class="ar-pad tk-pad">
+      <div class="tk-dpad">
+        <button class="ar-btn" data-k="up">▲</button>
+        <div><button class="ar-btn" data-k="left">◀</button><button class="ar-btn" data-k="right">▶</button></div>
+        <button class="ar-btn" data-k="down">▼</button>
+      </div>
+      <button class="ar-btn fire tk-fire" data-k="fire">✦</button>
+    </div>
+    <div class="ar-foot"><button class="btn" id="tkBack" style="flex:none">${tr("← Меню")}</button></div>
+  </div>`;
+
+  const cv = document.getElementById("tkCv");
+  const seed = net ? (net.seed >>> 0) : ((Math.random() * 4294967296) >>> 0);
+  TK = {
+    ctx: cv.getContext("2d"), rng: mulberry32(seed), net: net || null, host,
+    myIdx: net ? (host ? 0 : 1) : 0,
+    keys: {}, keys2: {}, lastKeys: "", seq: 0, dirty: [],
+    map: null, base: null, tanks: [], shots: [], parts: [], bonus: null,
+    t: 0, acc: 0, last: null, raf: null, over: false, quizOn: false, pending: null,
+    score: 0, killed: 0, wave: 0, waves: 5, foesQueue: 0, maxAlive: 3, spawned: 0,
+    spawnCd: 60, steelT: 0, ok: 0, bad: 0, qi: 0, pool: [], t0: Date.now()
+  };
+  TK.ctx.imageSmoothingEnabled = false;
+  tkBuildMap();
+  TK.pool = tkPool();
+
+  /* игроки: в одиночной один, по сети — двое на одном поле */
+  const mk = (pi) => {
+    const p = tkFreeSpawn([TK_P_SPAWN[pi], ...TK_P_SPAWN]) || { x: TK_P_SPAWN[pi][0] * TK_CELL, y: TK_P_SPAWN[pi][1] * TK_CELL };
+    return tkNewTank({ x: p.x, y: p.y, dir: TK_UP, spd: .9, hp: 1, lives: 3, pi, shield: 150 });
+  };
+  TK.tanks.push(mk(0));
+  if (net) TK.tanks.push(mk(1));
+  tkNextWave();
+
+  /* клавиатура */
+  TK.onKey = e => {
+    if (!TK) return;
+    if (e.key === "Escape") { tkStop(); gameMenu(); return; }
+    const k = tkKeyMap(e.key); if (!k) return;
+    e.preventDefault();
+    TK.keys[k] = e.type === "keydown";
+  };
+  addEventListener("keydown", TK.onKey); addEventListener("keyup", TK.onKey);
+
+  /* экранные кнопки */
+  gameStage.querySelectorAll(".ar-btn").forEach(b => {
+    const k = b.dataset.k;
+    const on = e => { e.preventDefault(); if (TK) TK.keys[k] = true; b.classList.add("on"); };
+    const off = e => { e.preventDefault(); if (TK) TK.keys[k] = false; b.classList.remove("on"); };
+    b.addEventListener("pointerdown", on); b.addEventListener("pointerup", off);
+    b.addEventListener("pointerleave", off); b.addEventListener("pointercancel", off);
+  });
+  const mu = document.getElementById("tkMute");
+  if (mu) mu.onclick = () => { arToggleMute(); mu.textContent = arMute ? "🔇" : "🔊"; };
+  const bk = document.getElementById("tkBack");
+  if (bk) bk.onclick = () => { if (TK && TK.net) netClose(); tkStop(); gameMenu(); };
+
+  tkHud();
+  TK.raf = requestAnimationFrame(tkLoop);
+}
+
+function tkOver(win, fromNet) {
+  if (!TK || TK.over) return;
+  TK.over = true;
+  if (TK.host && TK.net && !fromNet) tkSend({ t: "tke", win: win ? 1 : 0 });
+  cancelAnimationFrame(TK.raf);
+  const sec = Math.round((Date.now() - TK.t0) / 1000);
+  const acc = TK.ok + TK.bad ? Math.round(TK.ok / (TK.ok + TK.bad) * 100) : 0;
+  const best = Math.max(TK.score, +(localStorage.getItem("jdTankBest") || 0));
+  try { localStorage.setItem("jdTankBest", best); } catch (e) { }
+  const net = TK.net;
+  gameStage.innerHTML = `<div class="game-end glass">
+    <div class="game-emoji">${win ? "🏆" : TK.base.dead ? "🦅" : "💀"}</div>
+    <div class="q-pill">${win ? tr("База выстояла") : TK.base.dead ? tr("Орла разбили") : tr("Танки кончились")}</div>
+    <div class="big-score">${TK.score}</div>
+    <div class="row"><span>👾 ${tr("подбито")} ${TK.killed}</span></div>
+    <div class="row"><span>🌊 ${tr("волна")} ${Math.min(TK.wave, TK.waves)} ${tr("из")} ${TK.waves}</span></div>
+    ${TK.ok + TK.bad ? `<div class="row"><span>✓ ${tr("вопросы")} ${TK.ok}/${TK.ok + TK.bad} (${acc}%)</span></div>` : ""}
+    <div class="row"><span>⏱ ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}</span></div>
+    <div class="row"><span>🏆 ${tr("рекорд")} ${best}</span></div>
+    <button class="btn primary" id="tkAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
+    <button class="btn" id="tkMenu" style="flex:none">${tr("← Меню")}</button>
+  </div>`;
+  const a = document.getElementById("tkAgain");
+  if (a) a.onclick = () => { tkStop(); startTanks(net); };
+  const m2 = document.getElementById("tkMenu");
+  if (m2) m2.onclick = () => { if (net) netClose(); tkStop(); gameMenu(); };
+}
+
 function arDuelStart(d){ setMode("game"); startArcade("new",d); }
 function arDuelCard(r,win){
   const st=(r.ar?r.ar.st:0), lvl=(st>>1)+1, won=st&1;
