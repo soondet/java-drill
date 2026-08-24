@@ -1740,6 +1740,19 @@
   .ar-btn:active,.ar-btn.on{background:var(--acc);color:#0b0f19;transform:scale(.94)}
   .ar-btn.fire{border-color:var(--bad);color:var(--bad)}
   .ar-btn.fire:active,.ar-btn.fire.on{background:var(--bad);color:#0b0f19}
+  .tk-revive .arq-tag{color:#ff9aa4}
+  .tk-rin{width:100%;box-sizing:border-box;margin:10px 0 4px;padding:11px 12px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel-2);color:var(--txt);font:600 15px var(--sans);outline:none}
+  .tk-rin:focus{border-color:var(--acc)}
+  .si-q{margin:8px 0 6px;padding:10px 12px;border-radius:11px;background:var(--panel-2);
+    border:1px solid var(--line);font:500 13.5px/1.5 var(--sans);color:var(--read)}
+  .si-cl{display:inline-block;margin-right:7px;padding:1px 7px;border-radius:6px;
+    background:rgba(255,255,255,.06);color:var(--mut);font:700 11px var(--sans);vertical-align:1px}
+  .si-screen canvas{width:100%;max-width:336px;height:auto;display:block;margin:0 auto;image-rendering:pixelated}
+  .si-pad{display:flex;gap:14px;justify-content:center;align-items:center;margin-top:10px}
+  .si-pad .ar-btn{width:76px;height:56px}
+  .si-pad .ar-btn.si-fire{width:82px;height:82px;border-radius:50%;font-size:26px}
+  .si-combo{color:#ffcf6e}
   .tk-off{color:#ff9aa4}
   .net-game{display:flex;gap:8px;justify-content:center;margin:0 0 12px;flex-wrap:wrap}
   .ng-b{border:1px solid var(--line);background:var(--panel-2);color:var(--mut);border-radius:11px;
@@ -2952,6 +2965,12 @@ let pendingTerm=null;  /* клик по термину-ссылке → откр
 let pendingBasic=null;  /* глоб.поиск → прокрутить к понятию в «Для чайника» */
 let pendingViz=null;    /* глоб.поиск / карточка → открыть конкретный 3D-мир */
 function setMode(m){mode=m;
+  /* Уходим со вкладки игр — гасим канвас-игры. Иначе requestAnimationFrame крутится
+     дальше на скрытом холсте: греет телефон и продолжает пищать. */
+  if(m!=="game"){
+    if(typeof TK!=="undefined"&&TK){ if(TK.net)netClose(); tkStop(); }
+    if(typeof SI!=="undefined"&&SI)siStop();
+  }
   ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh","mus"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":x==="mus"?"Mus":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
   $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh","mus"].includes(m));
   $("#moreMenu").hidden=true;
@@ -3979,7 +3998,7 @@ function gameMenu(){
     <p class="muted2">${tr("Быстрое запоминание разными способами: скорость, связи, сортировка, чутьё.")}</p>
     <div id="gCats" class="g-cats"></div>
     <div class="mode-cards">
-      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
+      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
       <button class="mode-card duo" id="mMock" style="grid-column:1/-1"><div class="mc-emoji">🎯</div><b>${tr("Mock-интервью")}</b><span>${tr("20 вопросов миксом, без подсказок — разбор по темам в конце")}</span></button>
       <button class="mode-card duo" id="mDuo" style="grid-column:1/-1"><div class="mc-emoji">👥</div><b>${tr("2 игрока")}</b><span>${tr("по очереди на одном телефоне — кто наберёт больше")}</span></button>
       <button class="mode-card duo" id="mDuel" style="grid-column:1/-1"><div class="mc-emoji">🤝</div><b>${tr("Дуэль с другом")}</b><span>${tr("одни и те же вопросы на разных телефонах — код через мессенджер")}</span></button>
@@ -4008,6 +4027,7 @@ function gameMenu(){
   $("#mDuel").onclick=()=>duelMenu();
   $("#mArcade").onclick=()=>startArcade();
   $("#mTank").onclick=()=>startTanks(null);
+  $("#mInv").onclick=()=>startInvaders();
   $("#mMock").onclick=()=>startMock(gcatVal());
 }
 /* ---------- режим «найди баг» ---------- */
@@ -9417,6 +9437,384 @@ function netShowResult(){
 
 /* ---- аркада-дуэль: старт по seed и сравнение пробегов ---- */
 
+
+/* ═════════════════════ ЗАХВАТЧИКИ ═════════════════════
+   Space Invaders, где строй несёт варианты ответа. Вопрос — определение,
+   каждый пришелец подписан термином: сбей нужного. Вариантов не четыре кнопки,
+   а четыре мишени, и пока ты думаешь, они спускаются и бросают бомбы.
+   Термины берём короткие (≤14 символов) — только такие читаются под спрайтом. */
+const SI_W = 336, SI_H = 216, SI_LANE = 84;
+const SI_COL = {
+  bg: "#0b0e15", inv: "#8ef0a0", invHit: "#ff7a85", txt: "#d5dae7", dim: "#7b8298",
+  gun: "#7fd4ff", shot: "#ffe08a", bomb: "#ff9aa4", bunk: "#5f6b8f", line: "#2a3145"
+};
+/* Спрайты классические: краб, пушка, укрытие. Рисуются по клеткам 2×2. */
+const SI_SPR = {
+  invA: ["..X.....X..", "...X...X...", "..XXXXXXX..", ".XX.XXX.XX.",
+    "XXXXXXXXXXX", "X.XXXXXXX.X", "X.X.....X.X", "...XX.XX..."],
+  invB: ["..X.....X..", "X..X...X..X", "X.XXXXXXX.X", "XXX.XXX.XXX",
+    "XXXXXXXXXXX", ".XXXXXXXXX.", "..X.....X..", ".X.......X."],
+  gun: ["......X......", ".....XXX.....", ".....XXX.....", ".XXXXXXXXXXX.",
+    "XXXXXXXXXXXXX", "XXXXXXXXXXXXX", "XXXXXXXXXXXXX", "XXXXXXXXXXXXX"],
+  bunk: ["..XXXXXXX..", ".XXXXXXXXX.", "XXXXXXXXXXX", "XXXXXXXXXXX",
+    "XXXXXXXXXXX", "XXX.....XXX", "XX.......XX", "XX.......XX"]
+};
+const SI_PX = 2, SI_BPX = 3;           /* клетка спрайта и клетка укрытия в пикселях */
+let SI = null;
+
+function siRnd() { return SI && SI.rng ? SI.rng() : Math.random(); }
+function siSpr(g, spr, x, y, col, px) {
+  g.fillStyle = col; const p = px || SI_PX;
+  for (let r = 0; r < spr.length; r++) for (let c = 0; c < spr[r].length; c++)
+    if (spr[r][c] === "X") g.fillRect(x + c * p, y + r * p, p, p);
+}
+
+/* ── подбор вопроса ─────────────────────────────────────────────────────── */
+/* Тот же принцип, что у танчиков: вперёд то, где прогресс слабее. Термины
+   привязаны к кластеру, а не к карточке, поэтому слабость считаем по кластеру. */
+function siPool() {
+  const all = (typeof TERMS !== "undefined" ? TERMS : [])
+    .filter(t => t && t.term && t.def && t.term.length <= 14 && String(t.def).length > 20);
+  const box = {};
+  CARDS.forEach(c => { const s = prog[c.id]; if (s) { (box[c.t] = box[c.t] || []).push(s.box); } });
+  const avg = cl => { const a = box[cl]; return a && a.length >= 3 ? a.reduce((x, y) => x + y, 0) / a.length : 3.2; };
+  const p = all.slice();
+  for (let i = p.length - 1; i > 0; i--) { const j = Math.floor(siRnd() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+  p.sort((a, b) => avg(a.t) - avg(b.t));       /* стабильная сортировка — шаффл остаётся тай-брейком */
+  return p;
+}
+/* Неверные варианты — термины того же кластера: так их не отличить по виду темы. */
+function siOptions(target) {
+  const same = SI.all.filter(t => t.t === target.t && t.term !== target.term);
+  const rest = SI.all.filter(t => t.t !== target.t && t.term !== target.term);
+  const pick = [];
+  const take = src => {
+    const s = src.slice();
+    while (pick.length < 3 && s.length) {
+      const i = Math.floor(siRnd() * s.length);
+      const c = s.splice(i, 1)[0];
+      if (!pick.some(x => x.term === c.term)) pick.push(c);
+    }
+  };
+  take(same); take(rest);
+  const opts = [{ t: target, ok: 1 }, ...pick.map(t => ({ t, ok: 0 }))];
+  for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(siRnd() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+  return opts;
+}
+
+/* ── раунд ──────────────────────────────────────────────────────────────── */
+function siRound() {
+  if (!SI.pool.length) SI.pool = siPool();
+  const target = SI.pool.shift();
+  if (!target) { siOver(); return; }
+  SI.round++;
+  const opts = siOptions(target);
+  SI.inv = opts.map((o, i) => ({
+    lane: i, term: o.t.term, ok: !!o.ok, alive: true,
+    x: i * SI_LANE + SI_LANE / 2, y: 30 + (i % 2) * 6      /* лёгкая рассинхронизация ряда */
+  }));
+  SI.q = T('terms', target.t + "|" + target.term, 'def', target.def);
+  SI.cluster = target.t;
+  SI.ox = 0; SI.oy = 0; SI.dir = 1;
+  SI.spd = .28 + Math.min(.5, SI.round * .035);
+  SI.shot = null; SI.bombs = []; SI.bombCd = 90;
+  SI.resolved = false;
+  const q = document.getElementById("siQ");
+  if (q) q.innerHTML = `<span class="si-cl">${esc(clName(target.t))}</span> ${esc(SI.q)}`;
+  siHud();
+}
+
+/* ── шаг ────────────────────────────────────────────────────────────────── */
+function siStep() {
+  SI.t++;
+  for (let i = SI.parts.length - 1; i >= 0; i--) {
+    const p = SI.parts[i]; p.x += p.vx; p.y += p.vy; p.vy += .09;
+    if (--p.life <= 0) SI.parts.splice(i, 1);
+  }
+  if (SI.over || SI.resolved) return;
+
+  /* пушка */
+  if (SI.keys.left) SI.px -= 2.4;
+  if (SI.keys.right) SI.px += 2.4;
+  SI.px = Math.max(14, Math.min(SI_W - 14, SI.px));
+  if (SI.keys.fire) siFire();
+
+  /* строй: идёт вбок, у края опускается на ряд и разворачивается */
+  const live = SI.inv.filter(v => v.alive);
+  if (!live.length) { siResolve(false, true); return; }
+  const minX = Math.min(...live.map(v => v.x)) + SI.ox - 22;
+  const maxX = Math.max(...live.map(v => v.x)) + SI.ox + 22;
+  if ((SI.dir > 0 && maxX >= SI_W - 2) || (SI.dir < 0 && minX <= 2)) {
+    SI.dir *= -1; SI.oy += 9; siSnd("step");
+  } else SI.ox += SI.dir * SI.spd * (1 + (4 - live.length) * .25);
+
+  /* дошли до линии пушки — раунд провален */
+  if (30 + SI.oy + 24 >= SI_H - 68) { siResolve(false, false); return; }
+
+  /* снаряд игрока */
+  if (SI.shot) {
+    SI.shot.y -= 4.2;
+    if (SI.shot.y < 0) SI.shot = null;
+    else if (siHitBunker(SI.shot.x, SI.shot.y)) SI.shot = null;
+    else {
+      for (const v of SI.inv) {
+        if (!v.alive) continue;
+        const vx = v.x + SI.ox, vy = v.y + SI.oy;
+        if (Math.abs(SI.shot.x - vx) < 13 && Math.abs(SI.shot.y - vy) < 10) {
+          SI.shot = null; siHitInv(v); break;
+        }
+      }
+    }
+  }
+
+  /* бомбы пришельцев */
+  if (--SI.bombCd <= 0 && live.length) {
+    const v = live[Math.floor(siRnd() * live.length)];
+    SI.bombs.push({ x: v.x + SI.ox, y: v.y + SI.oy + 10 });
+    SI.bombCd = 70 - Math.min(40, SI.round * 3);
+    siSnd("drop");
+  }
+  for (let i = SI.bombs.length - 1; i >= 0; i--) {
+    const b = SI.bombs[i]; b.y += 1.9;
+    if (b.y > SI_H) { SI.bombs.splice(i, 1); continue; }
+    if (siHitBunker(b.x, b.y)) { SI.bombs.splice(i, 1); continue; }
+    if (b.y > SI_H - 26 && Math.abs(b.x - SI.px) < 14) {
+      SI.bombs.splice(i, 1); siBoom(SI.px, SI_H - 18, 18, SI_COL.gun);
+      siSnd("hit"); SI.lives--; siHud();
+      if (SI.lives <= 0) { siOver(); return; }
+      SI.px = SI_W / 3;
+    }
+  }
+}
+
+function siFire() {
+  if (SI.shot || SI.fireCd > 0) return;       /* один снаряд в воздухе — как в оригинале */
+  SI.shot = { x: SI.px, y: SI_H - 30 };
+  SI.fireCd = 8; siSnd("fire");
+}
+function siHitInv(v) {
+  v.alive = false;
+  siBoom(v.x + SI.ox, v.y + SI.oy, 14, v.ok ? SI_COL.inv : SI_COL.invHit);
+  if (v.ok) { siResolve(true); return; }
+  siSnd("wrong");
+  SI.combo = 0; SI.bad++;
+  SI.oy += 12;                                /* промах — строй прыгает ближе */
+  siBanner(tr("Мимо") + " · " + esc(v.term));
+  siHud();
+}
+/* Укрытия крошатся и от бомб, и от своих же снарядов. */
+function siHitBunker(x, y) {
+  for (const b of SI.bunkers) {
+    const cx = Math.floor((x - b.x) / SI_BPX), cy = Math.floor((y - b.y) / SI_BPX);
+    if (cx < 0 || cy < 0 || cy >= b.g.length || cx >= b.g[0].length) continue;
+    if (!b.g[cy][cx]) continue;
+    for (let r = Math.max(0, cy - 1); r <= Math.min(b.g.length - 1, cy + 1); r++)
+      for (let c = Math.max(0, cx - 1); c <= Math.min(b.g[0].length - 1, cx + 1); c++) b.g[r][c] = 0;
+    siBoom(x, y, 4, SI_COL.bunk);
+    return true;
+  }
+  return false;
+}
+
+/* ── итог раунда ────────────────────────────────────────────────────────── */
+/* wiped — сбили всех, кроме нужного, и он остался один: считаем промахом раунда,
+   иначе перебор четырёх мишеней был бы бесплатной стратегией. */
+function siResolve(win, wiped) {
+  if (SI.resolved) return;
+  SI.resolved = true;
+  const right = SI.inv.find(v => v.ok);
+  if (win) {
+    SI.combo++; SI.ok++;
+    SI.score += 100 * Math.min(5, SI.combo);
+    SI.inv.forEach(v => { if (v.alive) siBoom(v.x + SI.ox, v.y + SI.oy, 10, SI_COL.dim); });
+    siSnd("right");
+    siBanner("✓ " + right.term + (SI.combo > 1 ? "  ×" + Math.min(5, SI.combo) : ""));
+  } else {
+    SI.combo = 0;
+    if (!wiped) { SI.bad++; SI.lives--; siSnd("hit"); }
+    siBanner((wiped ? tr("Сбил всех, кроме нужного") : tr("Прорвались")) + " · " + right.term);
+    if (SI.lives <= 0) { setTimeout(() => { if (SI) siOver(); }, 900); return; }
+  }
+  siHud();
+  setTimeout(() => { if (SI && !SI.over) siRound(); }, win ? 900 : 1500);
+}
+
+/* ── рисование ──────────────────────────────────────────────────────────── */
+function siDraw() {
+  const g = SI.ctx;
+  g.fillStyle = SI_COL.bg; g.fillRect(0, 0, SI_W, SI_H);
+
+  /* пришельцы: спрайт и подпись под ним */
+  const frame = (SI.t >> 5) % 2 ? SI_SPR.invB : SI_SPR.invA;
+  g.font = "600 11px ui-monospace, SFMono-Regular, Menlo, monospace";
+  g.textAlign = "center"; g.textBaseline = "alphabetic";
+  for (const v of SI.inv) {
+    if (!v.alive) continue;
+    const x = v.x + SI.ox, y = v.y + SI.oy;
+    siSpr(g, frame, x - 11, y - 8, SI_COL.inv);
+    g.fillStyle = SI_COL.txt;
+    g.fillText(v.term, x, y + 21);
+  }
+
+  /* укрытия */
+  for (const b of SI.bunkers) {
+    g.fillStyle = SI_COL.bunk;
+    for (let r = 0; r < b.g.length; r++) for (let c = 0; c < b.g[r].length; c++)
+      if (b.g[r][c]) g.fillRect(b.x + c * SI_BPX, b.y + r * SI_BPX, SI_BPX, SI_BPX);
+  }
+
+  /* линия земли и пушка */
+  g.fillStyle = SI_COL.line; g.fillRect(0, SI_H - 12, SI_W, 1);
+  siSpr(g, SI_SPR.gun, SI.px - 13, SI_H - 28, SI_COL.gun);
+
+  /* снаряды */
+  if (SI.shot) { g.fillStyle = SI_COL.shot; g.fillRect(SI.shot.x - 1, SI.shot.y - 5, 2, 7); }
+  g.fillStyle = SI_COL.bomb;
+  for (const b of SI.bombs) g.fillRect(b.x - 1, b.y - 4, 2, 6);
+
+  for (const p of SI.parts) { g.fillStyle = p.c; g.fillRect(p.x, p.y, 2, 2); }
+}
+
+function siBoom(x, y, n, col) {
+  for (let i = 0; i < n; i++) SI.parts.push({
+    x, y, vx: (Math.random() - .5) * 2.4, vy: (Math.random() - .5) * 2.4,
+    life: 14 + Math.random() * 12, c: i % 3 ? col : SI_COL.shot
+  });
+}
+function siSnd(k) {
+  if (arMute) return;
+  if (k === "fire") arTone(760, .05, "square", .045, -320);
+  else if (k === "step") arTone(150, .05, "square", .035, -20);
+  else if (k === "drop") arTone(320, .04, "sawtooth", .03, -120);
+  else if (k === "wrong") { arNoise(.12, .06, 500); arTone(180, .16, "sawtooth", .05, -70); }
+  else if (k === "hit") { arNoise(.22, .09, 240); arTone(130, .2, "sawtooth", .055, -60); }
+  else if (k === "right") [660, 880, 1320].forEach((f, i) => setTimeout(() => arTone(f, .09, "square", .05), i * 75));
+}
+function siBanner(t) {
+  const b = document.getElementById("siBanner"); if (!b) return;
+  b.textContent = t; b.hidden = false;
+  clearTimeout(SI.bt); SI.bt = setTimeout(() => { if (b) b.hidden = true; }, 1300);
+}
+function siHud() {
+  const h = document.getElementById("siHud"); if (!h) return;
+  h.innerHTML =
+    `<span class="tk-hud-i">❤️ ${Math.max(0, SI.lives)}</span>` +
+    `<span class="tk-hud-i">🎯 ${SI.score}</span>` +
+    `<span class="tk-hud-i">🌊 ${SI.round}</span>` +
+    (SI.combo > 1 ? `<span class="tk-hud-i si-combo">🔥 ×${Math.min(5, SI.combo)}</span>` : "") +
+    (SI.ok + SI.bad ? `<span class="tk-hud-i">✓ ${SI.ok}/${SI.ok + SI.bad}</span>` : "");
+}
+
+/* ── запуск и конец ─────────────────────────────────────────────────────── */
+function siLoop(ts) {
+  if (!SI) return;
+  SI.raf = requestAnimationFrame(siLoop);
+  if (SI.last == null) SI.last = ts;
+  SI.acc += Math.min(100, ts - SI.last); SI.last = ts;
+  while (SI.acc >= 16.67) { SI.acc -= 16.67; if (SI.fireCd > 0) SI.fireCd--; siStep(); }
+  siDraw();
+}
+function siStop() {
+  if (!SI) return;
+  cancelAnimationFrame(SI.raf); clearTimeout(SI.bt);
+  if (SI.onKey) { removeEventListener("keydown", SI.onKey); removeEventListener("keyup", SI.onKey); }
+  SI = null;
+}
+function siKeyMap(k) {
+  const s = k.toLowerCase();
+  if (k === "ArrowLeft" || s === "a" || s === "ф") return "left";
+  if (k === "ArrowRight" || s === "d" || s === "в") return "right";
+  if (k === " " || s === "x" || s === "ч" || k === "Enter" || k === "ArrowUp" || s === "w" || s === "ц") return "fire";
+  return null;
+}
+
+function startInvaders() {
+  gameAct({});
+  gameStage.innerHTML = `<div class="arcade glass si-wrap">
+    <div class="ar-head"><b>👾 ${tr("Захватчики")}</b>
+      <span class="ar-hint">${tr("сбей верный термин")}</span>
+      <button class="ar-mute" id="siMute" title="${tr("звук")}">${arMute ? "🔇" : "🔊"}</button></div>
+    <div class="tk-hud" id="siHud"></div>
+    <div class="si-q" id="siQ"></div>
+    <div class="ar-screen si-screen">
+      <canvas id="siCv" width="${SI_W}" height="${SI_H}"></canvas>
+      <div class="ar-banner" id="siBanner" hidden></div>
+    </div>
+    <div class="ar-pad si-pad">
+      <button class="ar-btn" data-k="left">◀</button>
+      <button class="ar-btn fire si-fire" data-k="fire">✦</button>
+      <button class="ar-btn" data-k="right">▶</button>
+    </div>
+    <div class="ar-foot"><button class="btn" id="siBack" style="flex:none">${tr("← Меню")}</button></div>
+  </div>`;
+
+  const cv = document.getElementById("siCv");
+  SI = {
+    ctx: cv.getContext("2d"), rng: mulberry32((Math.random() * 4294967296) >>> 0),
+    keys: {}, inv: [], bombs: [], parts: [], bunkers: [], shot: null,
+    px: SI_W / 3, ox: 0, oy: 0, dir: 1, spd: .3, fireCd: 0, bombCd: 90,
+    t: 0, acc: 0, last: null, raf: null, over: false, resolved: false,
+    round: 0, score: 0, combo: 0, lives: 3, ok: 0, bad: 0, q: "", t0: Date.now()
+  };
+  SI.all = (typeof TERMS !== "undefined" ? TERMS : [])
+    .filter(t => t && t.term && t.def && t.term.length <= 14);
+  if (SI.all.length < 8) { SI = null; return emptyG("👾", tr("Мало терминов для этой игры.")); }
+  SI.pool = siPool();
+
+  /* три укрытия между строем и пушкой */
+  const gw = SI_SPR.bunk[0].length * SI_BPX;
+  for (let i = 0; i < 3; i++) SI.bunkers.push({
+    x: Math.round((i + .5) * SI_W / 3 - gw / 2), y: SI_H - 66,
+    g: SI_SPR.bunk.map(r => r.split("").map(c => c === "X" ? 1 : 0))
+  });
+
+  SI.onKey = e => {
+    if (!SI) return;
+    if (e.key === "Escape") { siStop(); gameMenu(); return; }
+    const k = siKeyMap(e.key); if (!k) return;
+    e.preventDefault();
+    SI.keys[k] = e.type === "keydown";
+  };
+  addEventListener("keydown", SI.onKey); addEventListener("keyup", SI.onKey);
+  gameStage.querySelectorAll(".si-pad .ar-btn").forEach(b => {
+    const k = b.dataset.k;
+    const on = e => { e.preventDefault(); if (SI) SI.keys[k] = true; b.classList.add("on"); };
+    const off = e => { e.preventDefault(); if (SI) SI.keys[k] = false; b.classList.remove("on"); };
+    b.addEventListener("pointerdown", on); b.addEventListener("pointerup", off);
+    b.addEventListener("pointerleave", off); b.addEventListener("pointercancel", off);
+  });
+  const mu = document.getElementById("siMute");
+  if (mu) mu.onclick = () => { arToggleMute(); mu.textContent = arMute ? "🔇" : "🔊"; };
+  const bk = document.getElementById("siBack");
+  if (bk) bk.onclick = () => { siStop(); gameMenu(); };
+
+  siRound();
+  SI.raf = requestAnimationFrame(siLoop);
+}
+
+function siOver() {
+  if (!SI || SI.over) return;
+  SI.over = true;
+  cancelAnimationFrame(SI.raf);
+  const sec = Math.round((Date.now() - SI.t0) / 1000);
+  const acc = SI.ok + SI.bad ? Math.round(SI.ok / (SI.ok + SI.bad) * 100) : 0;
+  const best = Math.max(SI.score, +(localStorage.getItem("jdInvBest") || 0));
+  try { localStorage.setItem("jdInvBest", best); } catch (e) { }
+  gameStage.innerHTML = `<div class="game-end glass">
+    <div class="game-emoji">👾</div>
+    <div class="q-pill">${tr("Захватчики прорвались")}</div>
+    <div class="big-score">${SI.score}</div>
+    <div class="row"><span>🌊 ${tr("волна")} ${SI.round}</span></div>
+    ${SI.ok + SI.bad ? `<div class="row"><span>✓ ${tr("вопросы")} ${SI.ok}/${SI.ok + SI.bad} (${acc}%)</span></div>` : ""}
+    <div class="row"><span>⏱ ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}</span></div>
+    <div class="row"><span>🏆 ${tr("рекорд")} ${best}</span></div>
+    <button class="btn primary" id="siAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
+    <button class="btn" id="siMenu" style="flex:none">${tr("← Меню")}</button>
+  </div>`;
+  const a = document.getElementById("siAgain"); if (a) a.onclick = () => { siStop(); startInvaders(); };
+  const m = document.getElementById("siMenu"); if (m) m.onclick = () => { siStop(); gameMenu(); };
+}
+
 /* ── 🚜 Танчики: 8-битная оборона базы ────────────────────────────────────
    Классика с Денди: поле из кирпича и брони, волны вражеских танков, орёл
    внизу. Стреляешь — кирпич крошится по кусочкам, броню берёт только
@@ -9649,7 +10047,104 @@ function tkBaseDown() {
   const b = TK.base;
   for (let y = b.cy; y < b.cy + 2; y++) for (let x = b.cx; x < b.cx + 2; x++) tkSet(x, y, TK_EMPTY);
   tkBoom(b.cx * TK_CELL + 8, b.cy * TK_CELL + 8, 26); tkSnd("boom");
+  /* Один шанс поднять орла — и только у хоста, иначе двое решали бы порознь.
+     Вариантов не даём: вписать самому труднее, чем выбрать, и ставка того стоит. */
+  if (!TK.revived && (!TK.net || TK.host)) { TK.revived = true; tkReviveAsk(); return; }
   tkOver(false);
+}
+
+/* Спрашиваем термин, а не карточку: ответ карточки — это 264 символа медианой,
+   под огнём такое не набрать. У термина медиана 12. Берём из кластера, где у
+   игрока больше всего проваленных карточек. */
+function tkWeakCluster() {
+  const cnt = {};
+  CARDS.forEach(c => { const st = prog[c.id]; if (st && st.box <= 2) cnt[c.t] = (cnt[c.t] || 0) + 1; });
+  const top = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0];
+  return top ? top[0] : null;
+}
+function tkRevivePick() {
+  const all = (typeof TERMS !== "undefined" ? TERMS : []).filter(t =>
+    t && t.term && t.def && t.term.length <= 28 && String(t.def).length > 12);
+  if (!all.length) return null;
+  const cl = tkWeakCluster();
+  const mine = cl ? all.filter(t => t.t === cl) : [];
+  const from = mine.length ? mine : all;
+  return from[Math.floor(tkRnd() * from.length)];
+}
+const tkTermId = t => t.t + "|" + t.term;
+function tkReviveAsk() {
+  const t = tkRevivePick();
+  if (!t) { tkOver(false); return; }
+  TK.quizOn = true; TK.keys = {}; TK.keys2 = {};
+  TK.pending = { id: tkTermId(t), revive: true };
+  if (TK.net) tkSend({ t: "tkv", id: tkTermId(t) });
+  tkReviveShow(t);
+}
+function tkReviveShow(t) {
+  const m = document.getElementById("tkQuiz"); if (!m) return;
+  const def = T('terms', tkTermId(t), 'def', t.def);
+  m.innerHTML = `<div class="arq-box tk-revive">
+    <div class="arq-tag">🦅 ${tr("Орёл разбит — один шанс поднять")}</div>
+    <div class="arq-q">${esc(def)}</div>
+    <input class="tk-rin" id="tkRin" autocomplete="off" autocapitalize="off" spellcheck="false"
+           placeholder="${tr("впиши термин")}">
+    <div class="arq-opts"><button class="arq-opt" id="tkRok">${tr("Отвечаю")}</button>
+      <button class="arq-opt" id="tkRno">${tr("Сдаюсь")}</button></div>
+    <div class="arq-prize"><span class="mut">${esc(clName(t.t))} · ${tr("без вариантов")}</span></div>
+  </div>`;
+  m.hidden = false;
+  const inp = document.getElementById("tkRin");
+  const done = ok => {
+    m.innerHTML = `<div class="arq-box tk-revive"><div class="arq-tag">${ok ? "🦅 " + tr("Орёл поднялся") : "💀 " + tr("Не сошлось")}</div>
+      <div class="arq-q">${esc(t.term)}</div></div>`;
+    setTimeout(() => { if (TK) tkReviveAnswer(ok); }, ok ? 1100 : 1900);
+  };
+  document.getElementById("tkRok").onclick = () => done(tkSame(inp.value, t.term));
+  document.getElementById("tkRno").onclick = () => done(false);
+  inp.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); document.getElementById("tkRok").click(); } };
+  setTimeout(() => { try { inp.focus(); } catch (e) { } }, 60);
+}
+/* Опечатку прощаем, чужой ответ — нет. Для коротких терминов сверяем целиком с
+   допуском на одну-две буквы, для длинных хватает совпадения ключевых слов. */
+function tkLev(a, b) {
+  const m = a.length, n = b.length;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++)
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+function tkSame(a, b) {
+  const norm = x => String(x || "").toLowerCase().replace(/ё/g, "е").replace(/[^a-zа-я0-9]+/gi, " ").trim();
+  const A = norm(a), B = norm(b);
+  if (!A || !B) return false;
+  if (A === B) return true;
+  if (B.split(" ").length <= 2) return tkLev(A, B) <= (B.length <= 8 ? 1 : 2);
+  const wa = A.split(" "), wb = B.split(" ").filter(w => w.length > 2);
+  if (!wb.length) return false;
+  return wb.filter(w => wa.some(x => tkLev(x, w) <= (w.length <= 6 ? 0 : 1))).length / wb.length >= .6;
+}
+function tkReviveAnswer(ok) {
+  const m = document.getElementById("tkQuiz"); if (m) { m.hidden = true; m.innerHTML = ""; }
+  TK.quizOn = false;
+  if (TK.net && !TK.host) { tkSend({ t: "tka", ok: ok ? 1 : 0, rv: 1 }); return; }
+  tkReviveResolve(ok);
+}
+function tkReviveResolve(ok) {
+  TK.pending = null; TK.quizOn = false;
+  const m = document.getElementById("tkQuiz"); if (m) { m.hidden = true; m.innerHTML = ""; }
+  if (TK.net && TK.host) tkSend({ t: "tkw", ok: ok ? 1 : 0 });
+  if (!ok) { TK.bad++; tkOver(false); return; }
+  TK.ok++;
+  const b = TK.base;
+  TK.base.dead = false;
+  for (let y = b.cy; y < b.cy + 2; y++) for (let x = b.cx; x < b.cx + 2; x++) tkSet(x, y, TK_BASE);
+  tkWall(TK_STEEL); TK.steelT = 25 * 60;            /* поднялся — и сразу под бронёй */
+  TK.tanks.forEach(t => { if (t.foe) t.frozen = 5 * 60; });
+  tkSnd("reward"); tkBanner(tr("🦅 Орёл поднялся — броня и пять секунд тишины"));
 }
 
 /* ── ИИ, волны, бонусы ──────────────────────────────────────────────────── */
@@ -9781,6 +10276,15 @@ function tkBanner(text) {
 function tkPool() {
   const p = CARDS.filter(c => QUIZ[c.id] && QUIZ[c.id].wrong && QUIZ[c.id].wrong.length >= 3 && !isHidden(c.id));
   for (let i = p.length - 1; i > 0; i--) { const j = Math.floor(tkRnd() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; }
+  /* Слабое вперёд — то же правило, что в weakCards(): сначала низкий box, при
+     равном — самое просроченное. Порядок: провалил > ни разу не видел > учу > знаю.
+     Шаффл выше остаётся тай-брейком (сортировка в JS стабильная), поэтому две
+     игры подряд не дают одинаковую очередь. Прогресса почти нет — не сортируем
+     вовсе: по трём карточкам «слабое место» не определяется. */
+  if (CARDS.filter(c => prog[c.id]).length >= 10) {
+    const rank = c => prog[c.id] ? prog[c.id].box : 1.5;
+    p.sort((a, b) => rank(a) - rank(b) || (stR(a.id).due - stR(b.id).due));
+  }
   return p;
 }
 function tkAsk(who) {
@@ -9975,7 +10479,9 @@ function tkNetMsg(m) {
   if (m.t === "tks") { if (!TK.host) tkApplySnapshot(m); }
   else if (m.t === "tki") { if (TK.host) TK.keys2 = m.k || {}; }
   else if (m.t === "tkq") { if (!TK.host) { TK.quizOn = true; TK.keys = {}; const c = CARDS.find(x => x.id === m.id); if (c) tkShowQuiz(c, TK_REWARD.find(r => r.id === m.rw) || TK_REWARD[0]); } }
-  else if (m.t === "tka") { if (TK.host) tkResolve(!!m.ok); }
+  else if (m.t === "tka") { if (TK.host) { if (m.rv) tkReviveResolve(!!m.ok); else tkResolve(!!m.ok); } }
+  else if (m.t === "tkv") { if (!TK.host) { TK.quizOn = true; TK.keys = {}; const t = (typeof TERMS !== "undefined" ? TERMS : []).find(x => tkTermId(x) === m.id); if (t) tkReviveShow(t); } }
+  else if (m.t === "tkw") { if (!TK.host) { TK.quizOn = false; const q = document.getElementById("tkQuiz"); if (q) { q.hidden = true; q.innerHTML = ""; } if (m.ok) tkBanner(tr("🦅 Орёл поднялся")); } }
   else if (m.t === "tkr") { if (!TK.host) { TK.quizOn = false; const q = document.getElementById("tkQuiz"); if (q) { q.hidden = true; q.innerHTML = ""; } tkBanner(m.ok ? "✓" : tr("Мимо")); } }
   else if (m.t === "tke") { if (!TK.host) tkOver(!!m.win, true); }
   return true;
@@ -10097,7 +10603,7 @@ function startTanks(net) {
     map: null, base: null, tanks: [], shots: [], parts: [], bonus: null,
     t: 0, acc: 0, last: null, raf: null, over: false, quizOn: false, pending: null,
     score: 0, killed: 0, wave: 0, waves: 5, foesQueue: 0, maxAlive: 3, spawned: 0,
-    spawnCd: 60, steelT: 0, ok: 0, bad: 0, qi: 0, pool: [], t0: Date.now()
+    spawnCd: 60, steelT: 0, ok: 0, bad: 0, qi: 0, pool: [], t0: Date.now(), revived: false
   };
   TK.ctx.imageSmoothingEnabled = false;
   tkBuildMap();
