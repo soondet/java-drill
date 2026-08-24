@@ -1,6 +1,6 @@
 /* Service worker: приложение работает офлайн после первой загрузки. */
-const CACHE="jd-1c3b62686e";
-const ASSETS=["./","index.html","manifest.json","icon-192.png","icon-512.png","apple-touch-icon.png","basics.js","behav.js","bugs.js","cards-extra.js","cards.js","explainers.js","hb-data.js","sing-data.js","qa-data.js","hacks.js","music-ref.js","guitar.js","books.js","cards-new.js","more-term-new.js","cards-new-aux.js","more-fp-new.js","bugs-new.js","behav-new.js","principles-new.js","pics-new.js","more-new.js","hooks.js","i18n-en.js","more-fp.js","more-term.js","more.js","notes.js","ord.js","pics.js","principles.js","quiz.js","take.js","term-extra.js","terms.js","tier.js","tricky.js","viz-zero.js","zdrill.js","zero.js"];
+const CACHE="jd-b316456c38";
+const ASSETS=["./","index.html","manifest.json","icon-192.png","icon-512.png","apple-touch-icon.png","basics.js","behav.js","bugs.js","cards-extra.js","cards.js","explainers.js","hb-data.js","sing-data.js","qa-data.js","hacks.js","music-ref.js","guitar.js","books.js","cards-new.js","more-term-new.js","cards-new-aux.js","more-fp-new.js","bugs-new.js","behav-new.js","principles-new.js","pics-new.js","more-new.js","notes-new.js","hooks.js","i18n-en.js","more-fp.js","more-term.js","more.js","notes.js","ord.js","pics.js","principles.js","quiz.js","take.js","term-extra.js","terms.js","tier.js","tricky.js","viz-zero.js","zdrill.js","zero.js"];
 self.addEventListener("install",e=>{
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS.map(u=>new Request(u,{cache:"no-cache"})))).catch(()=>{}));

@@ -216,6 +216,19 @@
   .lg-core::before{background:var(--good);box-shadow:0 0 5px var(--good)}
   .lg-sec::before{background:var(--mut);opacity:.55}
   .boxpips{display:flex;gap:5px}
+  /* Палец не попадает по цели меньше 40px, а звезда занимает 20×16. Растим ОБЛАСТЬ
+     НАЖАТИЯ невидимым слоем поверх, не трогая вёрстку: сама иконка остаётся мелкой,
+     промахнуться становится нечем. Замер: таких целей было 125.
+     На мыши это не мешает — слой прозрачный и не ловит ничего лишнего. */
+  .fav-btn,.hide-btn,.bas-fav,.term-fav,.sb-step button{position:relative}
+  .fav-btn::after,.hide-btn::after,.bas-fav::after,.term-fav::after{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:42px;height:42px;border-radius:10px}
+  /* В степпере «−  число  +» соседи стоят в 39px друг от друга: слой в 42px накрыл бы
+     соседнюю кнопку и воровал бы её нажатия. Здесь потолок — 34px. */
+  .sb-step button::after{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:34px;height:34px;border-radius:9px}
   .fav-btn{flex:none;border:0;background:transparent;color:var(--mut);font-size:18px;line-height:1;cursor:pointer;padding:0 2px;transition:.15s}
   .fav-btn:hover{color:var(--warn);transform:scale(1.15)}
   .fav-btn.on{color:var(--warn);text-shadow:0 0 8px var(--warn)}
@@ -233,7 +246,7 @@
   .ans.show>*:nth-child(4){animation-delay:.21s}
   .ans.show>*:nth-child(n+5){animation-delay:.28s}
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
-  .lbl{font:700 10px var(--sans);text-transform:uppercase;letter-spacing:1.6px;color:var(--acc);margin-bottom:7px}
+  .lbl{font:700 11px var(--sans);text-transform:uppercase;letter-spacing:1.6px;color:var(--acc);margin-bottom:7px}
   .ishak{font-size:17px;line-height:1.62;color:var(--read);max-width:55ch}
   .deep{margin-top:15px;font-size:14.5px;line-height:1.6;color:var(--mut);max-width:55ch}
   .qk{margin-top:14px;font-size:14.5px;line-height:1.6;background:linear-gradient(90deg,rgba(110,168,254,.13),transparent);border-left:2px solid var(--acc);padding:9px 13px;border-radius:0 10px 10px 0}
@@ -278,7 +291,7 @@
   .nbody[hidden],.nsubbody[hidden]{display:none}
   .nbody{padding:2px 0 8px}
   .nsubgroup{margin-left:4px}
-  .nsub{width:100%;display:flex;align-items:center;gap:7px;background:transparent;border:0;color:var(--mut);font:700 10px var(--sans);text-transform:uppercase;letter-spacing:.8px;padding:7px 8px;border-radius:7px;cursor:pointer}
+  .nsub{width:100%;display:flex;align-items:center;gap:7px;background:transparent;border:0;color:var(--mut);font:700 11px var(--sans);text-transform:uppercase;letter-spacing:.8px;padding:7px 8px;border-radius:7px;cursor:pointer}
   .nsub:hover{background:var(--panel-2);color:var(--txt)}
   .nsubbody{padding:2px 0 4px;margin-left:13px;border-left:1px solid var(--line-2)}
   .ntopic{width:100%;text-align:left;background:transparent;border:0;color:var(--mut);font:500 13px var(--sans);padding:7px 11px;border-radius:7px;cursor:pointer;border-left:2px solid transparent;transition:.12s}
@@ -533,7 +546,7 @@
   .beh-q.done .beh-i{background:var(--good);border-color:var(--good);color:#0b0f19}
   .beh-body{display:none;margin-top:12px}
   .beh-q.open .beh-body{display:block}
-  .beh-lab{font:700 10.5px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:var(--mut);margin:12px 0 5px}
+  .beh-lab{font:700 11.5px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:var(--mut);margin:12px 0 5px}
   .beh-w{font-size:13.5px;line-height:1.6;color:var(--txt);border-left:2px solid var(--warn);padding-left:11px}
   .beh-hint{font-size:13.5px;line-height:1.65;color:var(--txt);border-left:2px solid var(--good);padding-left:11px}
   .beh-bad{font-size:13px;line-height:1.6;color:var(--mut);border-left:2px solid var(--bad);padding-left:11px}
@@ -946,7 +959,7 @@
   .hk.open .hk-b{display:block}
   .hk-b>p{margin:0 0 12px;font-size:14px;line-height:1.62;color:var(--txt)}
   .hk-row{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin-bottom:10px}
-  .hk-row span{display:block;font:700 9.5px var(--sans);letter-spacing:1px;color:var(--mut)}
+  .hk-row span{display:block;font:700 11px var(--sans);letter-spacing:1px;color:var(--mut)}
   .hk-row p{margin:3px 0 0;font-size:13.5px;line-height:1.6;color:var(--txt)}
   .hk-row.why{border-color:rgba(110,168,254,.5)}
   .hk-row.why span{color:var(--acc)}
@@ -2104,6 +2117,7 @@
 <script src="principles-new.js"></script>
 <script src="pics-new.js"></script>
 <script src="more-new.js"></script>
+<script src="notes-new.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[]),
