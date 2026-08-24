@@ -11,6 +11,21 @@ self.addEventListener("activate",e=>{
 self.addEventListener("fetch",e=>{
   const r=e.request;
   if(r.method!=="GET"||!r.url.startsWith(self.location.origin))return;
+
+  /* Саму страницу берём из сети, а кэш держим запасным вариантом. Раньше здесь
+     было cache-first на всё подряд, и свежий выкат появлялся только со ВТОРОГО
+     захода: первый отдавал старую копию и лишь фоном клал новую. no-cache — это
+     не «качать заново», а «переспросить»: не изменилось — придёт 304 без тела. */
+  if(r.mode==="navigate"){
+    e.respondWith(
+      fetch(new Request(r.url,{cache:"no-cache",credentials:"same-origin"})).then(res=>{
+        if(res&&res.ok)caches.open(CACHE).then(c=>c.put(r,res.clone()));
+        return res;
+      }).catch(()=>caches.match(r,{ignoreSearch:true}).then(hit=>hit||caches.match("index.html")))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(r,{ignoreSearch:true}).then(hit=>{
       if(hit){ fetch(r).then(res=>{ if(res&&res.ok)caches.open(CACHE).then(c=>c.put(r,res.clone())); }).catch(()=>{}); return hit; }
