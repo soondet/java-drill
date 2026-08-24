@@ -17,6 +17,7 @@
     /* Для длинного чтения текст мягче заголовочного: почти белое на тёмном даёт ореол
        вокруг букв и быстрее утомляет. 12:1 — всё ещё выше требований AAA (7:1). */
     --read:#d5dae7;
+    --ts:1;   /* множитель размера текста, регулятор «A» в шапке */
     --panel:rgba(20,23,32,.66); --panel-2:rgba(255,255,255,.045);
     --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.06);
     --acc:#6ea8fe; --acc2:#a98bff; --cyan:#54e6c8; --good:#46d6a0; --bad:#ff7a85; --warn:#ffcf6e;
@@ -146,7 +147,7 @@
   .lang-tog:hover{border-color:var(--acc);color:var(--acc)}
 
   /* виды */
-  .view{flex:1;display:flex;flex-direction:column;min-height:0;zoom:var(--zoom,1)}
+  .view{flex:1;display:flex;flex-direction:column;min-height:0}
   /* регулятор размера текста */
   .fs-wrap{position:relative;flex:none}
   .fs-pop{position:absolute;top:calc(100% + 8px);right:0;z-index:40;width:210px;padding:12px 14px;background:rgba(14,16,24,.98);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
@@ -237,7 +238,7 @@
   .term-fav{font-size:14px;margin-right:5px;vertical-align:middle}
   .pip{width:8px;height:8px;border-radius:50%;background:var(--line)}
   .pip.on{background:var(--grad)}
-  .q{font:680 22px/1.42 var(--sans);margin:0;overflow-wrap:anywhere}
+  .q{font:680 calc(22px * var(--ts))/1.42 var(--sans);margin:0;overflow-wrap:anywhere}
   .ans{margin-top:22px;border-top:1px solid var(--line-2);padding-top:20px;display:none}
   .ans.show{display:block;animation:rise .28s ease}
   .ans.show>*{animation:kitIn .45s var(--ease) both}
@@ -247,11 +248,11 @@
   .ans.show>*:nth-child(n+5){animation-delay:.28s}
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
   .lbl{font:700 11px var(--sans);text-transform:uppercase;letter-spacing:1.6px;color:var(--acc);margin-bottom:7px}
-  .ishak{font-size:17px;line-height:1.62;color:var(--read);max-width:55ch}
-  .deep{margin-top:15px;font-size:14.5px;line-height:1.6;color:var(--mut);max-width:55ch}
-  .qk{margin-top:14px;font-size:14.5px;line-height:1.6;background:linear-gradient(90deg,rgba(110,168,254,.13),transparent);border-left:2px solid var(--acc);padding:9px 13px;border-radius:0 10px 10px 0}
+  .ishak{font-size:calc(17px * var(--ts));line-height:1.62;color:var(--read);max-width:55ch}
+  .deep{margin-top:15px;font-size:calc(14.5px * var(--ts));line-height:1.6;color:var(--mut);max-width:55ch}
+  .qk{margin-top:14px;font-size:calc(14.5px * var(--ts));line-height:1.6;background:linear-gradient(90deg,rgba(110,168,254,.13),transparent);border-left:2px solid var(--acc);padding:9px 13px;border-radius:0 10px 10px 0}
   .qk b{color:var(--acc)}
-  .note{margin-top:14px;font-size:14.5px;line-height:1.6;background:linear-gradient(90deg,rgba(255,207,110,.14),transparent);border-left:2px solid var(--warn);padding:10px 14px;border-radius:0 10px 10px 0;display:flex;gap:9px;align-items:flex-start}
+  .note{margin-top:14px;font-size:calc(14.5px * var(--ts));line-height:1.6;background:linear-gradient(90deg,rgba(255,207,110,.14),transparent);border-left:2px solid var(--warn);padding:10px 14px;border-radius:0 10px 10px 0;display:flex;gap:9px;align-items:flex-start}
   .note .ni{font-size:15px;line-height:1.4;flex:none}
   .note b{color:var(--warn)}
   pre.code{background:#0a0c12;border:1px solid var(--line);border-radius:12px;padding:13px 15px;overflow-x:auto;margin-top:16px;font:12.5px/1.65 var(--mono);color:#cdd3df;white-space:pre;-webkit-overflow-scrolling:touch}
@@ -321,6 +322,10 @@
   /* На узком экране flex-элементы сжимались уже содержимого, и подписи вставали
      столбиком: «гру/ппа/СТО/ИТ». flex:none запрещает сжатие — строка переносится
      целыми блоками, а что не влезло, скроллится внутри .pic. */
+  /* Перенос «где угодно» с карточки достаётся и схемам: там он позволяет рвать
+     слово по буквам, и «OrderPlaced» превращается в столбик Ord/erP/lac/ed.
+     В подписях схем слова не рвём — если не влезает, схема скроллится. */
+  .pic,.pic *{overflow-wrap:normal;word-break:normal}
   .pic .fp-box,.pic .fp-node,.pic .fp-token,.pic .fp-slot,.pic .fp-ver,.pic .fp-tag,.pic .fp-cell{flex:none}
   .pic-cap{font-size:13px;color:var(--mut);text-align:center;max-width:92%}
   /* словарь терминов */
@@ -339,7 +344,7 @@
   .term{padding:10px 13px;border:1px solid var(--line-2);border-radius:11px;margin-bottom:7px;background:var(--panel-2);font-size:14px;line-height:1.5}
   .term b{color:var(--txt);font-weight:700}
   /* 🧠 мнемоника-аналогия (приём для памяти) */
-  .hook{margin-top:14px;font-size:14.5px;line-height:1.6;background:linear-gradient(90deg,rgba(169,139,255,.16),transparent);border-left:2px solid var(--acc2);padding:9px 13px;border-radius:0 11px 11px 0}
+  .hook{margin-top:14px;font-size:calc(14.5px * var(--ts));line-height:1.6;background:linear-gradient(90deg,rgba(169,139,255,.16),transparent);border-left:2px solid var(--acc2);padding:9px 13px;border-radius:0 11px 11px 0}
   /* раскрывающийся термин */
   .term.has-extra{cursor:pointer}
   .term.has-extra .term-head::after{content:"▾";float:right;color:var(--mut);font-size:12px;margin-left:8px}
@@ -547,9 +552,9 @@
   .beh-body{display:none;margin-top:12px}
   .beh-q.open .beh-body{display:block}
   .beh-lab{font:700 11.5px var(--mono);letter-spacing:1.1px;text-transform:uppercase;color:var(--mut);margin:12px 0 5px}
-  .beh-w{font-size:13.5px;line-height:1.6;color:var(--txt);border-left:2px solid var(--warn);padding-left:11px}
-  .beh-hint{font-size:13.5px;line-height:1.65;color:var(--txt);border-left:2px solid var(--good);padding-left:11px}
-  .beh-bad{font-size:13px;line-height:1.6;color:var(--mut);border-left:2px solid var(--bad);padding-left:11px}
+  .beh-w{font-size:calc(13.5px * var(--ts));line-height:1.6;color:var(--txt);border-left:2px solid var(--warn);padding-left:11px}
+  .beh-hint{font-size:calc(13.5px * var(--ts));line-height:1.65;color:var(--txt);border-left:2px solid var(--good);padding-left:11px}
+  .beh-bad{font-size:calc(13px * var(--ts));line-height:1.6;color:var(--mut);border-left:2px solid var(--bad);padding-left:11px}
   .beh-ta{width:100%;box-sizing:border-box;min-height:96px;resize:vertical;margin-top:6px;
     font:500 14px/1.6 var(--sans);padding:11px 13px;border-radius:12px;border:1px solid var(--line);
     background:var(--panel);color:var(--fg);outline:none}
@@ -593,7 +598,7 @@
   .zero-step.done .zero-t{color:var(--mut)}
   .zero-b{flex:1;min-width:0}
   .zero-t{font:700 16px/1.4 var(--sans);margin-bottom:7px}
-  .zero-p{font-size:14.5px;line-height:1.65;color:var(--txt);overflow-wrap:anywhere}
+  .zero-p{font-size:calc(14.5px * var(--ts));line-height:1.65;color:var(--txt);overflow-wrap:anywhere}
   .zero-p code{font:600 13px var(--mono);background:var(--panel-2);padding:1px 5px;border-radius:5px}
   .zero-an{margin-top:9px;font-size:13.5px;line-height:1.6;color:var(--mut);
     border-left:2px solid var(--acc);padding-left:11px;background:linear-gradient(90deg,rgba(169,139,255,.07),transparent)}
@@ -1444,7 +1449,7 @@
   .more-btn:hover{border-color:var(--acc);transform:translateY(-1px)}
   /* Строка была ~80 символов — за верхней границей комфортной меры (45–75):
      на возврате к началу строки глаз теряет место. 64ch держит ~66 символов. */
-  .more-text{margin-top:14px;font-size:16px;line-height:1.7;color:var(--read);border-top:1px solid var(--line-2);padding-top:15px;max-width:55ch}
+  .more-text{margin-top:14px;font-size:calc(16px * var(--ts));line-height:1.7;color:var(--read);border-top:1px solid var(--line-2);padding-top:15px;max-width:55ch}
   .more-text[hidden]{display:none}
   .more-text p{margin:0 0 .92em} .more-text p:last-child{margin-bottom:0}
   .more-text>p:first-child{font-size:1.05em}   /* зачин чуть крупнее — вход в текст легче */
@@ -1481,13 +1486,13 @@
     .fpmain{padding:12px}
     .sidebar{max-height:34vh}
     .game-menu,.game-end{padding:26px 18px}
-    .q{font-size:19px}
-    .ishak{font-size:16px}
+    .q{font-size:calc(19px * var(--ts))}
+    .ishak{font-size:calc(16px * var(--ts))}
     .game-q{font-size:18px}
     .opts{grid-template-columns:1fr}
     pre.code{font-size:11.5px}
-    .more-text{font-size:15px;max-width:none}
-    .ishak{font-size:16px;max-width:none}
+    .more-text{font-size:calc(15px * var(--ts));max-width:none}
+    .ishak{font-size:calc(16px * var(--ts));max-width:none}
     .deep{max-width:none}
     #viewPrin{flex-direction:column}
   }
@@ -1496,7 +1501,7 @@
   .prin-stage{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:24px;min-width:0;overflow:auto}
   .prin-card{width:100%;max-width:720px;padding:24px}
   .prin-title{font:800 22px var(--sans);text-align:center;margin:0 0 4px}
-  .prin-what{font-size:13px;color:var(--mut);text-align:center;margin:0 0 18px}
+  .prin-what{font-size:calc(13px * var(--ts));color:var(--mut);text-align:center;margin:0 0 18px}
   .pr-scene{position:relative;min-height:330px;border:1px solid var(--line);border-radius:16px;background:radial-gradient(circle at 50% 38%,rgba(110,168,254,.07),transparent 70%);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:22px}
   /* «Как в книге» — схема без движения: статичная иллюстрация, а не сцена.
      animation:none не замораживает кадр, а возвращает элементу базовое значение,
@@ -1628,7 +1633,7 @@
     #viewPrin{flex-direction:column}
     .sidebar{width:auto;max-height:40vh;border-right:0;border-bottom:1px solid var(--line-2)}
     .topbar{flex-wrap:wrap}
-    .q{font-size:20px}
+    .q{font-size:calc(20px * var(--ts))}
   }
 
   /* ─── полировка: единый easing, плавные входы, доступность анимаций ─── */
@@ -1888,8 +1893,8 @@
   #fpSearch:focus,#termSearch:focus,#prinSearch:focus,#basSearch:focus{border-color:var(--acc)}
   @media (hover:none){ .fav-btn,.hide-btn{padding:9px 8px} }  /* крупнее зона нажатия пальцем на тач-устройствах */
   .bas-ico{font-size:20px;flex:none}
-  .bas-plain{font-size:13.5px;line-height:1.6;color:var(--txt)}
-  .bas-an{font-size:13px;line-height:1.5;color:var(--txt);background:linear-gradient(90deg,rgba(169,139,255,.14),transparent);border-left:2px solid var(--acc2);padding:8px 12px;border-radius:0 10px 10px 0}
+  .bas-plain{font-size:calc(13.5px * var(--ts));line-height:1.6;color:var(--txt)}
+  .bas-an{font-size:calc(13px * var(--ts));line-height:1.5;color:var(--txt);background:linear-gradient(90deg,rgba(169,139,255,.14),transparent);border-left:2px solid var(--acc2);padding:8px 12px;border-radius:0 10px 10px 0}
 </style>
 </head>
 <body>
@@ -1927,7 +1932,7 @@
     <button id="fsBtn" class="lang-tog" title="Размер текста" aria-label="Размер текста" style="font-family:var(--sans)">A</button>
     <div id="fsPop" class="fs-pop" hidden>
       <div class="fs-row"><span id="fsLbl">Размер текста</span><span class="fs-val" id="fsVal">100%</span></div>
-      <input type="range" id="fsRange" min="0.85" max="1.4" step="0.05" value="1" aria-label="Размер текста">
+      <input type="range" id="fsRange" min="0.85" max="1.5" step="0.05" value="1" aria-label="Размер текста">
       <button id="fsReset" class="fs-reset">Сбросить</button>
     </div>
   </div>
@@ -9566,7 +9571,9 @@ $("#reset").onclick=()=>{if(confirm(tr("Сбросить весь прогрес
 $("#langTog").onclick=()=>setLang(LANG==="en"?"ru":"en");
 /* размер текста: zoom на .view (весь читаемый контент) */
 let jdZoom=parseFloat(localStorage.getItem("jdZoom")||"1")||1;
-function applyZoom(z){ jdZoom=Math.min(1.4,Math.max(0.85,z)); document.documentElement.style.setProperty("--zoom",jdZoom);
+function applyZoom(z){ jdZoom=Math.min(1.5,Math.max(0.85,z)); document.documentElement.style.setProperty("--ts",jdZoom);
+  /* состояние видно прямо на кнопке: иначе «A» ничего не сообщает и о регуляторе забывают */
+  const fb=$("#fsBtn"); if(fb){ fb.textContent = jdZoom===1 ? "A" : Math.round(jdZoom*100)+"%"; fb.classList.toggle("on",jdZoom!==1); }
   const v=$("#fsVal"); if(v)v.textContent=Math.round(jdZoom*100)+"%"; const r=$("#fsRange"); if(r&&+r.value!==jdZoom)r.value=jdZoom;
   try{localStorage.setItem("jdZoom",String(jdZoom));}catch(e){} }
 $("#fsBtn").onclick=e=>{ e.stopPropagation(); const p=$("#fsPop"); if(p)p.hidden=!p.hidden; };
