@@ -1744,6 +1744,24 @@
   .tk-rin{width:100%;box-sizing:border-box;margin:10px 0 4px;padding:11px 12px;border-radius:10px;
     border:1px solid var(--line);background:var(--panel-2);color:var(--txt);font:600 15px var(--sans);outline:none}
   .tk-rin:focus{border-color:var(--acc)}
+  .wp-tag{margin:2px 0 8px;font:700 11.5px var(--sans);color:var(--mut);letter-spacing:.02em}
+  .wp-code{margin:0 0 12px;padding:12px 13px;border-radius:12px;background:#0d1119;
+    border:1px solid var(--line);overflow-x:auto;font:500 12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:#d7dcea;white-space:pre;-webkit-overflow-scrolling:touch}
+  .wp-ask{font:700 13.5px var(--sans);color:var(--mut);margin:0 0 8px}
+  .wp-opts{display:flex;flex-direction:column;gap:8px}
+  .wp-opt{text-align:left;background:var(--panel-2);border:1px solid var(--line);border-radius:11px;
+    padding:10px 12px;cursor:pointer;color:var(--txt);transition:border-color .14s var(--ease),background .14s var(--ease)}
+  .wp-opt:hover:not(:disabled){border-color:var(--acc)}
+  .wp-opt pre{margin:0;font:500 12.5px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+    white-space:pre-wrap;overflow-wrap:anywhere;color:inherit}
+  .wp-opt.correct{border-color:var(--good);background:rgba(126,231,135,.10)}
+  .wp-opt.wrong{border-color:var(--bad);background:rgba(255,122,133,.10)}
+  .wp-opt.dim{opacity:.45}
+  .wp-why{margin-top:12px;padding:11px 13px;border-radius:11px;background:var(--panel-2);
+    border:1px solid var(--line);font:500 13.5px/1.6 var(--sans);color:var(--read);
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+  .wp-next{flex:none}
   .si-q{margin:8px 0 6px;padding:10px 12px;border-radius:11px;background:var(--panel-2);
     border:1px solid var(--line);font:500 13.5px/1.5 var(--sans);color:var(--read)}
   .si-cl{display:inline-block;margin-right:7px;padding:1px 7px;border-radius:6px;
@@ -2166,6 +2184,7 @@
 <script src="pics-new.js"></script>
 <script src="more-new.js"></script>
 <script src="notes-new.js"></script>
+<script src="wp-new.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[]),
@@ -3998,7 +4017,7 @@ function gameMenu(){
     <p class="muted2">${tr("Быстрое запоминание разными способами: скорость, связи, сортировка, чутьё.")}</p>
     <div id="gCats" class="g-cats"></div>
     <div class="mode-cards">
-      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
+      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card" id="mWp"><div class="mc-emoji">🖨</div><b>${tr("Что напечатает?")}</b><span>${tr("сниппет — предскажи")}<br>${tr("вывод в консоль")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
       <button class="mode-card duo" id="mMock" style="grid-column:1/-1"><div class="mc-emoji">🎯</div><b>${tr("Mock-интервью")}</b><span>${tr("20 вопросов миксом, без подсказок — разбор по темам в конце")}</span></button>
       <button class="mode-card duo" id="mDuo" style="grid-column:1/-1"><div class="mc-emoji">👥</div><b>${tr("2 игрока")}</b><span>${tr("по очереди на одном телефоне — кто наберёт больше")}</span></button>
       <button class="mode-card duo" id="mDuel" style="grid-column:1/-1"><div class="mc-emoji">🤝</div><b>${tr("Дуэль с другом")}</b><span>${tr("одни и те же вопросы на разных телефонах — код через мессенджер")}</span></button>
@@ -4028,6 +4047,7 @@ function gameMenu(){
   $("#mArcade").onclick=()=>startArcade();
   $("#mTank").onclick=()=>startTanks(null);
   $("#mInv").onclick=()=>startInvaders();
+  $("#mWp").onclick=()=>startWhatPrints(gcatVal());
   $("#mMock").onclick=()=>startMock(gcatVal());
 }
 /* ---------- режим «найди баг» ---------- */
@@ -9437,6 +9457,93 @@ function netShowResult(){
 
 /* ---- аркада-дуэль: старт по seed и сравнение пробегов ---- */
 
+
+
+/* ═════════════════ ЧТО НАПЕЧАТАЕТ? ═════════════════
+   Единственный режим, где надо не узнать ответ, а просчитать код в голове.
+   Вывод каждой задачи снят настоящим запуском на JDK — см. шапку wp-new.js. */
+let WPG = null;
+function wpPool(f) {
+  const all = (window.WP || []).filter(x => x && x.code && x.out && x.w && x.w.length === 3);
+  const mine = all.filter(x => fmatch(f, x.t));
+  return shuffle((mine.length >= 4 ? mine : all).slice());
+}
+function startWhatPrints(f) {
+  const pool = wpPool(f);
+  if (!pool.length) return emptyG("🖨", tr("Мало задач для этой темы."), f !== "all" ? () => startWhatPrints("all") : null);
+  gameAct({});
+  WPG = { deck: pool, i: 0, score: 0, ok: 0, bad: 0, streak: 0, best: 0, lives: 3, t0: Date.now(), f };
+  wpRound();
+}
+function wpRound() {
+  if (!WPG) return;
+  if (WPG.i >= WPG.deck.length || WPG.lives <= 0) return wpOver();
+  const q = WPG.deck[WPG.i];
+  const opts = shuffle([{ t: q.out, ok: 1 }, ...q.w.map(w => ({ t: w, ok: 0 }))]);
+  gameStage.innerHTML = `<div class="game-play wp-play">
+    <div class="game-top">
+      <div class="gscore">🖨 <b id="wpScore">${WPG.score}</b></div>
+      <div class="q-pill">${WPG.i + 1} / ${WPG.deck.length}</div>
+      <div class="gscore">${"❤️".repeat(Math.max(0, WPG.lives))}</div>
+    </div>
+    <div class="wp-tag">${esc(clName(q.t))}${WPG.streak > 1 ? ` · 🔥 ${WPG.streak}` : ""}</div>
+    <pre class="wp-code">${esc(q.code)}</pre>
+    <div class="wp-ask">${tr("Что напечатает?")}</div>
+    <div class="wp-opts" id="wpOpts">${opts.map(o =>
+      `<button class="wp-opt" data-ok="${o.ok}"><pre>${esc(o.t)}</pre></button>`).join("")}</div>
+    <div class="wp-why" id="wpWhy" hidden></div>
+  </div>`;
+  gameStage.querySelectorAll(".wp-opt").forEach(b => b.onclick = () => wpPick(b, q));
+}
+function wpPick(btn, q) {
+  if (!WPG || WPG.done) return;
+  WPG.done = true;
+  const ok = btn.dataset.ok === "1";
+  gameStage.querySelectorAll(".wp-opt").forEach(b => {
+    b.disabled = true;
+    if (b.dataset.ok === "1") b.classList.add("correct");
+    else if (b === btn) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+  if (ok) {
+    WPG.ok++; WPG.streak++; WPG.best = Math.max(WPG.best, WPG.streak);
+    WPG.score += 100 + Math.min(400, (WPG.streak - 1) * 50);
+    arTone(880, .08, "square", .05);
+  } else {
+    WPG.bad++; WPG.streak = 0; WPG.lives--;
+    arNoise(.12, .06, 400);
+  }
+  const why = document.getElementById("wpWhy");
+  if (why) {
+    why.innerHTML = `<b>${esc(q.n)}</b>` +
+      `<button class="btn primary wp-next" id="wpNext">${WPG.lives <= 0 ? tr("Итог") : tr("Дальше →")}</button>`;
+    why.hidden = false;
+    const n = document.getElementById("wpNext");
+    if (n) n.onclick = () => { if (!WPG) return; WPG.i++; WPG.done = false; wpRound(); };
+  }
+  const sc = document.getElementById("wpScore"); if (sc) sc.textContent = WPG.score;
+}
+function wpOver() {
+  if (!WPG) return;
+  const g = WPG, sec = Math.round((Date.now() - g.t0) / 1000);
+  const acc = g.ok + g.bad ? Math.round(g.ok / (g.ok + g.bad) * 100) : 0;
+  const best = Math.max(g.score, +(localStorage.getItem("jdWpBest") || 0));
+  try { localStorage.setItem("jdWpBest", best); } catch (e) { }
+  WPG = null;
+  gameStage.innerHTML = `<div class="game-end glass">
+    <div class="game-emoji">${acc >= 80 ? "🧠" : acc >= 50 ? "🖨" : "💥"}</div>
+    <div class="q-pill">${acc >= 80 ? tr("Компилятор в голове работает") : acc >= 50 ? tr("Половина ловушек мимо") : tr("Java тебя переиграла")}</div>
+    <div class="big-score">${g.score}</div>
+    <div class="row"><span>✓ ${tr("верно")} ${g.ok} ${tr("из")} ${g.ok + g.bad} (${acc}%)</span></div>
+    <div class="row"><span>🔥 ${tr("лучшая серия")} ${g.best}</span></div>
+    <div class="row"><span>⏱ ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}</span></div>
+    <div class="row"><span>🏆 ${tr("рекорд")} ${best}</span></div>
+    <button class="btn primary" id="wpAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
+    <button class="btn" id="wpMenu" style="flex:none">${tr("← Меню")}</button>
+  </div>`;
+  const a = document.getElementById("wpAgain"); if (a) a.onclick = () => startWhatPrints(g.f);
+  const m = document.getElementById("wpMenu"); if (m) m.onclick = () => gameMenu();
+}
 
 /* ═════════════════════ ЗАХВАТЧИКИ ═════════════════════
    Space Invaders, где строй несёт варианты ответа. Вопрос — определение,
