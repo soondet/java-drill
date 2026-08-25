@@ -12,8 +12,10 @@ const PASS=process.argv[2];
 /* Пароля по умолчанию больше нет. Раньше здесь стоял запасной вариант, и комнату
    один раз собрали без аргумента — на публичном сайте она открывалась словом,
    совпадающим с её же адресом. Лучше упасть, чем тихо выпустить незапертую дверь. */
-if(!PASS||PASS.length<6){
-  console.error("Нужен пароль от 6 символов:  node "+require("path").basename(__filename)+' "пароль"');
+const BANNED=["sing","qa","birthday","hb","password","123456"];
+if(!PASS||PASS.length<4||BANNED.includes(PASS.toLowerCase())){
+  console.error("Нужен пароль: node "+require("path").basename(__filename)+' "пароль"'
+    +"\n(не короче 4 символов и не из прежних значений по умолчанию)");
   process.exit(1);
 }
 const DIR=__dirname;

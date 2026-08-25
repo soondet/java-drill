@@ -8,19 +8,23 @@
 const fs=require("fs"), path=require("path"), crypto=require("crypto"), {execFileSync}=require("child_process");
 
 /* ---- поменять здесь, когда будут известны ---- */
-const NAME="ИМЯ";
-const BIRTH="27.08.1998";                    /* дата рождения: из неё делается личная мелодия */
+const NAME="Лаура";
+const BIRTH="27.08";                         /* мелодия «Твоя дата» строится из цифр; год не назвали — не выдумываю */
 const TITLE="С днём рождения!";
-const TEXT="Голос — единственный инструмент, который всегда с собой: его не забудешь дома и не порвёшь струну. "
-          +"Пусть он звучит, когда хочется, и пусть рядом всегда будут те, кто просит спеть ещё раз.";
+const TEXT="Ты весь год ищешь чужие баги — сегодня день, когда всё работает как задумано, "
+          +"и воспроизвести это можно сколько угодно раз. Голос — единственный инструмент, "
+          +"который всегда с собой: его не забудешь дома и не порвёшь струну. Пусть он звучит, "
+          +"когда хочется, и пусть рядом всегда будут те, кто просит спеть ещё раз.";
 /* --------------------------------------------- */
 
 const PASS=process.argv[2];
 /* Пароля по умолчанию больше нет. Раньше здесь стоял запасной вариант, и комнату
    один раз собрали без аргумента — на публичном сайте она открывалась словом,
    совпадающим с её же адресом. Лучше упасть, чем тихо выпустить незапертую дверь. */
-if(!PASS||PASS.length<6){
-  console.error("Нужен пароль от 6 символов:  node "+require("path").basename(__filename)+' "пароль"');
+const BANNED=["sing","qa","birthday","hb","password","123456"];
+if(!PASS||PASS.length<4||BANNED.includes(PASS.toLowerCase())){
+  console.error("Нужен пароль: node "+require("path").basename(__filename)+' "пароль"'
+    +"\n(не короче 4 символов и не из прежних значений по умолчанию)");
   process.exit(1);
 }
 const DIR=__dirname, ITER=200000, KEYLEN=32;
@@ -47,8 +51,14 @@ function photo(base,name,c1,c2){
   const tmp=path.join(require("os").tmpdir(),base+".jpg");
   try{
     execFileSync("sips",["-s","format","jpeg","-s","formatOptions","62","-Z","720",src,"--out",tmp],{stdio:"ignore"});
-    const b=fs.readFileSync(tmp); fs.unlinkSync(tmp);
-    console.log("  · "+base+": "+path.basename(src)+" → "+Math.round(b.length/1024)+" КБ");
+    let b=fs.readFileSync(tmp); fs.unlinkSync(tmp);
+    /* Если картинка уже маленькая и сжатая, второй проход её не уменьшает, а только
+       портит. Берём оригинал, когда пересжатие не дало выигрыша. */
+    const orig=fs.readFileSync(src);
+    const keepOrig=/\.jpe?g$/i.test(src) && orig.length<=b.length;
+    if(keepOrig) b=orig;
+    console.log("  · "+base+": "+path.basename(src)+" → "+Math.round(b.length/1024)+" КБ"
+      +(keepOrig?" (оригинал: пересжатие не помогло)":""));
     return "data:image/jpeg;base64,"+b.toString("base64");
   }catch(e){
     const b=fs.readFileSync(src);
@@ -144,7 +154,8 @@ const HTML=`
 </div>
 
 <div class="sg-toast">
-  <p class="sg-cheers">С праздником! 🎶</p>
+  <p class="sg-cheers">Статус: Closed · Resolution: Fixed 🎶</p>
+  <p>Ожидаемый результат — счастливый год. Фактический совпал.</p>
 </div>
 `;
 

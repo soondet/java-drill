@@ -11443,7 +11443,7 @@ function sgRender(){
   if(pick)[...pick.children].forEach(b=>b.classList.toggle("on",b.dataset.id===SG_SONG.id));
   if(SG_RESET)SG_RESET();
   const hint=$("#sgHint");                             /* подпись под песню, а не всегда про Happy Birthday */
-  if(hint)hint.textContent="спеть «"+SG_SONG.name+"» целиком — тональность подхватится с первой ноты";
+  if(hint)hint.textContent="тест-кейс: спеть «"+SG_SONG.name+"» целиком. Тональность подхватится с первой ноты";
 }
 function sgWire(){
   const song=$("#sgSong");
