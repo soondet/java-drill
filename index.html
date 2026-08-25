@@ -561,7 +561,22 @@
   .beh-ta:focus{border-color:var(--acc)}
   .beh-tm{display:flex;align-items:center;gap:10px;margin-top:9px;font-size:12px;color:var(--mut)}
   .beh-tm b{font:800 15px var(--mono);color:var(--fg)}
-  #viewZero .terms-wrap{max-width:1180px}       /* маршрут + текст + схема */
+  /* Прокрутка живёт ВНУТРИ вкладки, как в «Терминах» с их .term-list. Без этого
+     контент вываливался из body фиксированной высоты, ехала вся страница целиком —
+     и приклеенная шапка с вкладками уезжала вместе с ней. Ключ именно в overflow:
+     блок с overflow:visible не умеет сжиматься меньше содержимого, а с auto — умеет.
+     Болели «С нуля» (135 000 px), «Игра» (2 246) и «Поведенческий» (4 021). */
+  #gameStage{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  #viewBeh .beh-list{overflow-y:auto;overscroll-behavior:contain}
+  #viewFp .fpmain{min-height:0}
+  /* .fpmain — ряд с align-items:center, поэтому ребёнок НЕ растягивается и его
+     высота идёт от содержимого. Ограничиваем потолком, центрирование сохраняется. */
+  #viewFp #fpStage{max-height:100%;overflow-y:auto;overscroll-behavior:contain}
+  /* Верхний отступ переносим внутрь: иначе липкие чипы маршрутов прилипают на 18px
+     ниже кромки, и над ними ползёт полоска текста. */
+  #viewZero .terms-wrap{max-width:1180px;overflow-y:auto;overscroll-behavior:contain;padding-top:0}
+  #viewZero .bas-intro{margin-top:18px}
+  #viewZero .zero-nav{top:0;max-height:calc(100vh - 150px)}
   .zero-step.has-viz{align-items:flex-start}
   .zv{flex:0 0 236px;max-width:236px;box-sizing:border-box;align-self:flex-start;overflow-x:auto;-webkit-overflow-scrolling:touch;
     border:1px solid var(--line);border-radius:14px;background:var(--panel-2);padding:11px 12px;overflow:hidden}
