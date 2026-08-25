@@ -43,7 +43,14 @@ const CONSOLE_MSG=
  +"  С днём рождения, "+NAME+"!\n";
 /* ------------------------ */
 
-const PASS=process.argv[2]||"qa";
+const PASS=process.argv[2];
+/* Пароля по умолчанию больше нет. Раньше здесь стоял запасной вариант, и комнату
+   один раз собрали без аргумента — на публичном сайте она открывалась словом,
+   совпадающим с её же адресом. Лучше упасть, чем тихо выпустить незапертую дверь. */
+if(!PASS||PASS.length<6){
+  console.error("Нужен пароль от 6 символов:  node "+require("path").basename(__filename)+' "пароль"');
+  process.exit(1);
+}
 const DIR=__dirname, ITER=200000, KEYLEN=32;
 const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 

@@ -8,7 +8,14 @@
 */
 const fs=require("fs"), path=require("path"), crypto=require("crypto"), {execFileSync}=require("child_process");
 
-const PASS=process.argv[2]||"birthday";
+const PASS=process.argv[2];
+/* Пароля по умолчанию больше нет. Раньше здесь стоял запасной вариант, и комнату
+   один раз собрали без аргумента — на публичном сайте она открывалась словом,
+   совпадающим с её же адресом. Лучше упасть, чем тихо выпустить незапертую дверь. */
+if(!PASS||PASS.length<6){
+  console.error("Нужен пароль от 6 символов:  node "+require("path").basename(__filename)+' "пароль"');
+  process.exit(1);
+}
 const DIR=__dirname;
 const ITER=200000, KEYLEN=32;
 
