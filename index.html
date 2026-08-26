@@ -2201,6 +2201,7 @@
 <script src="more-new.js"></script>
 <script src="notes-new.js"></script>
 <script src="wp-new.js"></script>
+<script src="depth-fix.js"></script>
 <script src="quiz-fix.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
@@ -2749,14 +2750,21 @@ function setLang(l){
 function refreshView(){ if(mode==="drill"){buildDrillCats();buildFilter();rebuild();} else if(mode==="fp"){buildFpNav($("#fpSearch").value);renderFingers();} else if(mode==="terms"){buildTerms($("#termSearch").value);} else if(mode==="prin"){buildPrinNav($("#prinSearch").value);renderPrin();} else if(mode==="prog"){buildProg();} else if(mode==="sand"){buildSand();} else if(mode==="game"){gameMenu();} }
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function fmt(t){
-  let s=esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+  let s=esc(t);
   /* Блоки ```…``` вынимаем ДО разбивки на абзацы: внутри них бывают пустые строки. */
   const fence=[];
   s=s.replace(/```[a-z]*\n?([\s\S]*?)```/g,(m,code)=>{
     fence.push('<pre class="md-code">'+code.replace(/\n+$/,"")+"</pre>");
     return "\n\n\u0000"+(fence.length-1)+"\u0000\n\n";
   });
-  s=s.replace(/`([^`\n]+)`/g,"<code>$1</code>");
+  /* Инлайн-код прячем ПЕРЕД жирным. Иначе glob-шаблоны с двумя звёздочками внутри
+     бэктиков считались разметкой: пара звёздочек из двух соседних шаблонов схлопывалась
+     в <b>, и теги пересекали границу <code>. Сам этот комментарий такой шаблон писать
+     не может — последовательность «звёздочка-слэш» закрыла бы комментарий досрочно. */
+  const code=[];
+  s=s.replace(/`([^`\n]+)`/g,(m,c)=>{ code.push("<code>"+c+"</code>"); return "\u0001"+(code.length-1)+"\u0001"; });
+  s=s.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+  s=s.replace(/\u0001(\d+)\u0001/g,(m,i)=>code[+i]);
   return s.split(/\n\s*\n/).map(b=>{
     const f=b.trim().match(/^\u0000(\d+)\u0000$/); if(f)return fence[+f[1]];
     /* «Где рвётся» и «На собесе спросят» — практический вывод, он есть в 268 текстах. */
