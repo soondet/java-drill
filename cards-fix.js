@@ -1,4 +1,5 @@
-/* Строка «↳ глубже» для карточек, где её не было.
+/* Мелкие правки полей карточек: строка «↳ глубже» там, где её не было, и нормализация
+ * названий подтем.
  *
  * Поле d необязательное — карточка рендерит его только при наличии. Но оно есть у 778
  * карточек из 794, и шестнадцать без него выбивались из ряда: на них не было короткого
@@ -26,10 +27,22 @@
     "api-problem-json": "Стандарт ценен не полями, а тем, что клиент пишет один обработчик ошибок на все сервисы. Поле type — это стабильный идентификатор класса ошибки, по нему клиент и ветвится; detail предназначен человеку и меняться может свободно.",
     "api-resources-verbs": "Действия вне CRUD моделируют ресурсом-состоянием или подресурсом: не POST /orders/1/cancel, а POST /orders/1/cancellation. Вложенность глубже двух уровней почти всегда означает, что внутри спрятана самостоятельная сущность."
   };
+  /* Подтемы, различающиеся только регистром или числом, разрезали фильтр надвое:
+     в списке появлялись «Generics» и «generics» как две разные ветки. */
+  var S = {
+    "Generics": "generics",
+    "Keywords": "keywords",
+    "Strings": "strings",
+    "Mockito": "mockito",
+    "graph": "graphs"
+  };
   var list = (window.CARDS || []).concat(window.CARDS_EXTRA || [], window.CARDS_NEW || []);
-  var n = 0;
+  var n = 0, m = 0;
   list.forEach(function (c) {
-    if (c && D[c.id] && !String(c.d || "").trim()) { c.d = D[c.id]; n++; }
+    if (!c) return;
+    if (D[c.id] && !String(c.d || "").trim()) { c.d = D[c.id]; n++; }
+    if (c.s && S[c.s]) { c.s = S[c.s]; m++; }
   });
-  if (typeof console !== "undefined" && console.debug) console.debug("depth-fix: дописано «глубже» " + n);
+  if (typeof console !== "undefined" && console.debug)
+    console.debug("cards-fix: «глубже» " + n + ", подтем нормализовано " + m);
 })();

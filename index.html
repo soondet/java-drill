@@ -2201,7 +2201,9 @@
 <script src="more-new.js"></script>
 <script src="notes-new.js"></script>
 <script src="wp-new.js"></script>
-<script src="depth-fix.js"></script>
+<script src="zero-reactive.js"></script>
+<script src="cards-gap2.js"></script>
+<script src="cards-fix.js"></script>
 <script src="quiz-fix.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
@@ -3276,9 +3278,33 @@ function buildBeh(){
 }
 let behTimer=null;
 /* ---------- 🌱 С нуля: лестница от транзистора до программы ---------- */
-const ZERO=(window.ZERO||[]);
-const ZDONE=(()=>{try{return new Set(JSON.parse(localStorage.getItem("jdZero")||"[]"))}catch(e){return new Set()}})();
+const ZERO_RAW=(window.ZERO||[]);
+/* Отметки «прочитано» лежали под НОМЕРОМ шага. Любая вставка маршрута в середину
+   сдвигала их на чужие шаги, поэтому переезжаем на ключ от названия. */
+function zeroKey(z){ let h=2166136261>>>0; const s=(z&&z.g||"")+"|"+(z&&z.t||"");
+  for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return "z"+h.toString(36); }
+const ZDONE=(()=>{
+  let raw=[]; try{ raw=JSON.parse(localStorage.getItem("jdZero")||"[]"); }catch(e){}
+  if(raw&&raw.__v===2) return new Set(raw.k||[]);
+  if(Array.isArray(raw)&&raw.length&&typeof raw[0]==="string") return new Set(raw);
+  /* старый формат — номера; переносим по ИСХОДНОМУ порядку, до вставки добора */
+  const out=new Set();
+  (Array.isArray(raw)?raw:[]).forEach(i=>{ const z=ZERO_RAW[i]; if(z) out.add(zeroKey(z)); });
+  try{ localStorage.setItem("jdZero",JSON.stringify([...out])); }catch(e){}
+  return out;
+})();
+/* Добор маршрутов вставляем ПОСЛЕ миграции: до неё порядок должен совпадать с тем,
+   к которому относились сохранённые номера. */
+const ZERO=(()=>{
+  const add=window.ZERO_ADD;
+  if(!add||!add.steps||!add.steps.length) return ZERO_RAW;
+  const i=ZERO_RAW.map(z=>z.g).lastIndexOf(add.after);
+  if(i<0) return ZERO_RAW.concat(add.steps);
+  return ZERO_RAW.slice(0,i+1).concat(add.steps, ZERO_RAW.slice(i+1));
+})();
 function zeroSave(){ try{localStorage.setItem("jdZero",JSON.stringify([...ZDONE]))}catch(e){} }
+function zDone(i){ const z=ZERO[i]; return !!z&&ZDONE.has(zeroKey(z)); }
 function zeroAnimOn(v){ if(v!=null){try{localStorage.setItem("jdZeroAnim",v?"1":"0")}catch(e){}}
   const s=localStorage.getItem("jdZeroAnim");
   if(s!=null)return s==="1";
@@ -3296,7 +3322,7 @@ function zeroGroups(){ const g=[];
 function zeroNavUI(){
   const gs=zeroGroups();
   const nav=$("#zeroNav"), chips=$("#zeroChips");
-  const done=gr=>gr.ids.filter(i=>ZDONE.has(i)).length;
+  const done=gr=>gr.ids.filter(i=>zDone(i)).length;
   if(nav)nav.innerHTML=`<h4>${tr("Маршрут")}</h4>`+gs.map((gr,k)=>{
     const d=done(gr), open=(V3ZOPEN===gr.key);
     return `<button class="zn-item${d===gr.ids.length?" full":""}${open?" open":""}" data-k="${gr.key}">
@@ -3304,8 +3330,8 @@ function zeroNavUI(){
         <span>${esc(tr(gr.g))}</span><span class="zn-c">${d}/${gr.ids.length}</span>
         <span class="zn-ar">▶</span></button>
       <div class="zn-sub">${gr.ids.map((i,j)=>
-        `<button class="zn-s${ZDONE.has(i)?" done":""}" data-s="${i}">
-          <i>${ZDONE.has(i)?"✓":j+1}</i><span>${esc(tr(ZERO[i].t))}</span></button>`).join("")}</div>`; }).join("");
+        `<button class="zn-s${zDone(i)?" done":""}" data-s="${i}">
+          <i>${zDone(i)?"✓":j+1}</i><span>${esc(tr(ZERO[i].t))}</span></button>`).join("")}</div>`; }).join("");
   if(chips)chips.innerHTML=gs.map((gr,k)=>{
     const d=done(gr);
     return `<button class="${d===gr.ids.length?"full":""}" data-k="${gr.key}">${d===gr.ids.length?"✓ ":""}${esc(tr(gr.g))}</button>`; }).join("");
@@ -3406,7 +3432,7 @@ function buildZero(){
   ZERO.forEach((z,i)=>{
     if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
     n++;
-    const done=ZDONE.has(i);
+    const done=zDone(i);
     const viz=(window.ZVIZ||{})[z.t];
     html+=`<div class="zero-step${done?" done":""}${viz?" has-viz":""}" id="zs${i}" data-i="${i}">
       <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
@@ -3430,8 +3456,8 @@ function buildZero(){
   wrap.querySelectorAll("[data-zq]").forEach(b=>b.onclick=()=>zeroAsk(b.dataset.zq));
   wrap.querySelectorAll(".zero-n").forEach(b=>b.onclick=()=>{
     const st=b.closest(".zero-step"), i=+st.dataset.i;
-    if(ZDONE.has(i)){ ZDONE.delete(i); st.classList.remove("done"); b.textContent=[...st.parentNode.children].filter(x=>x.classList.contains("zero-step")).indexOf(st)+1; }
-    else { ZDONE.add(i); st.classList.add("done"); b.textContent="✓"; }
+    if(zDone(i)){ ZDONE.delete(zeroKey(ZERO[i])); st.classList.remove("done"); b.textContent=[...st.parentNode.children].filter(x=>x.classList.contains("zero-step")).indexOf(st)+1; }
+    else { ZDONE.add(zeroKey(ZERO[i])); st.classList.add("done"); b.textContent="✓"; }
     zeroSave(); zeroBarUI(); zeroNavUI(); });
   const nx=$("#zeroNext"); if(nx)nx.onclick=()=>setMode("basics");
   const rs=$("#zeroReset"); if(rs)rs.onclick=()=>{ ZDONE.clear(); zeroSave(); buildZero(); };
