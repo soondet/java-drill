@@ -83,6 +83,25 @@ const check = (name, ok, detail) => {
   check("литеральных бэктиков в текстах не осталось",
     await A.ev("!CARDS.some(c=>MORE[c.id]&&/`/.test(fmt(MORE[c.id])))"));
 
+  /* ---- викторину нельзя пройти линейкой ----
+     Замер показал: «всегда выбирай самый длинный вариант» давало 89% верных при 25%
+     у случайного тыка — то есть игры проходились без знания предмета. Держим планку,
+     чтобы новые вопросы не вернули подсказку обратно. */
+  const tell = JSON.parse(await A.ev(`(function(){
+    var n=0,win=0,wordWin=0;
+    var w=function(s){return String(s).trim().split(/\\s+/).length};
+    Object.keys(QUIZ).forEach(function(k){ var q=QUIZ[k];
+      if(!q||!q.correct||!q.wrong||q.wrong.length<3)return;
+      n++;
+      var ws=q.wrong.slice(0,3).map(String);
+      if(String(q.correct).length>Math.max.apply(null,ws.map(function(x){return x.length})))win++;
+      if(w(q.correct)>Math.max.apply(null,ws.map(w)))wordWin++; });
+    return JSON.stringify({n:n,pct:Math.round(win/n*100),wpct:Math.round(wordWin/n*100)});})()`));
+  check("викторину не пройти «выбирай самый длинный»", tell.pct <= 35,
+    "стратегия даёт " + tell.pct + "% из " + tell.n + " вопросов, потолок 35%, случайный тык 25%");
+  check("и не пройти «где больше слов»", tell.wpct <= 55,
+    "стратегия даёт " + tell.wpct + "%, потолок 55%, случайный тык 25%");
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);

@@ -2195,11 +2195,13 @@
 <script src="more-fp-new.js"></script>
 <script src="bugs-new.js"></script>
 <script src="behav-new.js"></script>
+<script src="behav-situ.js"></script>
 <script src="principles-new.js"></script>
 <script src="pics-new.js"></script>
 <script src="more-new.js"></script>
 <script src="notes-new.js"></script>
 <script src="wp-new.js"></script>
+<script src="quiz-fix.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[]),
@@ -3197,10 +3199,32 @@ function basCard(b){
   return `<div class="bas-card" data-id="${esc(b.id)}"><div class="bas-t"><span class="bas-ico">${b.icon||"💡"}</span><b>${esc(basF(b,"t"))}</b><button class="fav-btn bas-fav${isFav(fk)?' on':''}" data-id="${esc(b.id)}" title="${tr('★ избранное')}">${isFav(fk)?'★':'☆'}</button></div><div class="bas-plain">${esc(basF(b,"plain"))}</div><div class="bas-an">👉 ${esc(basF(b,"an"))}</div></div>`;
 }
 /* ---------- 🎤 Поведенческий собес ---------- */
-const BEHAV=(window.BEHAV||[]);
-const BANS=(()=>{try{return JSON.parse(localStorage.getItem("jdBehav")||"{}")}catch(e){return{}}})();
+const BEHAV_RAW=(window.BEHAV||[]);
+/* Порядок разделов задаём явно. Доборы дописываются в конец файла своими группами,
+   и без сортировки вкладка показывала «Провалы» и «Опыт и проекты» по два-три раза. */
+const BEH_ORDER=["О себе","Опыт и проекты","Ситуации: прод","Ситуации: команда","Ситуации: решения",
+  "Провалы","Команда","Мотивация","Про деньги","Вопросы им"];
+const BEHAV=BEHAV_RAW.slice().sort((a,b)=>{
+  const ia=BEH_ORDER.indexOf(a.g), ib=BEH_ORDER.indexOf(b.g);
+  return (ia<0?99:ia)-(ib<0?99:ib);          /* сортировка стабильная — внутри группы порядок исходный */
+});
+/* Ключ черновика — от текста вопроса, а не от его номера: раньше вставка вопроса
+   в середину списка сдвигала все ответы пользователя на чужие вопросы. */
+function behKey(b){ let h=2166136261>>>0; const s=String(b.q||"");
+  for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return "b"+h.toString(36); }
+const BANS=(()=>{
+  let raw={}; try{ raw=JSON.parse(localStorage.getItem("jdBehav")||"{}"); }catch(e){}
+  if(raw.__v>=2) return raw;
+  const out={__v:2};                          /* переносим по СТАРОМУ порядку — к нему номера и относились */
+  BEHAV_RAW.forEach((b,i)=>{ const v=raw["q"+i]; if(v&&String(v).trim()) out[behKey(b)]=v; });
+  /* Записываем сразу же. Иначе старые номера останутся лежать в хранилище, и после
+     следующей перестановки вопросов миграция разложит черновики уже по чужим местам. */
+  try{ localStorage.setItem("jdBehav",JSON.stringify(out)); }catch(e){}
+  return out;
+})();
 function behSave(){ try{localStorage.setItem("jdBehav",JSON.stringify(BANS))}catch(e){} }
-function behReady(){ return BEHAV.filter((b,i)=>(BANS["q"+i]||"").trim().length>40).length; }
+function behReady(){ return BEHAV.filter(b=>(BANS[behKey(b)]||"").trim().length>40).length; }
 function behBarUI(){ const p=BEHAV.length?Math.round(behReady()/BEHAV.length*100):0;
   const b=$("#behBar"), t=$("#behPct"), c=$("#behCnt");
   if(b)b.style.width=p+"%"; if(t)t.textContent=p+"%";
@@ -3211,7 +3235,7 @@ function buildBeh(){
   let html="", g=null;
   BEHAV.forEach((b,i)=>{
     if(b.g!==g){ g=b.g; html+=`<div class="zero-g"><span>${esc(tr(g))}</span></div>`; }
-    const ans=BANS["q"+i]||"", done=ans.trim().length>40;
+    const k=behKey(b), ans=BANS[k]||"", done=ans.trim().length>40;
     html+=`<div class="beh-q${done?" done":""}" data-i="${i}">
       <div class="beh-h"><span class="beh-i">${done?"✓":i+1}</span><b>${esc(tr(b.q))}</b></div>
       <div class="beh-body">
@@ -3219,19 +3243,19 @@ function buildBeh(){
         <div class="beh-lab">${tr("каркас ответа")}</div><div class="beh-hint">${esc(tr(b.h))}</div>
         <div class="beh-lab">${tr("типичные провалы")}</div><div class="beh-bad">${esc(tr(b.bad))}</div>
         <div class="beh-lab">${tr("твоя заготовка")}</div>
-        <textarea class="beh-ta" data-a="${i}" placeholder="${tr("Напиши своими словами — это и будет твой ответ на собесе")}">${esc(ans)}</textarea>
-        <div class="beh-tm"><button class="btn" data-t="${i}" style="flex:none;padding:6px 12px;font-size:12px">⏱ ${tr("2 минуты вслух")}</button>
-          <b id="bt${i}">2:00</b><span>${tr("прочитай вслух и уложись")}</span></div>
+        <textarea class="beh-ta" data-a="${k}" placeholder="${tr("Напиши своими словами — это и будет твой ответ на собесе")}">${esc(ans)}</textarea>
+        <div class="beh-tm"><button class="btn" data-t="${k}" style="flex:none;padding:6px 12px;font-size:12px">⏱ ${tr("2 минуты вслух")}</button>
+          <b id="bt${k}">2:00</b><span>${tr("прочитай вслух и уложись")}</span></div>
       </div></div>`;
   });
   wrap.innerHTML=html;
   wrap.querySelectorAll(".beh-h").forEach(h=>h.onclick=()=>h.parentNode.classList.toggle("open"));
   wrap.querySelectorAll("[data-a]").forEach(ta=>{
     ta.onclick=e=>e.stopPropagation();
-    ta.oninput=()=>{ BANS["q"+ta.dataset.a]=ta.value; behSave();
+    ta.oninput=()=>{ BANS[ta.dataset.a]=ta.value; behSave();
       const box=ta.closest(".beh-q"), ok=ta.value.trim().length>40;
       box.classList.toggle("done",ok);
-      box.querySelector(".beh-i").textContent=ok?"✓":(+ta.dataset.a+1);
+      box.querySelector(".beh-i").textContent=ok?"✓":box.dataset.i;
       behBarUI(); }; });
   wrap.querySelectorAll("[data-t]").forEach(b=>b.onclick=e=>{
     e.stopPropagation(); const i=b.dataset.t, el=$("#bt"+i);
