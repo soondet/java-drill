@@ -1953,6 +1953,9 @@
   .gs-panel{position:relative;z-index:1;width:min(640px,100%);max-height:80vh;display:flex;flex-direction:column;background:rgba(13,15,21,.99);backdrop-filter:blur(22px);border:1px solid var(--line);border-radius:16px;box-shadow:0 30px 80px -20px rgba(0,0,0,.85);overflow:hidden;animation:trefPop .2s var(--ease)}
   .gs-panel input{border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--txt);font:500 16px var(--sans);padding:16px 18px;outline:none}
   .gs-results{overflow-y:auto;padding:8px}
+  /* Куда именно привёл поиск — видно полторы секунды, потом гаснет. */
+  .gs-hit{animation:gsHit 1.8s var(--ease)}
+  @keyframes gsHit{0%,70%{box-shadow:0 0 0 2px var(--acc), 0 0 22px -6px var(--acc)}100%{box-shadow:none}}
   .gs-empty{padding:26px 20px;text-align:center;color:var(--mut);font-size:13.5px;line-height:1.5}
   .gs-group{font:700 11px var(--sans);text-transform:uppercase;letter-spacing:1px;color:var(--acc);padding:12px 12px 6px}
   .gs-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer}
@@ -3093,13 +3096,13 @@ function startFp(){stopFp();if(fpPlaying&&mode==="fp")fpTimer=setInterval(()=>se
 function buildFpNav(q){
   const nav=$("#fpNav");
   if(!FP.length){nav.innerHTML='<div class="muted">объяснения генерируются…<br>обнови страницу через пару минут.</div>';return;}
-  q=(q||"").trim().toLowerCase();
+  const qw=jdWords(q);
   const clusters=[...new Set(FP.map(e=>e.t))];
   let html="";
-  const favF=FP.map((e,i)=>({e,i})).filter(x=>isFav("fp:"+x.e.id)&&(!q||(x.e.title+" "+T('fp',x.e.id,'title','')).toLowerCase().includes(q)));
+  const favF=FP.map((e,i)=>({e,i})).filter(x=>isFav("fp:"+x.e.id)&&jdHit(qw,fpHay(x.e)));
   if(favF.length){ html+=`<div class="ncluster"><button class="nhead${q?" open":""}"><span class="chev">▸</span><span class="nlabel">⭐ ${tr("Избранное")}</span><span class="cnt">${favF.length}</span></button><div class="nbody"${q?"":" hidden"}>`+favF.map(x=>`<button class="ntopic${x.i===fpCur?" active":""}" data-i="${x.i}">★ ${esc(T('fp',x.e.id,'title',x.e.title))}</button>`).join("")+`</div></div>`; }
   clusters.forEach(cl=>{
-    const items=FP.map((e,i)=>({e,i})).filter(x=>x.e.t===cl && (!q || (x.e.title+" "+T('fp',x.e.id,'title','')).toLowerCase().includes(q)));
+    const items=FP.map((e,i)=>({e,i})).filter(x=>x.e.t===cl && jdHit(qw,fpHay(x.e)));
     if(!items.length)return;
     const subs=[...new Set(items.map(x=>x.e.g||"Прочее"))];
     const clOpen=q||items.some(x=>x.i===fpCur);
@@ -3558,24 +3561,132 @@ const gsModal=$("#gsModal"), gsInput=$("#gsInput"), gsResults=$("#gsResults");
 let gsFlat=[];
 function openSearch(){ if(!gsModal)return; gsModal.hidden=false; gsInput.value=""; gsInput.placeholder=tr("🔍 поиск по всему…"); gsRun(""); requestAnimationFrame(()=>gsInput.focus()); }
 function closeSearch(){ if(gsModal)gsModal.hidden=true; }
+/* Общее сопоставление для всех поисков: слова через И, каждое — по основе.
+   Раньше вкладки искали точной подстрокой только по заголовку. */
+function jdStem(w){ return w.length>=7?w.slice(0,-2):w.length>=5?w.slice(0,-1):w; }
+function jdWords(q){ return String(q||"").trim().toLowerCase().split(/\s+/).filter(Boolean).map(jdStem); }
+function jdHit(words,hay){ if(!words.length)return true; const h=String(hay||"").toLowerCase();
+  return words.every(w=>h.indexOf(w)>=0); }
+/* Что искать внутри «на пальцах»: заголовок, группа, кластер и подписи всех кадров. */
+function fpHay(e){
+  if(e.__hay)return e.__hay;
+  const caps=(e.frames||[]).map(f=>f&&f.cap).filter(Boolean).join(" ");
+  const more=(window.MORE_FP||{})[e.id]||"";
+  e.__hay=[e.title,T('fp',e.id,'title',''),e.g,clName(e.t),e.t,caps,more].filter(Boolean).join(" ").toLowerCase();
+  return e.__hay;
+}
+/* Индекс карточек строим один раз: на каждое нажатие клавиши перечитывать «подробнее»
+   у 810 карточек ни к чему. Ищем по вопросу, ответу, «глубже», «подробнее», названию
+   кластера и подтемы — раньше только по вопросу и ответу, и слово из глубины текста
+   не находилось вообще. */
+let GS_IDX=null;
+function gsIndex(){
+  if(GS_IDX) return GS_IDX;
+  const cEN=(typeof I18N!=="undefined"&&I18N.cards)||{}, M=window.MORE||{};
+  GS_IDX=CARDS.map(c=>{ const e=cEN[c.id]||{};
+    return {c, h:[c.q,c.a,c.d,M[c.id],clName(c.t),c.t,c.s,e.q,e.a].filter(Boolean).join(" ").toLowerCase()}; });
+  return GS_IDX;
+}
+/* Кнопки игр ищем по названию и по тому, как их называют вслух. Действие — клик по
+   настоящей кнопке меню, чтобы список не разъезжался с самим меню. */
+const GS_GAMES=[
+  ["mTank","🚜","Танчики","8-бит оборона базы, вдвоём по сети, battle city, танки"],
+  ["mInv","👾","Захватчики","space invaders, 8-бит, сбей верный термин, пришельцы"],
+  ["mWp","🖨","Что напечатает?","предсказать вывод кода, консоль, output, сниппет"],
+  ["mArcade","🕹","Аркада: Debug Run","платформер, беги прыгай стреляй, 8-бит"],
+  ["mMock","🎯","Mock-интервью","20 вопросов миксом, репетиция собеса"],
+  ["mDuo","👥","2 игрока","по очереди на одном телефоне, hotseat"],
+  ["mDuel","🤝","Дуэль с другом","по сети, вдвоём, гонка по уровню, комната"],
+  ["mBlitz","⚡","Блиц","вопрос и четыре варианта, таймер, комбо"],
+  ["mMatch","🔗","Связь","соедини термин с определением, пары"],
+  ["mDrop","🎯","Сортировка","перетащи понятие в нужную тему"],
+  ["mTF","🃏","Правда / Ложь","утверждение верно или нет"],
+  ["mOrder","🔢","Порядок","расставь шаги по порядку, последовательность"],
+  ["mGuess","🖼️","Угадай по схеме","что за концепция на анимации"],
+  ["mRecall","⌨️","Вспомни термин","определение, впиши термин, ввод"],
+  ["mAcr","🅰️","Аббревиатуры","расшифруй ACID CAP MVCC SOLID"],
+  ["mBugs","🐞","Найди баг","сниппет с ошибкой, что не так"]
+];
+function gsOpenGame(id){
+  setMode("game"); gameMenu();
+  setTimeout(()=>{ const b=document.getElementById(id); if(b)b.click(); },0);
+}
+/* Вкладка рендерится после setMode, поэтому цели может ещё не быть — ждём её появления.
+   opt.up — подняться к карточке-контейнеру, opt.open — раскрыть её. */
+function gsScrollTo(sel,opt,tries){
+  const el=document.querySelector(sel);
+  if(el){
+    const box=(opt&&opt.up&&el.closest(opt.up))||el;
+    box.scrollIntoView({block:"center"});   /* мгновенно: плавная прокрутка через сотню шагов идёт секундами */
+    if(opt&&opt.open) box.classList.add("open");
+    box.classList.add("gs-hit");
+    setTimeout(()=>box.classList.remove("gs-hit"),1800);
+    return;
+  }
+  if((tries||0)<20) setTimeout(()=>gsScrollTo(sel,opt,(tries||0)+1),60);
+}
 function gsRun(q){
   q=(q||"").trim().toLowerCase();
-  if(q.length<2){ gsResults.innerHTML=`<div class="gs-empty">${tr("Печатай запрос — ищу по карточкам, терминам, «на пальцах», «Для чайника» и «Принципу».")}</div>`; gsFlat=[]; return; }
-  const inc=(...ss)=>ss.some(s=>s&&s.toLowerCase().includes(q));
+  if(q.length<2){ gsResults.innerHTML=`<div class="gs-empty">${tr("Печатай запрос — ищу по темам, карточкам, терминам, «на пальцах», «С нуля», поведенческим вопросам и играм.")}</div>`; gsFlat=[]; return; }
+  /* Запрос из нескольких слов — это И, а не точная подстрока: «оконные функции»
+     раньше не находило карточку со словами «оконная функция». */
+  /* Сравниваем по основе слова, отрезая окончание: иначе «оконные функции» не находит
+     «оконная функция», а «индекс» — «индекса». Точность ради полноты: в поиске
+     пропущенный результат дороже лишнего. */
+  const words=jdWords(q);
+  const has=hay=>jdHit(words,hay);
+  const inc=(...ss)=>has(ss.filter(Boolean).join(" "));
   const LIM=6, out=[];
-  const cEN=I18N.cards||{}, tEN=I18N.terms||{};
-  const cards=CARDS.filter(c=>{const e=cEN[c.id]||{}; return !isHidden(c.id)&&inc(c.q,c.a,e.q,e.a);}).slice(0,LIM);
-  if(cards.length) out.push({g:tr("Карточки"),items:cards.map(c=>({ico:isTricky(c.id)?"🦊":"🎴",txt:T('cards',c.id,'q',c.q),tag:clName(c.t),act:()=>drillTopic(c.id)}))});
-  const terms=TERMS.filter(t=>{const k=t.t+"|"+t.term,e=tEN[k]||{}; return inc(t.term,t.def,e.term,e.def);}).slice(0,LIM);
-  if(terms.length) out.push({g:tr("Термины"),items:terms.map(t=>{const k=t.t+"|"+t.term; return {ico:"📖",txt:T('terms',k,'term',t.term),tag:clName(t.t),act:()=>{pendingTerm=k;const s=$("#termSearch");if(s)s.value="";setMode("terms");}};})});
-  const basics=BASICS.filter(b=>inc(b.t,b.plain,b.an,basF(b,"t"),basF(b,"plain"))).slice(0,LIM);
-  if(basics.length) out.push({g:tr("Для чайника"),items:basics.map(b=>({ico:b.icon||"🍼",txt:basF(b,"t"),tag:basG(b.g),act:()=>{pendingBasic=b.id;const s=$("#basSearch");if(s)s.value="";setMode("basics");}}))});
-  const fps=FP.map((e,i)=>({e,i})).filter(x=>inc(x.e.title,T('fp',x.e.id,'title',''))).slice(0,LIM);
-  if(fps.length) out.push({g:tr("На пальцах"),items:fps.map(x=>({ico:"✋",txt:T('fp',x.e.id,'title',x.e.title),tag:clName(x.e.t),act:()=>{fpCur=x.i;fpFrame=0;fpPlaying=true;setMode("fp");}}))});
-  const vizzes=(typeof V3_SCENES!=="undefined"?V3_SCENES:[]).map((v,i)=>({v,i})).filter(x=>inc(x.v.name,x.v.cl,x.v.intro)).slice(0,LIM);
-  if(vizzes.length) out.push({g:tr("3D-мир"),items:vizzes.map(x=>({ico:x.v.ico,txt:tr(x.v.name),tag:tr("прогулка"),act:()=>{pendingViz=x.i;setMode("viz");}}))});
-  const prins=PRIN.map((p,i)=>({p,i})).filter(x=>inc(x.p.title,T('prin',x.p.id,'title',''))).slice(0,LIM);
-  if(prins.length) out.push({g:tr("Принцип"),items:prins.map(x=>({ico:"⚙️",txt:T('prin',x.p.id,'title',x.p.title),tag:clName(x.p.t),act:()=>{prinCur=x.i;setMode("prin");}}))});
+  const push=(g,all,map)=>{ if(!all.length)return;
+    out.push({g:g+(all.length>LIM?" · "+tr("ещё")+" "+(all.length-LIM):""),items:all.slice(0,LIM).map(map)}); };
+  const tEN=(typeof I18N!=="undefined"&&I18N.terms)||{};
+
+  /* ── темы и подтемы: то, чего в поиске не было совсем ── */
+  const cnt={}, sub={};
+  CARDS.forEach(c=>{ if(isHidden(c.id))return; cnt[c.t]=(cnt[c.t]||0)+1;
+    if(c.s){ const k=c.t+"|"+c.s; sub[k]=(sub[k]||0)+1; } });
+  const topics=[];
+  Object.keys(cnt).forEach(cl=>{ if(inc(cl,clName(cl)))
+    topics.push({txt:clName(cl),tag:cnt[cl]+" "+tr("карт."),tok:"t:"+cl,ico:"📚"}); });
+  Object.keys(sub).forEach(k=>{ const cl=k.split("|")[0], sn=k.slice(cl.length+1);
+    if(inc(sn)) topics.push({txt:sn,tag:clName(cl)+" · "+sub[k],tok:"s:"+k,ico:"🏷"}); });
+  topics.sort((a,b)=>parseInt(b.tag)-parseInt(a.tag));
+  push(tr("Темы"),topics,t=>({ico:t.ico,txt:t.txt,tag:t.tag,act:()=>{
+    setDrill(t.tok); drillWeak=false; drillFav=false; drillTricky=false;
+    if(typeof cramEl!=="undefined"&&cramEl)cramEl.checked=true;
+    setMode("drill"); rebuild(); }}));
+
+  const cards=gsIndex().filter(x=>!isHidden(x.c.id)&&has(x.h)).map(x=>x.c);
+  push(tr("Карточки"),cards,c=>({ico:isTricky(c.id)?"🦊":"🎴",txt:T('cards',c.id,'q',c.q),tag:clName(c.t),act:()=>drillTopic(c.id)}));
+
+  const terms=TERMS.filter(t=>{const k=t.t+"|"+t.term,e=tEN[k]||{}; return inc(t.term,t.def,e.term,e.def);});
+  push(tr("Термины"),terms,t=>{const k=t.t+"|"+t.term; return {ico:"📖",txt:T('terms',k,'term',t.term),tag:clName(t.t),act:()=>{pendingTerm=k;const s2=$("#termSearch");if(s2)s2.value="";setMode("terms");}};});
+
+  const fps=FP.map((e,i)=>({e,i})).filter(x=>has(fpHay(x.e)));
+  push(tr("На пальцах"),fps,x=>({ico:"✋",txt:T('fp',x.e.id,'title',x.e.title),tag:clName(x.e.t),act:()=>{fpCur=x.i;fpFrame=0;fpPlaying=true;setMode("fp");}}));
+
+  const basics=BASICS.filter(b=>inc(b.t,b.plain,b.an,basF(b,"t"),basF(b,"plain")));
+  push(tr("Для чайника"),basics,b=>({ico:b.icon||"🍼",txt:basF(b,"t"),tag:basG(b.g),act:()=>{pendingBasic=b.id;const s2=$("#basSearch");if(s2)s2.value="";setMode("basics");}}));
+
+  /* ── «С нуля»: 345 шагов, которые раньше не искались ── */
+  const zs=(typeof ZERO!=="undefined"?ZERO:[]).map((z,i)=>({z,i})).filter(x=>inc(x.z.g,x.z.t,x.z.p,x.z.an));
+  push(tr("С нуля"),zs,x=>({ico:"🌱",txt:x.z.t,tag:x.z.g,act:()=>{ setMode("zero"); gsScrollTo("#zs"+x.i); }}));
+
+  /* ── поведенческие и ситуативные вопросы ── */
+  const bh=(typeof BEHAV!=="undefined"?BEHAV:[]).filter(b=>inc(b.q,b.w,b.h,b.bad,b.g));
+  push(tr("Собеседование"),bh,b=>({ico:"🎤",txt:b.q,tag:b.g,act:()=>{ setMode("beh");
+    gsScrollTo('[data-a="'+behKey(b)+'"]',{up:".beh-q",open:true}); }}));
+
+  /* ── игры ── */
+  const gm=GS_GAMES.filter(g=>inc(g[2],g[3]));
+  push(tr("Игры"),gm,g=>({ico:g[1],txt:g[2],tag:tr("игра"),act:()=>gsOpenGame(g[0])}));
+
+  const prins=PRIN.map((p,i)=>({p,i})).filter(x=>inc(x.p.title,T('prin',x.p.id,'title',''),clName(x.p.t)));
+  push(tr("Принцип"),prins,x=>({ico:"⚙️",txt:T('prin',x.p.id,'title',x.p.title),tag:clName(x.p.t),act:()=>{prinCur=x.i;setMode("prin");}}));
+
+  const vizzes=(typeof V3_SCENES!=="undefined"?V3_SCENES:[]).map((v,i)=>({v,i})).filter(x=>inc(x.v.name,x.v.cl,x.v.intro));
+  push(tr("3D-мир"),vizzes,x=>({ico:x.v.ico,txt:tr(x.v.name),tag:tr("прогулка"),act:()=>{pendingViz=x.i;setMode("viz");}}));
+
   if(!out.length){ gsResults.innerHTML=`<div class="gs-empty">${tr("Ничего не найдено")}</div>`; gsFlat=[]; return; }
   gsResults.innerHTML=out.map(gr=>`<div class="gs-group">${esc(gr.g)}</div>`+gr.items.map(it=>`<div class="gs-item"><span class="gs-ico">${it.ico}</span><span class="gs-txt">${esc(it.txt)}</span><span class="gs-tag">${esc(it.tag)}</span></div>`).join("")).join("");
   gsFlat=[]; out.forEach(gr=>gr.items.forEach(it=>gsFlat.push(it)));
