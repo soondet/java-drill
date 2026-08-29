@@ -94,6 +94,21 @@
     if (!BM["Testing / нагрузка"]) BM["Testing / нагрузка"] = { book: "release-it", why: "нагрузка, запас мощности и поведение под пиком" };
     if (!BM["DevOps / reliability"]) BM["DevOps / reliability"] = { book: "sre", why: "проверка отказов и бюджет ошибок" };
   }
+
+  /* Structured Concurrency учится по форме API из Java 21 (ShutdownOnFailure,
+     throwIfFailed). После 21 API переработали, и старые классы убрали, поэтому
+     карточка без пометки готовит к ответу про несуществующие сейчас классы.
+     Сам концепт — дерево задач и отмена — не изменился, его и надо рассказывать. */
+  var SC = "gap-sc-structured-task-scope";
+  var scNote = "Форма API менялась: в Java 21 это было превью с ShutdownOnFailure/ShutdownOnSuccess и throwIfFailed(). "
+    + "Позже scope стали открывать через StructuredTaskScope.open(...) с политикой Joiner, а join() сам возвращает результат — "
+    + "старых подклассов больше нет. ScopedValue при этом доведён до финального API. На собесе рассказывай идею дерева задач "
+    + "и отмены, а не сигнатуру: имена классов у разных версий разные, и спрашивающий чаще помнит именно идею.";
+  (function () {
+    var c = list.filter(function (x) { return x && x.id === SC; })[0];
+    if (c) c.d = (c.d ? c.d + " " : "") + scNote;
+    if (window.MORE && window.MORE[SC]) window.MORE[SC] = "**Версии API.** " + scNote + "\n\n" + window.MORE[SC];
+  })();
   if (typeof console !== "undefined" && console.debug)
     console.debug("cards-fix: «глубже» " + n + ", заметок " + nn);
 })();
