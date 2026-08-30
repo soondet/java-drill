@@ -3964,9 +3964,21 @@ function buildProg(){
   const ib=$("#impBtn"), if2=$("#impFile"); if(ib&&if2){ ib.onclick=()=>if2.click(); if2.onchange=e=>importProgress(e.target.files&&e.target.files[0]); }
 }
 /* ---------- бэкап прогресса (экспорт/импорт) ---------- */
-const BACKUP_KEYS=["javaDrillProgress.v1","javaDrillStreak.v1","javaDrillHist.v1","jdFav","jdHidden","jdMyNotes","jdZoom","jdLang","jdRmGhost","jdSeen","javaDrillBest","javaDrillBestStreak"];
+/* Раньше это был список из двенадцати ключей, а приложение пишет тридцать два —
+   и в бэкап не попадали ни jdBehav (собственноручно написанные ответы на вопросы
+   собеса), ни jdZero (прочитанные шаги), ни рекорды игр. Список отставал от кода,
+   поэтому теперь берём по префиксу: всё, что принадлежит приложению, сохраняется
+   само, включая ключи, которых ещё нет. */
+const BACKUP_CORE=["javaDrillProgress.v1","javaDrillStreak.v1","javaDrillHist.v1","javaDrillBest","javaDrillBestStreak"];
+const backupMine=k=>BACKUP_CORE.includes(k)||/^jd/.test(k)||/^javaDrill/.test(k);
+function backupKeys(){
+  const out=BACKUP_CORE.slice();
+  for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i);
+    if(k&&backupMine(k)&&out.indexOf(k)<0) out.push(k); }
+  return out;
+}
 function exportProgress(){
-  const data={}; BACKUP_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null)data[k]=v; });
+  const data={}; backupKeys().forEach(k=>{ const v=localStorage.getItem(k); if(v!=null)data[k]=v; });
   const stamp=new Date().toISOString();
   const blob=new Blob([JSON.stringify({app:"java-drill",v:1,date:stamp,data},null,1)],{type:"application/json"});
   const url=URL.createObjectURL(blob), a=document.createElement("a");
@@ -3979,10 +3991,10 @@ function importProgress(file){
   r.onload=()=>{ try{
       const o=JSON.parse(r.result);
       if(!o||typeof o.data!=="object"||!o.data) throw 0;
-      const n=Object.keys(o.data).filter(k=>BACKUP_KEYS.includes(k)).length;
+      const n=Object.keys(o.data).filter(backupMine).length;
       if(!n) throw 0;
       if(!confirm(tr("Заменить текущий прогресс данными из файла? Текущий будет перезаписан."))) return;
-      BACKUP_KEYS.forEach(k=>{ if(k in o.data) localStorage.setItem(k,o.data[k]); });
+      Object.keys(o.data).forEach(k=>{ if(backupMine(k)) localStorage.setItem(k,o.data[k]); });   /* чужие ключи с этого домена не трогаем */
       location.reload();
     }catch(e){ alert(tr("Не удалось прочитать файл бэкапа.")); } };
   r.readAsText(file);
