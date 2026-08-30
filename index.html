@@ -216,7 +216,8 @@
   .lg-core::before,.lg-sec::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
   .lg-core::before{background:var(--good);box-shadow:0 0 5px var(--good)}
   .lg-sec::before{background:var(--mut);opacity:.55}
-  .boxpips{display:flex;gap:5px}
+  .boxpips{display:flex;gap:5px;align-items:center}
+  .pip.plus{border-radius:2px;transform:rotate(45deg)}   /* ступени сверх «освоено» — ромбиком */
   /* Палец не попадает по цели меньше 40px, а звезда занимает 20×16. Растим ОБЛАСТЬ
      НАЖАТИЯ невидимым слоем поверх, не трогая вёрстку: сама иконка остаётся мелкой,
      промахнуться становится нечем. Замер: таких целей было 125.
@@ -534,6 +535,11 @@
   .zero-chips button{flex:none;border:1px solid var(--line);background:var(--panel-2);color:var(--txt);
     font:600 12px var(--sans);padding:7px 13px;border-radius:20px;white-space:nowrap;cursor:pointer}
   .zero-chips button.full{border-color:var(--good);color:var(--good)}
+  /* Вид чипа оставляем прежним, растим только область нажатия — невидимым слоем
+     поверх, как уже сделано для звезды в дриле. */
+  .zero-chips button,.g-cat{position:relative}
+  .zero-chips button::after,.g-cat::after{content:"";position:absolute;left:0;right:0;
+    top:50%;height:44px;transform:translateY(-50%)}
   .zero-code{margin-top:9px;font:600 12.5px/1.6 var(--mono);background:#0b1020;border:1px solid var(--line);
     border-radius:10px;padding:11px 13px;overflow-x:auto;white-space:pre;color:#c9d3ea}
   @media(max-width:980px){
@@ -584,8 +590,11 @@
   .zv .fp-box{font-size:11.5px;padding:5px 8px}
   .zv .fp-tag{font-size:9.5px}
   body.no-anim .zv *{animation:none!important;transition:none!important}
-  .zv-off{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut);cursor:pointer;user-select:none}
-  .zv-off input{accent-color:var(--acc);cursor:pointer}
+  /* Сам чекбокс — 13×13, пальцем не попасть. Тапаем по всей подписи: она и так
+     срабатывает как label, ей нужна только высота под палец. */
+  .zv-off{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut);cursor:pointer;user-select:none;
+    min-height:40px;padding:0 6px;margin:-8px 0}
+  .zv-off input{accent-color:var(--acc);cursor:pointer;width:18px;height:18px;flex:none}
   @media(prefers-reduced-motion:reduce){ .zv *{animation:none!important} }
   @media(max-width:1240px){                     /* ужимаем колонки, но схему держим справа */
     .zero-nav{flex:0 0 196px}
@@ -2234,7 +2243,12 @@ const FP = Array.isArray(window.EXPLAINERS) ? window.EXPLAINERS : [];
 
 /* ---------- SRS (Leitner, по дням) ---------- */
 const KEY="javaDrillProgress.v1", SKEY="javaDrillStreak.v1";
-const BOX_DAYS=[0,0,1,3,7,16];
+/* Лестница интервалов. Раньше обрывалась на 16 днях, и освоенная карточка
+   возвращалась каждые 16 дней вечно: при 810 карточках это 51 повтор в день навсегда.
+   Две верхние ступени снижают устоявшуюся нагрузку до ~11 в день, а нижние не трогают —
+   набор ступеней до «освоено» (box 5) остался прежним, старые значения совместимы. */
+const BOX_DAYS=[0,0,1,3,7,16,35,75];
+const BOX_MAX=BOX_DAYS.length-1;
 const today=()=>Math.floor(Date.now()/86400000);
 let prog=load();
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return {}}}
@@ -2929,7 +2943,11 @@ function srcLine(c){
     +(s.b.author?"<i>"+esc(s.b.author.split(",")[0])+"</i>":"")
     +(s.why?"<em>"+esc(s.why)+"</em>":"")+"</div>";
 }
-function pips(box){let s="";for(let i=1;i<=5;i++)s+=`<i class="pip${i<box?" on":""}"></i>`;return s;}
+/* Пять точек — это «до освоено». Дальше ступени показываем плюсами, иначе шестая
+   и седьмая просто не отображались бы и выглядело бы, что прогресс встал. */
+function pips(box){let s="";for(let i=1;i<=5;i++)s+=`<i class="pip${i<box?" on":""}"></i>`;
+  for(let i=6;i<=box;i++)s+=`<i class="pip on plus"></i>`;
+  return s;}
 function render(){const c=cur,s=stR(c.id);
   const pic=window.PICS&&window.PICS[c.id];
   const hook=window.HOOKS&&window.HOOKS.cards&&window.HOOKS.cards[c.id];
@@ -2944,7 +2962,7 @@ function render(){const c=cur,s=stR(c.id);
        ${isLeech(c.id)?`<span class="pill pill-leech" title="${tr("часто проваливаешь — переформулируй или добей")}">🩸 ${tr("Проблемная")}</span>`:""}
        ${c.s?`<span class="pill">${esc(c.s)}</span>`:""}
        <span class="spacer"></span>
-       <span class="boxpips" title="box ${s.box}/5">${pips(s.box)}</span>
+       <span class="boxpips" title="${tr("ступень")} ${s.box}/${BOX_MAX} · ${tr("следующий повтор через")} ${BOX_DAYS[s.box]} ${tr("дн.")}">${pips(s.box)}</span>
        <button class="fav-btn${isFav(c.id)?' on':''}" id="favBtn" title="${tr('★ избранное (f)')}" aria-label="favorite">${isFav(c.id)?'★':'☆'}</button>
        <button class="hide-btn" id="hideBtn" title="${tr('🚫 больше не показывать')}" aria-label="hide">🚫</button>
      </div>
@@ -2996,7 +3014,7 @@ function reveal(){if(revealed)return;revealed=true;$("#ans").classList.add("show
   $("#btnBad").onclick=()=>grade(0);$("#btnMid").onclick=()=>grade(1);$("#btnGood").onclick=()=>grade(2);}
 function grade(lvl){const s=st(cur.id);
   s.reps=(s.reps||0)+1;
-  if(lvl===2){ s.box=Math.min(s.box+1,5); s.due=today()+BOX_DAYS[s.box]; }
+  if(lvl===2){ s.box=Math.min(s.box+1,BOX_MAX); s.due=today()+BOX_DAYS[s.box]; }
   else if(lvl===1){ s.due=today()+Math.max(1,Math.round(BOX_DAYS[s.box]/2)); }   // «почти» — тот же box, короче интервал
   else { s.lapses=(s.lapses||0)+1; s.box=1; s.due=today(); if(!cramEl.checked)queue.push(cur); }   // провал → +1 к пиявке
   save();bumpStreak();histBump();updateKpis();next();}
