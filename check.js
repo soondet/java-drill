@@ -102,6 +102,23 @@ const check = (name, ok, detail) => {
   check("и не пройти «где больше слов»", tell.wpct <= 55,
     "стратегия даёт " + tell.wpct + "%, потолок 55%, случайный тык 25%");
 
+  /* ---- диагностика: то же правило, что и для викторины ---- */
+  const dg = JSON.parse(await A.ev(`(function(){
+    var D=window.DIAG||[];
+    if(!D.length) return JSON.stringify({n:0,pct:0,bad:[]});
+    var win=0, bad=[];
+    D.forEach(function(d){
+      if(!d.correct||!d.wrong||d.wrong.length<3){ bad.push(d.id); return; }
+      var mx=Math.max.apply(null,d.wrong.map(function(w){return String(w).length}));
+      if(String(d.correct).length>mx) win++;
+    });
+    return JSON.stringify({n:D.length,pct:Math.round(win/D.length*100),bad:bad});
+  })()`));
+  check("сценариев диагностики загружено", dg.n >= 20, dg.n + "");
+  check("у сценариев по три неверных варианта", dg.bad.length === 0, dg.bad.join(", "));
+  check("диагностику не пройти «выбирай самый длинный»", dg.pct <= 40,
+    "стратегия даёт " + dg.pct + "%, потолок 40%, случайный тык 25%");
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);

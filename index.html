@@ -1799,6 +1799,25 @@
   .tk-rin{width:100%;box-sizing:border-box;margin:10px 0 4px;padding:11px 12px;border-radius:10px;
     border:1px solid var(--line);background:var(--panel-2);color:var(--txt);font:600 15px var(--sans);outline:none}
   .tk-rin:focus{border-color:var(--acc)}
+  .dg-sym{font:600 15px/1.55 var(--sans);color:var(--txt);margin:2px 0 12px}
+  .dg-ev{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:0 0 14px}
+  .dg-ev-l{display:block;font:700 11px var(--sans);color:var(--mut);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+  .dg-ev ul{margin:0;padding-left:18px}
+  .dg-ev li{font-size:13.5px;line-height:1.6;color:var(--read);margin:2px 0}
+  .dg-ask{font:700 13.5px var(--sans);color:var(--mut);margin:0 0 9px}
+  .dg-opts{display:flex;flex-direction:column;gap:8px}
+  .dg-opt{text-align:left;background:var(--panel-2);border:1px solid var(--line);border-radius:11px;
+    padding:12px 14px;cursor:pointer;color:var(--txt);font:500 13.5px/1.5 var(--sans);
+    transition:border-color .14s var(--ease),background .14s var(--ease)}
+  .dg-opt:hover:not(:disabled){border-color:var(--acc)}
+  .dg-opt.correct{border-color:var(--good);background:rgba(126,231,135,.10)}
+  .dg-opt.wrong{border-color:var(--bad);background:rgba(255,122,133,.10)}
+  .dg-opt.dim{opacity:.45}
+  .dg-why{margin-top:14px;padding:13px 15px;border-radius:12px;background:var(--panel-2);
+    border:1px solid var(--line);font-size:calc(13.5px * var(--ts));line-height:1.7;color:var(--read)}
+  .dg-why-t{font:800 13px var(--sans);margin-bottom:7px}
+  .dg-why p{margin:0 0 9px}
+  .dg-next{flex:none;margin-top:6px}
   .wp-tag{margin:2px 0 8px;font:700 11.5px var(--sans);color:var(--mut);letter-spacing:.02em}
   .wp-code{margin:0 0 12px;padding:12px 13px;border-radius:12px;background:#0d1119;
     border:1px solid var(--line);overflow-x:auto;font:500 12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -2244,6 +2263,7 @@
 <script src="pics-new.js"></script>
 <script src="more-new.js"></script>
 <script src="notes-new.js"></script>
+<script src="diag.js"></script>
 <script src="wp-new.js"></script>
 <script src="zero-reactive.js"></script>
 <script src="cards-gap2.js"></script>
@@ -4484,7 +4504,7 @@ function gameMenu(){
     <p class="muted2">${tr("Быстрое запоминание разными способами: скорость, связи, сортировка, чутьё.")}</p>
     <div id="gCats" class="g-cats"></div>
     <div class="mode-cards">
-      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card" id="mWp"><div class="mc-emoji">🖨</div><b>${tr("Что напечатает?")}</b><span>${tr("сниппет — предскажи")}<br>${tr("вывод в консоль")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
+      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card" id="mDiag"><div class="mc-emoji">🔍</div><b>${tr("Что дальше?")}</b><span>${tr("прод горит, есть улики")}<br>${tr("выбери следующий шаг")}</span></button><button class="mode-card" id="mWp"><div class="mc-emoji">🖨</div><b>${tr("Что напечатает?")}</b><span>${tr("сниппет — предскажи")}<br>${tr("вывод в консоль")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
       <button class="mode-card duo" id="mMock" style="grid-column:1/-1"><div class="mc-emoji">🎯</div><b>${tr("Mock-интервью")}</b><span>${tr("20 вопросов миксом, без подсказок — разбор по темам в конце")}</span></button>
       <button class="mode-card duo" id="mDuo" style="grid-column:1/-1"><div class="mc-emoji">👥</div><b>${tr("2 игрока")}</b><span>${tr("по очереди на одном телефоне — кто наберёт больше")}</span></button>
       <button class="mode-card duo" id="mDuel" style="grid-column:1/-1"><div class="mc-emoji">🤝</div><b>${tr("Дуэль с другом")}</b><span>${tr("одни и те же вопросы на разных телефонах — код через мессенджер")}</span></button>
@@ -4515,6 +4535,7 @@ function gameMenu(){
   $("#mTank").onclick=()=>startTanks(null);
   $("#mInv").onclick=()=>startInvaders();
   $("#mWp").onclick=()=>startWhatPrints(gcatVal());
+  $("#mDiag").onclick=()=>startDiag(gcatVal());
   $("#mMock").onclick=()=>startMock(gcatVal());
 }
 /* ---------- режим «найди баг» ---------- */
@@ -9926,6 +9947,89 @@ function netShowResult(){
 /* ---- аркада-дуэль: старт по seed и сравнение пробегов ---- */
 
 
+
+
+/* ═════════════════ ЧТО ДАЛЬШЕ? ═════════════════
+   Диагностика по уликам. Отличается от остальных режимов темпом: здесь надо читать,
+   а не успевать, поэтому ни таймера, ни жизней — только разбор после каждого ответа.
+   Разбор показывается всегда, в том числе при верном ответе: половина пользы в том,
+   ПОЧЕМУ остальные три варианта хуже, а не в самом попадании. */
+let DG = null;
+function dgPool(f){
+  const all=(window.DIAG||[]).filter(d=>d&&d.correct&&d.wrong&&d.wrong.length>=3);
+  const mine=all.filter(d=>fmatch(f,d.t));
+  return shuffle((mine.length>=3?mine:all).slice());
+}
+function startDiag(f){
+  const pool=dgPool(f);
+  if(!pool.length) return emptyG("🔍",tr("Мало сценариев для этой темы."),f!=="all"?()=>startDiag("all"):null);
+  gameAct({});
+  DG={deck:pool,i:0,ok:0,bad:0,score:0,streak:0,best:0,t0:Date.now(),f};
+  dgRound();
+}
+function dgRound(){
+  if(!DG) return;
+  if(DG.i>=DG.deck.length) return dgOver();
+  const d=DG.deck[DG.i];
+  const opts=shuffle([{t:d.correct,ok:1},...d.wrong.slice(0,3).map(w=>({t:w,ok:0}))]);
+  gameStage.innerHTML=`<div class="game-play dg-play">
+    <div class="game-top">
+      <div class="gscore">🔍 <b id="dgScore">${DG.score}</b></div>
+      <div class="q-pill">${DG.i+1} / ${DG.deck.length}</div>
+      <div class="gscore mut">${esc(clName(d.t))}</div>
+    </div>
+    <div class="dg-sym">${esc(d.sym)}</div>
+    <div class="dg-ev"><span class="dg-ev-l">${tr("что видно")}</span>
+      <ul>${(d.ev||[]).map(e=>`<li>${esc(e)}</li>`).join("")}</ul></div>
+    <div class="dg-ask">${tr("Что делаешь следующим шагом?")}</div>
+    <div class="dg-opts" id="dgOpts">${opts.map(o=>`<button class="dg-opt" data-ok="${o.ok}">${esc(o.t)}</button>`).join("")}</div>
+    <div class="dg-why" id="dgWhy" hidden></div>
+  </div>`;
+  gameStage.querySelectorAll(".dg-opt").forEach(b=>b.onclick=()=>dgPick(b,d));
+}
+function dgPick(btn,d){
+  if(!DG||DG.done) return;
+  DG.done=true;
+  const ok=btn.dataset.ok==="1";
+  gameStage.querySelectorAll(".dg-opt").forEach(b=>{ b.disabled=true;
+    if(b.dataset.ok==="1")b.classList.add("correct");
+    else if(b===btn)b.classList.add("wrong"); else b.classList.add("dim"); });
+  if(ok){ DG.ok++; DG.streak++; DG.best=Math.max(DG.best,DG.streak);
+    DG.score+=100+Math.min(300,(DG.streak-1)*50); arTone(880,.08,"square",.05); }
+  else { DG.bad++; DG.streak=0; arNoise(.12,.06,400); }
+  const w=$("#dgWhy");
+  if(w){
+    w.innerHTML=`<div class="dg-why-t">${ok?"✓ "+tr("верно"):"✗ "+tr("не этот шаг")}</div>`
+      +fmt(d.why)
+      +`<button class="btn primary dg-next" id="dgNext">${DG.i+1>=DG.deck.length?tr("Итог"):tr("Дальше →")}</button>`;
+    w.hidden=false;
+    const n=$("#dgNext");
+    if(n)n.onclick=()=>{ if(!DG)return; DG.i++; DG.done=false; dgRound(); };
+    w.scrollIntoView({block:"nearest"});
+  }
+  const sc=$("#dgScore"); if(sc)sc.textContent=DG.score;
+}
+function dgOver(){
+  if(!DG) return;
+  const g=DG, sec=Math.round((Date.now()-g.t0)/1000);
+  const acc=g.ok+g.bad?Math.round(g.ok/(g.ok+g.bad)*100):0;
+  const best=Math.max(g.score,+(localStorage.getItem("jdDiagBest")||0));
+  try{localStorage.setItem("jdDiagBest",best)}catch(e){}
+  DG=null;
+  gameStage.innerHTML=`<div class="game-end glass">
+    <div class="game-emoji">${acc>=80?"🧭":acc>=50?"🔍":"🌪"}</div>
+    <div class="q-pill">${acc>=80?tr("Разбираешься по уликам"):acc>=50?tr("Половину шагов угадал"):tr("Чинишь раньше, чем понял")}</div>
+    <div class="big-score">${g.score}</div>
+    <div class="row"><span>✓ ${tr("верно")} ${g.ok} ${tr("из")} ${g.ok+g.bad} (${acc}%)</span></div>
+    <div class="row"><span>🔥 ${tr("лучшая серия")} ${g.best}</span></div>
+    <div class="row"><span>⏱ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}</span></div>
+    <div class="row"><span>🏆 ${tr("рекорд")} ${best}</span></div>
+    <button class="btn primary" id="dgAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
+    <button class="btn" id="dgMenu" style="flex:none">${tr("← Меню")}</button>
+  </div>`;
+  const a=$("#dgAgain"); if(a)a.onclick=()=>startDiag(g.f);
+  const m=$("#dgMenu"); if(m)m.onclick=()=>gameMenu();
+}
 
 /* ═════════════════ ЧТО НАПЕЧАТАЕТ? ═════════════════
    Единственный режим, где надо не узнать ответ, а просчитать код в голове.
