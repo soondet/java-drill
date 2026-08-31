@@ -585,6 +585,11 @@
   .exam-head span{font-size:12px;color:var(--mut)}
   .exam-line{margin:9px 0 11px;font-size:13.5px;line-height:1.6;color:var(--read)}
   .exam-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .exam-cap{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--mut)}
+  .exam-cap input{width:74px;font:400 16px var(--sans);padding:8px 10px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel);color:var(--txt);outline:none;min-height:42px}
+  .exam-cap input:focus{border-color:var(--acc)}
+  .exam-cap-n{font-size:11.5px}
   .exam-in{font:400 16px var(--sans);padding:9px 12px;border-radius:11px;border:1px solid var(--line);
     background:var(--panel);color:var(--txt);outline:none;min-height:42px}
   .exam-in:focus{border-color:var(--acc)}
@@ -2274,6 +2279,26 @@ const KEY="javaDrillProgress.v1", SKEY="javaDrillStreak.v1";
    возвращалась каждые 16 дней вечно: при 810 карточках это 51 повтор в день навсегда.
    Две верхние ступени снижают устоявшуюся нагрузку до ~11 в день, а нижние не трогают —
    набор ступеней до «освоено» (box 5) остался прежним, старые значения совместимы. */
+/* Дневной потолок новых карточек.
+ *
+ * Без него на чистом профиле в сессию падали все 810 — и число демотивирует, и
+ * лавина повторов приходит через день: сколько новых взял сегодня, столько завтра
+ * и вернётся. Потолок касается только обычного режима: «зубрить всё» и порция из
+ * плана подготовки идут мимо него, потому что там объём выбираешь ты сам.
+ */
+const NEW_DEFAULT=20;
+function newPerDay(v){
+  if(v!==undefined){ try{localStorage.setItem("jdNewPerDay",String(Math.max(0,v|0)))}catch(e){} }
+  const r=parseInt(localStorage.getItem("jdNewPerDay"),10);
+  return isNaN(r)?NEW_DEFAULT:Math.max(0,r);
+}
+function newToday(inc){
+  let o={d:0,n:0};
+  try{ o=JSON.parse(localStorage.getItem("jdNewDay")||"{}")||{}; }catch(e){}
+  if(o.d!==today()) o={d:today(),n:0};
+  if(inc){ o.n=(o.n||0)+1; try{localStorage.setItem("jdNewDay",JSON.stringify(o))}catch(e){} }
+  return o.n||0;
+}
 const BOX_DAYS=[0,0,1,3,7,16,35,75];
 const BOX_MAX=BOX_DAYS.length-1;
 const today=()=>Math.floor(Date.now()/86400000);
@@ -2924,7 +2949,7 @@ function weakCards(){
 }
 
 /* ---------- движок дрила ---------- */
-let queue=[],cur=null,revealed=false;
+let queue=[],cur=null,revealed=false,drillTrimmed=0;
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function rebuild(){
   syncDrillCats(); syncFiltBar();
@@ -2936,7 +2961,14 @@ function rebuild(){
   const pool=CARDS.filter(inFilter);
   queue=cramEl.checked
     ? pool.slice().sort((a,b)=>ordC(a.id)-ordC(b.id))   // «зубрить всё» — по порядку темы
-    : shuffle(pool.filter(c=>stR(c.id).due<=today()));   // обычный режим — SRS, вперемешку
+    : (()=>{                                            // обычный режим — SRS, вперемешку
+        const due=pool.filter(c=>stR(c.id).due<=today());
+        const rep=due.filter(c=>prog[c.id]);              // уже начатые — берём все, это долг
+        const fresh=due.filter(c=>!prog[c.id]);           // новые — сколько осталось по потолку
+        const room=Math.max(0,newPerDay()-newToday());
+        drillTrimmed=Math.max(0,fresh.length-room);
+        return shuffle(rep.concat(shuffle(fresh).slice(0,room)));
+      })();
   if(pendingTopic){                                      // roadmap → этот вопрос первым
     let i=queue.findIndex(c=>c.id===pendingTopic);
     if(i<0){ const pc=pool.find(c=>c.id===pendingTopic); if(pc){ queue.unshift(pc); i=0; } }
@@ -2946,7 +2978,9 @@ function rebuild(){
   updateKpis(); next();
 }
 function next(){revealed=false;cur=queue.shift();
-  $("#sessLeft").textContent=cur?`в сессии: ${queue.length+1}`:"";
+  $("#sessLeft").textContent=cur
+    ? tr("в сессии")+": "+(queue.length+1)+(drillTrimmed?" · "+tr("новых сверх дневной нормы отложено")+": "+drillTrimmed:"")
+    : "";
   if(!cur){renderEmpty();return;} render();}
 /* Откуда это знание. Показываем мелко и приглушённо: видно, если посмотреть,
    и не мешает, если не смотреть. Привязка идёт по паре тема/подтема,
@@ -3039,7 +3073,7 @@ function setupMic(){
 function reveal(){if(revealed)return;revealed=true;$("#ans").classList.add("show");
   $("#act").innerHTML=`<button class="btn bad" id="btnBad">${tr("Не знал")} <kbd>1</kbd></button><button class="btn mid" id="btnMid">${tr("Почти")} <kbd>2</kbd></button><button class="btn good" id="btnGood">${tr("Знал")} <kbd>3</kbd></button>`;
   $("#btnBad").onclick=()=>grade(0);$("#btnMid").onclick=()=>grade(1);$("#btnGood").onclick=()=>grade(2);}
-function grade(lvl){const s=st(cur.id);
+function grade(lvl){const wasNew=!prog[cur.id]; const s=st(cur.id); if(wasNew)newToday(true);
   s.reps=(s.reps||0)+1;
   if(lvl===2){ s.box=Math.min(s.box+1,BOX_MAX); s.due=today()+BOX_DAYS[s.box]; }
   else if(lvl===1){ s.due=today()+Math.max(1,Math.round(BOX_DAYS[s.box]/2)); }   // «почти» — тот же box, короче интервал
@@ -3048,7 +3082,14 @@ function grade(lvl){const s=st(cur.id);
 function renderEmpty(){
   if(drillFav&&!FAV.size){ drillStage.innerHTML=`<div class="empty"><h2>⭐ ${tr("Избранное пусто")}</h2><div>${tr("Отмечай карточки звёздочкой ★ (или клавишей f) — они появятся здесь.")}</div><button class="btn primary" id="favBack" style="margin-top:18px;flex:none">${tr("← Все темы")}</button></div>`; const b=$("#favBack"); if(b)b.onclick=()=>{drillFav=false;rebuild();}; return; }
   const pool=CARDS.filter(inFilter);
-  drillStage.innerHTML=`<div class="empty"><h2>${tr("На сегодня всё 🎉")}</h2><div>${tr("В этом фильтре нет карточек к повтору — интервальное повторение сделает своё. Прогресс сохранён.")}</div><button class="btn primary" id="cramNow" style="margin-top:18px;flex:none">${tr("Зубрить всё подряд")} (${pool.length})</button></div>`;
+  /* «Новых на сегодня больше нет» и «всё повторено» — разные состояния: в первом
+     случае карточки есть, просто сработал дневной потолок, и это надо сказать. */
+  const capped=drillTrimmed>0;
+  drillStage.innerHTML=`<div class="empty"><h2>${capped?tr("Норма на сегодня закрыта 👌"):tr("На сегодня всё 🎉")}</h2>
+    <div>${capped
+      ? tr("Новых карточек на сегодня больше не берём — так завтра не придёт лавина повторов. Отложено")+": "+drillTrimmed+". "+tr("Норму можно поменять во вкладке «Прогресс».")
+      : tr("В этом фильтре нет карточек к повтору — интервальное повторение сделает своё. Прогресс сохранён.")}</div>
+    <button class="btn primary" id="cramNow" style="margin-top:18px;flex:none">${tr("Зубрить всё подряд")} (${pool.length})</button></div>`;
   $("#cramNow").onclick=()=>{cramEl.checked=true;rebuild();};}
 
 /* ---------- вкладки ---------- */
@@ -4129,7 +4170,12 @@ function buildProg(){
   stg.innerHTML=`<div class="prog-wrap">
     <h2 class="prog-h">${tr("Твой прогресс")}</h2>
     ${examBlock()}
-    <div class="exam-row" style="margin:-8px 0 16px"><button class="btn" id="printBtn" style="flex:none">🖨 ${tr("шпаргалка слабых мест")}</button></div>
+    <div class="exam-row" style="margin:-8px 0 16px">
+      <button class="btn" id="printBtn" style="flex:none">🖨 ${tr("шпаргалка слабых мест")}</button>
+      <label class="exam-cap">${tr("новых в день")}
+        <input type="number" id="newCap" min="0" max="200" step="5" value="${newPerDay()}">
+        <span class="exam-cap-n">${tr("сегодня взято")}: ${newToday()}</span></label>
+    </div>
     <div class="prog-kpis">
       <div class="pk"><b>${total}</b><span>${tr("карточек")}</span></div>
       <div class="pk g"><b>${mastered}</b><span>${tr("освоено")}</span></div>
@@ -4163,6 +4209,7 @@ function buildProg(){
   if(eGo)eGo.onclick=()=>examStudyToday();
   if(eClr)eClr.onclick=()=>{ examDate(""); buildProg(); };
   const ps=$("#printBtn"); if(ps)ps.onclick=printSheet;
+  const nc=$("#newCap"); if(nc)nc.onchange=()=>{ newPerDay(+nc.value); toast(tr("Норма новых карточек")+": "+newPerDay()); };
   const hra=$("#hidRestoreAll"); if(hra)hra.onclick=()=>{ hiddenCards.forEach(c=>HIDDEN.delete(c.id)); try{localStorage.setItem("jdHidden",JSON.stringify([...HIDDEN]))}catch(e){} buildProg(); };
   stg.querySelectorAll(".leech-clear").forEach(b=>b.onclick=e=>{ e.stopPropagation(); const p=prog[b.dataset.id]; if(p){p.lapses=0;save();} buildProg(); });
   stg.querySelectorAll(".leech-row").forEach(r=>r.onclick=()=>drillTopic(r.dataset.id));
