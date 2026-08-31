@@ -2282,6 +2282,7 @@
 <script src="pics-new.js"></script>
 <script src="more-new.js"></script>
 <script src="notes-new.js"></script>
+<script src="review.js"></script>
 <script src="money.js"></script>
 <script src="diag.js"></script>
 <script src="wp-new.js"></script>
@@ -3942,6 +3943,14 @@ function gsRun(q){
   const mn=(typeof MONEY!=="undefined"?MONEY:[]).map((z,i)=>({z,i})).filter(x=>inc(x.z.g,x.z.t,x.z.p,x.z.an));
   push(tr("Деньги"),mn,x=>({ico:"💰",txt:x.z.t,tag:x.z.g,act:()=>{ setMode("money"); gsScrollTo("#ms"+x.i); }}));
 
+  /* ── разборы ревью ── */
+  const rvs=(window.REVIEW||[]).filter(r=>inc(r.ctx,r.code,r.correct,r.why,clName(r.t)));
+  push(tr("Ревью"),rvs,r=>({ico:"👀",txt:r.ctx,tag:clName(r.t),act:()=>{
+    setMode("game");
+    setTimeout(()=>{ startReview("all");
+      if(typeof RV!=="undefined"&&RV){ const k=RV.deck.findIndex(x=>x.id===r.id); if(k>0)RV.deck.unshift(RV.deck.splice(k,1)[0]); rvRound(); }
+    },0); }}));
+
   /* ── сценарии диагностики ── */
   const dgs=(window.DIAG||[]).filter(d=>inc(d.sym,(d.ev||[]).join(" "),d.correct,d.why,clName(d.t)));
   push(tr("Что дальше?"),dgs,d=>({ico:"🔍",txt:d.sym,tag:clName(d.t),act:()=>{
@@ -4598,7 +4607,7 @@ function gameMenu(){
     <p class="muted2">${tr("Быстрое запоминание разными способами: скорость, связи, сортировка, чутьё.")}</p>
     <div id="gCats" class="g-cats"></div>
     <div class="mode-cards">
-      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card" id="mDiag"><div class="mc-emoji">🔍</div><b>${tr("Что дальше?")}</b><span>${tr("прод горит, есть улики")}<br>${tr("выбери следующий шаг")}</span></button><button class="mode-card" id="mWp"><div class="mc-emoji">🖨</div><b>${tr("Что напечатает?")}</b><span>${tr("сниппет — предскажи")}<br>${tr("вывод в консоль")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
+      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card" id="mRev"><div class="mc-emoji">👀</div><b>${tr("Ревью")}</b><span>${tr("что здесь блокирующее,")}<br>${tr("а что вкусовщина")}</span></button><button class="mode-card" id="mDiag"><div class="mc-emoji">🔍</div><b>${tr("Что дальше?")}</b><span>${tr("прод горит, есть улики")}<br>${tr("выбери следующий шаг")}</span></button><button class="mode-card" id="mWp"><div class="mc-emoji">🖨</div><b>${tr("Что напечатает?")}</b><span>${tr("сниппет — предскажи")}<br>${tr("вывод в консоль")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
       <button class="mode-card duo" id="mMock" style="grid-column:1/-1"><div class="mc-emoji">🎯</div><b>${tr("Mock-интервью")}</b><span>${tr("20 вопросов миксом, без подсказок — разбор по темам в конце")}</span></button>
       <button class="mode-card duo" id="mDuo" style="grid-column:1/-1"><div class="mc-emoji">👥</div><b>${tr("2 игрока")}</b><span>${tr("по очереди на одном телефоне — кто наберёт больше")}</span></button>
       <button class="mode-card duo" id="mDuel" style="grid-column:1/-1"><div class="mc-emoji">🤝</div><b>${tr("Дуэль с другом")}</b><span>${tr("одни и те же вопросы на разных телефонах — код через мессенджер")}</span></button>
@@ -4630,6 +4639,7 @@ function gameMenu(){
   $("#mInv").onclick=()=>startInvaders();
   $("#mWp").onclick=()=>startWhatPrints(gcatVal());
   $("#mDiag").onclick=()=>startDiag(gcatVal());
+  $("#mRev").onclick=()=>startReview(gcatVal());
   $("#mMock").onclick=()=>startMock(gcatVal());
 }
 /* ---------- режим «найди баг» ---------- */
@@ -10042,6 +10052,88 @@ function netShowResult(){
 
 
 
+
+
+/* ═════════════════ РЕВЬЮ ═════════════════
+   «Найди баг» спрашивает, где дефект. Здесь вопрос сеньорский: из нескольких верных
+   замечаний выбрать то, из-за которого нельзя вливать. Поэтому среди вариантов почти
+   нет откровенно ложных — есть верное-но-обсуждаемое и вкусовщина, на которой ревью
+   буксует чаще всего. Разбор объясняет расстановку приоритетов, а не сам дефект. */
+let RV = null;
+function rvPool(f){
+  const all=(window.REVIEW||[]).filter(r=>r&&r.correct&&r.wrong&&r.wrong.length>=3);
+  const mine=all.filter(r=>fmatch(f,r.t));
+  return shuffle((mine.length>=3?mine:all).slice());
+}
+function startReview(f){
+  const pool=rvPool(f);
+  if(!pool.length) return emptyG("👀",tr("Мало разборов для этой темы."),f!=="all"?()=>startReview("all"):null);
+  gameAct({});
+  RV={deck:pool,i:0,ok:0,bad:0,score:0,streak:0,best:0,t0:Date.now(),f};
+  rvRound();
+}
+function rvRound(){
+  if(!RV) return;
+  if(RV.i>=RV.deck.length) return rvOver();
+  const r=RV.deck[RV.i];
+  const opts=shuffle([{t:r.correct,ok:1},...r.wrong.slice(0,3).map(w=>({t:w,ok:0}))]);
+  gameStage.innerHTML=`<div class="game-play dg-play">
+    <div class="game-top">
+      <div class="gscore">👀 <b id="rvScore">${RV.score}</b></div>
+      <div class="q-pill">${RV.i+1} / ${RV.deck.length}</div>
+      <div class="gscore mut">${esc(clName(r.t))}</div>
+    </div>
+    <div class="dg-sym">${esc(r.ctx)}</div>
+    <pre class="wp-code">${esc(r.code)}</pre>
+    <div class="dg-ask">${tr("Какое замечание здесь блокирующее?")}</div>
+    <div class="dg-opts" id="rvOpts">${opts.map(o=>`<button class="dg-opt" data-ok="${o.ok}">${esc(o.t)}</button>`).join("")}</div>
+    <div class="dg-why" id="rvWhy" hidden></div>
+  </div>`;
+  gameStage.querySelectorAll(".dg-opt").forEach(b=>b.onclick=()=>rvPick(b,r));
+}
+function rvPick(btn,r){
+  if(!RV||RV.done) return;
+  RV.done=true;
+  const ok=btn.dataset.ok==="1";
+  gameStage.querySelectorAll(".dg-opt").forEach(b=>{ b.disabled=true;
+    if(b.dataset.ok==="1")b.classList.add("correct");
+    else if(b===btn)b.classList.add("wrong"); else b.classList.add("dim"); });
+  if(ok){ RV.ok++; RV.streak++; RV.best=Math.max(RV.best,RV.streak);
+    RV.score+=100+Math.min(300,(RV.streak-1)*50); arTone(880,.08,"square",.05); }
+  else { RV.bad++; RV.streak=0; arNoise(.12,.06,400); }
+  const w=$("#rvWhy");
+  if(w){
+    w.innerHTML=`<div class="dg-why-t">${ok?"\u2713 "+tr("верно"):"\u2717 "+tr("не это главное")}</div>`
+      +fmt(r.why)
+      +`<button class="btn primary dg-next" id="rvNext">${RV.i+1>=RV.deck.length?tr("Итог"):tr("Дальше →")}</button>`;
+    w.hidden=false;
+    const n=$("#rvNext");
+    if(n)n.onclick=()=>{ if(!RV)return; RV.i++; RV.done=false; rvRound(); };
+    w.scrollIntoView({block:"nearest"});
+  }
+  const sc=$("#rvScore"); if(sc)sc.textContent=RV.score;
+}
+function rvOver(){
+  if(!RV) return;
+  const g=RV, sec=Math.round((Date.now()-g.t0)/1000);
+  const acc=g.ok+g.bad?Math.round(g.ok/(g.ok+g.bad)*100):0;
+  const best=Math.max(g.score,+(localStorage.getItem("jdRevBest")||0));
+  try{localStorage.setItem("jdRevBest",best)}catch(e){}
+  RV=null;
+  gameStage.innerHTML=`<div class="game-end glass">
+    <div class="game-emoji">${acc>=80?"🧿":acc>=50?"👀":"🌀"}</div>
+    <div class="q-pill">${acc>=80?tr("Видишь главное"):acc>=50?tr("Половину приоритетов угадал"):tr("Тонешь в мелочах")}</div>
+    <div class="big-score">${g.score}</div>
+    <div class="row"><span>✓ ${tr("верно")} ${g.ok} ${tr("из")} ${g.ok+g.bad} (${acc}%)</span></div>
+    <div class="row"><span>🔥 ${tr("лучшая серия")} ${g.best}</span></div>
+    <div class="row"><span>⏱ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}</span></div>
+    <div class="row"><span>🏆 ${tr("рекорд")} ${best}</span></div>
+    <button class="btn primary" id="rvAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
+    <button class="btn" id="rvMenu" style="flex:none">${tr("← Меню")}</button>
+  </div>`;
+  const a=$("#rvAgain"); if(a)a.onclick=()=>startReview(g.f);
+  const m=$("#rvMenu"); if(m)m.onclick=()=>gameMenu();
+}
 
 /* ═════════════════ ЧТО ДАЛЬШЕ? ═════════════════
    Диагностика по уликам. Отличается от остальных режимов темпом: здесь надо читать,

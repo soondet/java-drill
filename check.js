@@ -119,6 +119,26 @@ const check = (name, ok, detail) => {
   check("диагностику не пройти «выбирай самый длинный»", dg.pct <= 40,
     "стратегия даёт " + dg.pct + "%, потолок 40%, случайный тык 25%");
 
+  /* ---- ревью: тот же запрет на подсказку по длине ---- */
+  const rv = JSON.parse(await A.ev(`(function(){
+    var R=window.REVIEW||[];
+    if(!R.length) return JSON.stringify({n:0,pct:0,bad:[],wide:0});
+    var win=0, bad=[], wide=0;
+    R.forEach(function(r){
+      if(!r.correct||!r.wrong||r.wrong.length<3||!r.code){ bad.push(r.id); return; }
+      var mx=Math.max.apply(null,r.wrong.map(function(w){return String(w).length}));
+      if(String(r.correct).length>mx) win++;
+      var lw=Math.max.apply(null,String(r.code).split("\\n").map(function(l){return l.length}));
+      if(lw>56) wide++;
+    });
+    return JSON.stringify({n:R.length,pct:Math.round(win/R.length*100),bad:bad,wide:wide});
+  })()`));
+  check("разборов ревью загружено", rv.n >= 12, rv.n + "");
+  check("у разборов по три варианта и есть код", rv.bad.length === 0, rv.bad.join(", "));
+  check("ревью не пройти «выбирай самый длинный»", rv.pct <= 40,
+    "стратегия даёт " + rv.pct + "%, потолок 40%, случайный тык 25%");
+  check("код в ревью влезает в телефон", rv.wide === 0, rv.wide + " сниппетов со строкой длиннее 56");
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);
