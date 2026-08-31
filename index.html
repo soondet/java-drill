@@ -567,6 +567,32 @@
   .beh-ta:focus{border-color:var(--acc)}
   .beh-tm{display:flex;align-items:center;gap:10px;margin-top:9px;font-size:12px;color:var(--mut)}
   .beh-tm b{font:800 15px var(--mono);color:var(--fg)}
+  .ps{display:none}
+  @media print{
+    body>*{display:none !important}
+    #printSheet,#printSheet *{display:revert !important}
+    #printSheet{display:block !important;color:#000;background:#fff;font:12px/1.45 Georgia,serif;padding:0}
+    #printSheet h1{font-size:19px;margin:0 0 4px}
+    #printSheet .ps-sub{color:#555;font-size:11px;margin:0 0 14px}
+    #printSheet h2{font-size:13px;margin:14px 0 6px;border-bottom:1px solid #bbb;padding-bottom:2px;break-after:avoid}
+    #printSheet .ps-i{margin:0 0 7px;break-inside:avoid}
+    #printSheet .ps-i b{display:block;font-size:12px}
+    #printSheet .ps-i span{display:block;color:#333}
+  }
+  .exam-box{border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin:0 0 18px;background:var(--panel-2)}
+  .exam-box.on{border-color:var(--acc)}
+  .exam-head{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;font-size:14px}
+  .exam-head span{font-size:12px;color:var(--mut)}
+  .exam-line{margin:9px 0 11px;font-size:13.5px;line-height:1.6;color:var(--read)}
+  .exam-row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .exam-in{font:400 16px var(--sans);padding:9px 12px;border-radius:11px;border:1px solid var(--line);
+    background:var(--panel);color:var(--txt);outline:none;min-height:42px}
+  .exam-in:focus{border-color:var(--acc)}
+  .beh-rec.on{border-color:var(--bad);color:var(--bad)}
+  .beh-rec-hint{font-size:11.5px;color:var(--mut)}
+  .beh-play{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px}
+  .beh-play audio{height:34px;max-width:100%}
+  .beh-len{font:600 12px var(--sans);color:var(--mut)}
   /* Прокрутка живёт ВНУТРИ вкладки, как в «Терминах» с их .term-list. Без этого
      контент вываливался из body фиксированной высоты, ехала вся страница целиком —
      и приклеенная шапка с вкладками уезжала вместе с ней. Ключ именно в overflow:
@@ -2172,6 +2198,7 @@
 <div id="trefModal" class="tref-modal" hidden><div class="tref-backdrop" id="trefBack"></div><div class="tref-card" id="trefCard"></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden><span id="toastMsg"></span><button id="toastAct" hidden></button></div>
 <div id="arQuiz" class="ar-quiz" hidden></div>
+<div id="printSheet" class="ps" hidden></div>
 <div id="gsModal" class="gs-modal" hidden><div class="gs-back" id="gsBack"></div><div class="gs-panel"><input id="gsInput" autocomplete="off" spellcheck="false" placeholder="🔍 поиск по всему…"><div id="gsResults" class="gs-results"></div></div></div>
 
 <script src="cards.js"></script>
@@ -3038,6 +3065,7 @@ function setMode(m){mode=m;
     if(typeof TK!=="undefined"&&TK){ if(TK.net)netClose(); tkStop(); }
     if(typeof SI!=="undefined"&&SI)siStop();
   }
+  if(m!=="beh" && typeof behRecStop==="function") behRecStop();   /* не держим микрофон открытым на других вкладках */
   ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh","mus"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":x==="mus"?"Mus":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
   $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh","mus"].includes(m));
   $("#moreMenu").hidden=true;
@@ -3277,6 +3305,9 @@ function buildBeh(){
         <textarea class="beh-ta" data-a="${k}" placeholder="${tr("Напиши своими словами — это и будет твой ответ на собесе")}">${esc(ans)}</textarea>
         <div class="beh-tm"><button class="btn" data-t="${k}" style="flex:none;padding:6px 12px;font-size:12px">⏱ ${tr("2 минуты вслух")}</button>
           <b id="bt${k}">2:00</b><span>${tr("прочитай вслух и уложись")}</span></div>
+        <div class="beh-tm"><button class="btn beh-rec" data-r="${k}" style="flex:none;padding:6px 12px;font-size:12px">🎙 ${tr("записать ответ")}</button>
+          <span class="beh-rec-hint">${tr("скажи вслух и послушай себя — запись остаётся в браузере")}</span></div>
+        <div class="beh-play" id="bp${k}" hidden></div>
       </div></div>`;
   });
   wrap.innerHTML=html;
@@ -3295,9 +3326,66 @@ function buildBeh(){
     behTimer=setInterval(()=>{ left--;
       if(el)el.textContent=Math.floor(left/60)+":"+String(left%60).padStart(2,"0");
       if(left<=0){ clearInterval(behTimer); behTimer=null; if(el)el.textContent=tr("время"); } },1000); });
+  wrap.querySelectorAll("[data-r]").forEach(b=>b.onclick=e=>{ e.stopPropagation(); behRecToggle(b); });
   behBarUI();
 }
 let behTimer=null;
+/* Запись ответа голосом.
+ *
+ * Приложение тренировало узнавание и вспоминание, но не речь: заготовку ты пишешь,
+ * а на собесе говоришь. Услышать себя — самый быстрый способ поправить ответ.
+ *
+ * Запись живёт только в памяти вкладки: никуда не отправляется и не сохраняется на
+ * диск. Ушёл со страницы — исчезла. Поэтому же ссылку на blob отзываем при перезаписи,
+ * иначе прошлые куски висят в памяти до перезагрузки.
+ */
+let BEHREC = null;
+function behRecStop(){
+  if(!BEHREC) return;
+  try{ if(BEHREC.rec && BEHREC.rec.state!=="inactive") BEHREC.rec.stop(); }catch(e){}
+  try{ (BEHREC.stream.getTracks()||[]).forEach(t=>t.stop()); }catch(e){}   /* иначе индикатор микрофона горит дальше */
+  clearInterval(BEHREC.tick);
+  BEHREC=null;
+}
+async function behRecToggle(btn){
+  const key=btn.dataset.r;
+  if(BEHREC && BEHREC.key===key){ behRecStop(); return; }        /* второй тап — стоп */
+  behRecStop();
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder==="undefined"){
+    btn.textContent=tr("микрофон недоступен"); btn.disabled=true; return; }
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ btn.textContent=tr("нет доступа к микрофону"); setTimeout(()=>{btn.textContent="🎙 "+tr("записать ответ")},2500); return; }
+  const chunks=[], rec=new MediaRecorder(stream);
+  const out=$("#bp"+key);
+  rec.ondataavailable=e=>{ if(e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop=()=>{
+    btn.classList.remove("on"); btn.textContent="🎙 "+tr("записать ещё раз");
+    if(!chunks.length || !out) return;
+    if(out.dataset.url){ try{URL.revokeObjectURL(out.dataset.url)}catch(e){} }
+    const blob=new Blob(chunks,{type:rec.mimeType||"audio/webm"});
+    const url=URL.createObjectURL(blob);
+    out.dataset.url=url;
+    const sec=Math.round((Date.now()-t0)/1000);
+    const mm=Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0");
+    /* Две минуты — ориентир для рассказа о себе и о проекте: короче звучит скомканно,
+       длиннее собеседник перестаёт слушать. Поэтому показываем не только время, но и вердикт. */
+    const verdict = sec<45 ? tr("коротко — вероятно, пропустил результат") :
+                    sec<=140 ? tr("укладываешься") : tr("длинно — слушатель уже отвлёкся");
+    out.hidden=false;
+    out.innerHTML='<audio controls preload="metadata" src="'+url+'"></audio>'
+      +'<span class="beh-len">'+mm+' · '+esc(verdict)+'</span>';
+  };
+  const t0=Date.now();
+  rec.start();
+  BEHREC={key,rec,stream,tick:null};
+  btn.classList.add("on");
+  BEHREC.tick=setInterval(()=>{
+    const sec=Math.round((Date.now()-t0)/1000);
+    btn.textContent="⏹ "+Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0");
+    if(sec>=300) behRecStop();                                   /* пять минут — потолок, чтобы не забить память */
+  },250);
+}
 /* ---------- 🌱 С нуля: лестница от транзистора до программы ---------- */
 const ZERO_RAW=(window.ZERO||[]);
 /* Отметки «прочитано» лежали под НОМЕРОМ шага. Любая вставка маршрута в середину
@@ -3919,6 +4007,97 @@ function gameNext(fn,cardId){   // кнопка «Далее →» вместо 
   requestAnimationFrame(()=>{ try{nx.focus({preventScroll:true});}catch(_){ } });
 }
 function cardState(id){const p=prog[id]; if(!p)return"new"; return p.box>=5?"mastered":"learning";}
+/* План «собес через N дней».
+ *
+ * Дрил по умолчанию бесконечный: он не знает, что собес в четверг. Здесь ставишь дату —
+ * и невыученное раскладывается по дням, самое слабое вперёд. Последний день оставляем
+ * под повторение, новое в него не кладём: учить новое накануне бессмысленно.
+ *
+ * Отдельного контента не требует — считается по тем же ступеням и «проблемным».
+ */
+function examDate(v){
+  if(v!==undefined){ try{ v?localStorage.setItem("jdExam",v):localStorage.removeItem("jdExam"); }catch(e){} }
+  return localStorage.getItem("jdExam")||"";
+}
+function examDaysLeft(){
+  const d=examDate(); if(!d) return null;
+  const ms=Date.parse(d+"T00:00:00"); if(isNaN(ms)) return null;
+  return Math.ceil((ms-Date.now())/86400000);
+}
+/* Порядок подготовки: сначала то, что валишь чаще всего, потом по возрастанию ступени.
+   Освоенное (ступень 5 и выше) в план не берём — оно и так придёт по расписанию. */
+function examPool(){
+  return CARDS.filter(c=>!isHidden(c.id)&&stR(c.id).box<5)
+    .sort((a,b)=>((prog[b.id]||{}).lapses||0)-((prog[a.id]||{}).lapses||0)
+      || stR(a.id).box-stR(b.id).box
+      || ordC(a.id)-ordC(b.id));
+}
+function examPlan(){
+  const left=examDaysLeft(); if(left===null) return null;
+  const pool=examPool();
+  const study=Math.max(1,left-1);                 /* последний день — только повторение */
+  const perDay=Math.ceil(pool.length/study);
+  /* «К повтору» здесь — только уже начатые карточки. Новые в общем счётчике тоже
+     считаются к повтору, но план их сам и раскладывает по дням: если сложить, выйдет
+     двойной счёт и цифра вида «55 + 810 в день», которая ничего не значит. */
+  const dueToday=CARDS.filter(c=>prog[c.id]&&stR(c.id).due<=today()&&!isHidden(c.id)).length;
+  return {left,pool,perDay:left<=1?0:perDay,dueToday,study};
+}
+function examStudyToday(){
+  const pl=examPlan(); if(!pl) return;
+  const ids=pl.left<=1?[]:pl.pool.slice(0,pl.perDay).map(c=>c.id);
+  drillTokens.clear(); drillWeak=false; drillFav=false; drillLeech=false; drillTricky=false;
+  if(cramEl)cramEl.checked=true;
+  /* Порядок важен: setMode сам вызывает rebuild и обнулил бы drillList, поэтому список
+     кладём ПОСЛЕ переключения вкладки и пересобираем очередь ещё раз. */
+  setMode("drill");
+  drillList=ids.length?ids:examPool().slice(0,40).map(c=>c.id);
+  rebuild();
+}
+/* Шпаргалка на печать: то, что валишь, и то, что ещё не закрепилось — одним листом,
+   чтобы перечитать накануне. Печатаем через отдельный слой и @media print, а не
+   открываем новое окно: всплывающие окна режет и браузер, и телефон. */
+function printSheet(){
+  const leech=CARDS.filter(c=>isLeech(c.id)&&!isHidden(c.id));
+  const weak=CARDS.filter(c=>!isHidden(c.id)&&prog[c.id]&&stR(c.id).box<3&&!isLeech(c.id))
+    .sort((a,b)=>stR(a.id).box-stR(b.id).box||ordC(a.id)-ordC(b.id));
+  const pick=leech.concat(weak).slice(0,70);
+  if(!pick.length){ toast(tr("Пока нечего повторять — слабых мест нет")); return; }
+  const byCl={};
+  pick.forEach(c=>{ (byCl[c.t]=byCl[c.t]||[]).push(c); });
+  const short=t=>{ const x=String(t||"").replace(/\s+/g," ").trim(); return x.length>190?x.slice(0,188)+"…":x; };
+  const host=$("#printSheet");
+  host.innerHTML=`<h1>${tr("Шпаргалка: слабые места")}</h1>
+    <p class="ps-sub">${new Date().toLocaleDateString()} · ${tr("проблемных")}: ${leech.length} · ${tr("не закрепилось")}: ${weak.length} · ${tr("на листе")}: ${pick.length}</p>`
+    + Object.keys(byCl).map(cl=>`<h2>${esc(clName(cl))}</h2>`
+      + byCl[cl].map(c=>`<div class="ps-i"><b>${esc(T('cards',c.id,'q',c.q))}</b>
+        <span>${esc(short(T('cards',c.id,'a',c.a)))}</span></div>`).join("")).join("");
+  host.hidden=false;
+  const done=()=>{ host.hidden=true; window.removeEventListener("afterprint",done); };
+  window.addEventListener("afterprint",done);
+  setTimeout(()=>{ window.print(); setTimeout(done,1500); },50);   /* запасной сброс: afterprint есть не везде */
+}
+function examBlock(){
+  const pl=examPlan();
+  if(!pl) return `<div class="exam-box">
+    <div class="exam-head">🎯 <b>${tr("Собес на носу?")}</b><span>${tr("поставь дату — разложу, что учить по дням")}</span></div>
+    <div class="exam-row"><input type="date" id="examIn" class="exam-in"><button class="btn primary" id="examSet" style="flex:none">${tr("составить план")}</button></div>
+  </div>`;
+  const past=pl.left<0;
+  const body=past
+    ? `<div class="exam-line">${tr("дата уже прошла")}</div>`
+    : pl.left<=1
+      ? `<div class="exam-line"><b>${pl.left===0?tr("сегодня"):tr("завтра")}</b> — ${tr("новое не берём, только повторение")}: <b>${pl.dueToday}</b> ${tr("к повтору")}</div>`
+      : `<div class="exam-line">${tr("осталось дней")}: <b>${pl.left}</b> · ${tr("невыученного")}: <b>${pl.pool.length}</b> · ${tr("в день")}: <b>${pl.perDay}</b> + <b>${pl.dueToday}</b> ${tr("к повтору")}</div>`;
+  return `<div class="exam-box on">
+    <div class="exam-head">🎯 <b>${tr("Подготовка к собесу")}</b><span>${esc(examDate())}</span></div>
+    ${body}
+    <div class="exam-row">
+      ${past||pl.left<=1?"":`<button class="btn primary" id="examGo" style="flex:none">${tr("учить сегодняшнюю порцию")}</button>`}
+      <button class="btn" id="examClr" style="flex:none">${tr("убрать дату")}</button>
+    </div>
+  </div>`;
+}
 function buildProg(){
   const stg=$("#progStage"); const total=CARDS.length;
   let mastered=0,learning=0,fresh=0,due=0; const byCl={};
@@ -3949,6 +4128,8 @@ function buildProg(){
   for(let i=13;i>=0;i--){const v=h[t-i]||0;maxd=Math.max(maxd,v);days.push(v);}
   stg.innerHTML=`<div class="prog-wrap">
     <h2 class="prog-h">${tr("Твой прогресс")}</h2>
+    ${examBlock()}
+    <div class="exam-row" style="margin:-8px 0 16px"><button class="btn" id="printBtn" style="flex:none">🖨 ${tr("шпаргалка слабых мест")}</button></div>
     <div class="prog-kpis">
       <div class="pk"><b>${total}</b><span>${tr("карточек")}</span></div>
       <div class="pk g"><b>${mastered}</b><span>${tr("освоено")}</span></div>
@@ -3974,6 +4155,14 @@ function buildProg(){
   stg.querySelectorAll("[data-cl]").forEach(b=>b.onclick=()=>{ rmExpand=false; setDrill("t:"+b.dataset.cl); cramEl.checked=true; setMode("drill"); });
   const dw=$("#drillWeak"); if(dw)dw.onclick=()=>{ rmExpand=false; setDrill(null,true); cramEl.checked=false; feynEl.checked=false; setMode("drill"); };
   stg.querySelectorAll(".hid-back").forEach(b=>b.onclick=()=>{ toggleHidden(b.dataset.id); buildProg(); });
+  /* обвязка блока подготовки к собесу */
+  const eIn=$("#examIn"), eSet=$("#examSet"), eGo=$("#examGo"), eClr=$("#examClr");
+  if(eIn){ const t=new Date(Date.now()+7*86400000).toISOString().slice(0,10);
+    eIn.min=new Date().toISOString().slice(0,10); eIn.value=t; }
+  if(eSet)eSet.onclick=()=>{ const v=eIn&&eIn.value; if(!v)return; examDate(v); buildProg(); };
+  if(eGo)eGo.onclick=()=>examStudyToday();
+  if(eClr)eClr.onclick=()=>{ examDate(""); buildProg(); };
+  const ps=$("#printBtn"); if(ps)ps.onclick=printSheet;
   const hra=$("#hidRestoreAll"); if(hra)hra.onclick=()=>{ hiddenCards.forEach(c=>HIDDEN.delete(c.id)); try{localStorage.setItem("jdHidden",JSON.stringify([...HIDDEN]))}catch(e){} buildProg(); };
   stg.querySelectorAll(".leech-clear").forEach(b=>b.onclick=e=>{ e.stopPropagation(); const p=prog[b.dataset.id]; if(p){p.lapses=0;save();} buildProg(); });
   stg.querySelectorAll(".leech-row").forEach(r=>r.onclick=()=>drillTopic(r.dataset.id));
