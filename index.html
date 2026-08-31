@@ -612,6 +612,10 @@
   /* Верхний отступ переносим внутрь: иначе липкие чипы маршрутов прилипают на 18px
      ниже кромки, и над ними ползёт полоска текста. */
   #viewZero .terms-wrap{max-width:1180px;overflow-y:auto;overscroll-behavior:contain;padding-top:0}
+  /* Та же болезнь, что была у «С нуля»: 12 000 пикселей контента вываливались из body
+     фиксированной высоты и утаскивали приклеенную шапку. Прокрутка — внутрь вкладки. */
+  #viewMoney .terms-wrap{overflow-y:auto;overscroll-behavior:contain;padding-top:0}
+  #viewMoney .bas-intro{margin-top:18px}
   #viewZero .bas-intro{margin-top:18px}
   #viewZero .zero-nav{top:0;max-height:calc(100vh - 150px)}
   .zero-step.has-viz{align-items:flex-start}
@@ -2052,6 +2056,7 @@
         <button id="tabViz" role="tab" aria-selected="false">🧊 3D-мир</button>
         <button id="tabZero" role="tab" aria-selected="false">🌱 С нуля</button>
         <button id="tabBeh" role="tab" aria-selected="false">🎤 Поведенческий</button>
+        <button id="tabMoney" role="tab" aria-selected="false">💰 Деньги</button>
         <button id="tabBasics" role="tab" aria-selected="false">🍼 Для чайника</button>
         <button id="tabMus" role="tab" aria-selected="false">🎵 Музыка · бонус</button>
         <button id="tabPrin" role="tab" aria-selected="false">⚙️ Принцип</button>
@@ -2141,6 +2146,20 @@
 
 <section id="viewPath" class="view" hidden>
   <div id="pathStage" class="prog-stage"></div>
+</section>
+
+<section id="viewMoney" class="view" hidden>
+  <div class="terms-wrap">
+    <div class="bas-intro">💰 <b>Деньги.</b> <span id="moneyIntro">Микро- и макроэкономика, разбор «Игры на понижение» и устройство биржи — то, на чём стоит предметная область брокера. Читается сверху вниз.</span></div>
+    <div class="zero-top"><div class="zero-bar"><span id="moneyBar"></span></div><b id="moneyPct">0%</b>
+      <button class="btn" id="moneyReset" style="flex:none;padding:6px 12px;font-size:12px">↻ сбросить</button></div>
+    <div class="zero-wrap">
+      <div class="zero-main">
+        <div class="zero-chips" id="moneyChips"></div>
+        <div id="moneyList" class="zero-list"></div>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section id="viewBeh" class="view" hidden>
@@ -2263,6 +2282,7 @@
 <script src="pics-new.js"></script>
 <script src="more-new.js"></script>
 <script src="notes-new.js"></script>
+<script src="money.js"></script>
 <script src="diag.js"></script>
 <script src="wp-new.js"></script>
 <script src="zero-reactive.js"></script>
@@ -2819,7 +2839,7 @@ function tr(s){ return (LANG==="en"&&UITR[s]!=null)?UITR[s]:s; }
 function applyChrome(){
   document.documentElement.lang=LANG;
   const lt=$("#langTog"); if(lt)lt.textContent = LANG==="en"?"RU":"EN";
-  [["#tabDrill","🎴 Дрил"],["#tabFp","✋ На пальцах"],["#tabTerms","📖 Термины"],["#tabZero","🌱 С нуля"],["#tabBeh","🎤 Поведенческий"],["#tabPath","🗺 Путь в сеньоры"],["#tabViz","🧊 3D-мир"],["#tabBasics","🍼 Для чайника"],["#tabPrin","⚙️ Принцип"],["#tabGame","🎮 Игра"],["#tabSand","🏗 Песочница"],["#tabProg","📊 Прогресс"],["#tabMore","⋯ Ещё"]].forEach(([s,ru])=>{const el=$(s);if(el)el.textContent=tr(ru);});
+  [["#tabDrill","🎴 Дрил"],["#tabFp","✋ На пальцах"],["#tabTerms","📖 Термины"],["#tabZero","🌱 С нуля"],["#tabBeh","🎤 Поведенческий"],["#tabMoney","💰 Деньги"],["#tabPath","🗺 Путь в сеньоры"],["#tabViz","🧊 3D-мир"],["#tabBasics","🍼 Для чайника"],["#tabPrin","⚙️ Принцип"],["#tabGame","🎮 Игра"],["#tabSand","🏗 Песочница"],["#tabProg","📊 Прогресс"],["#tabMore","⋯ Ещё"]].forEach(([s,ru])=>{const el=$(s);if(el)el.textContent=tr(ru);});
   const klab=["🔥 стрик","освоено","повтор"]; document.querySelectorAll(".kpiL").forEach((el,i)=>el.textContent=tr(klab[i]));
   const fps=$("#fpSearch"); if(fps)fps.placeholder=tr("🔍 поиск темы…");
   const tse=$("#termSearch"); if(tse)tse.placeholder=tr("🔍 поиск термина…");
@@ -3144,8 +3164,8 @@ function setMode(m){mode=m;
     if(typeof SI!=="undefined"&&SI)siStop();
   }
   if(m!=="beh" && typeof behRecStop==="function") behRecStop();   /* не держим микрофон открытым на других вкладках */
-  ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh","mus"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":x==="mus"?"Mus":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
-  $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh","mus"].includes(m));
+  ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh","mus","money"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":x==="mus"?"Mus":x==="money"?"Money":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
+  $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh","mus","money"].includes(m));
   $("#moreMenu").hidden=true;
   $("#viewDrill").hidden=(m!=="drill");
   $("#viewFp").hidden=(m!=="fp");
@@ -3157,6 +3177,7 @@ function setMode(m){mode=m;
   $("#viewBasics").hidden=(m!=="basics");
   $("#viewZero").hidden=(m!=="zero");
   $("#viewBeh").hidden=(m!=="beh");
+  $("#viewMoney").hidden=(m!=="money");
   $("#viewPath").hidden=(m!=="path");
   $("#viewViz").hidden=(m!=="viz");
   $("#viewMus").hidden=(m!=="mus");
@@ -3166,6 +3187,7 @@ function setMode(m){mode=m;
   if(ZQ){clearInterval(ZQ.tm); if(m!=="zero")ZQ=null;} if(m!=="viz")v3Stop(); if(m!=="game")netClose();
   if(m==="drill")rebuild();
   else if(m==="fp"){buildFpNav($("#fpSearch").value);renderFingers();}
+  else if(m==="money"){buildMoney();}
   else if(m==="terms")buildTerms($("#termSearch").value);
   else if(m==="prin"){buildPrinNav($("#prinSearch").value);renderPrin();}
   else if(m==="prog")buildProg();
@@ -3201,6 +3223,7 @@ $("#tabProg").onclick=()=>setMode("prog");
 $("#tabSand").onclick=()=>setMode("sand");
 $("#tabZero").onclick=()=>setMode("zero");
 $("#tabBeh").onclick=()=>setMode("beh");
+$("#tabMoney").onclick=()=>setMode("money");
 $("#tabBasics").onclick=()=>setMode("basics");
 $("#tabPath").onclick=()=>setMode("path");
 $("#tabViz").onclick=()=>setMode("viz");
@@ -3608,6 +3631,63 @@ function zeroAskDraw(){
     if(el)el.textContent=Math.floor(ZQ.left/60)+":"+String(Math.max(0,ZQ.left)%60).padStart(2,"0");
     if(ZQ.left<=0){ clearInterval(ZQ.tm); if(el)el.textContent=tr("время"); } },1000);
 }
+/* Раздел «Деньги». Устроен как «С нуля»: линейные маршруты, отметка «понял» у каждого
+   шага, общий прогресс. Ключ отметки — от названия маршрута и шага, а не от номера:
+   на «С нуля» мы уже обожглись на нумерации, когда вставка маршрута сдвинула чужие
+   отметки. Стили переиспользуем целиком, своих не заводим. */
+const MONEY = (window.MONEY || []);
+function moneyKey(z){ let h=2166136261>>>0; const t=(z&&z.g||"")+"|"+(z&&z.t||"");
+  for(let i=0;i<t.length;i++){ h^=t.charCodeAt(i); h=Math.imul(h,16777619)>>>0; }
+  return "m"+h.toString(36); }
+const MDONE=(()=>{ try{ const r=JSON.parse(localStorage.getItem("jdMoney")||"[]");
+  return new Set(Array.isArray(r)?r:[]); }catch(e){ return new Set(); } })();
+function moneySave(){ try{localStorage.setItem("jdMoney",JSON.stringify([...MDONE]))}catch(e){} }
+function mDone(i){ const z=MONEY[i]; return !!z&&MDONE.has(moneyKey(z)); }
+function moneyPct(){ return MONEY.length?Math.round(MDONE.size/MONEY.length*100):0; }
+function moneyBarUI(){ const b=$("#moneyBar"), p=$("#moneyPct");
+  if(b)b.style.width=moneyPct()+"%"; if(p)p.textContent=moneyPct()+"%"; }
+function moneyGroups(){ const g=[];
+  MONEY.forEach((z,i)=>{ let last=g[g.length-1];
+    if(!last||last.g!==z.g){ last={g:z.g,ids:[],key:"mg"+g.length}; g.push(last); }
+    last.ids.push(i); });
+  return g; }
+function buildMoney(){
+  const wrap=$("#moneyList"); if(!wrap)return;
+  if(!MONEY.length){ wrap.innerHTML='<div class="muted">раздел не загружен</div>'; return; }
+  const gs=moneyGroups(), key={}; gs.forEach(gr=>gr.ids.forEach(i=>key[i]=gr.key));
+  const chips=$("#moneyChips");
+  if(chips)chips.innerHTML=gs.map(gr=>{
+    const d=gr.ids.filter(mDone).length;
+    return `<button class="${d===gr.ids.length?"full":""}" data-k="${gr.key}">${d===gr.ids.length?"✓ ":""}${esc(tr(gr.g))}</button>`;
+  }).join("");
+  let html="", g=null, n=0;
+  MONEY.forEach((z,i)=>{
+    if(z.g!==g){ g=z.g; n=0; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
+    n++;
+    const done=mDone(i);
+    html+=`<div class="zero-step${done?" done":""}" id="ms${i}" data-i="${i}">
+      <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
+      <div class="zero-b">
+        <div class="zero-t">${esc(tr(z.t))}</div>
+        <div class="zero-p">${esc(tr(z.p))}</div>
+        <div class="zero-an">${esc(tr(z.an))}</div>
+      </div></div>`;
+  });
+  wrap.innerHTML=html;
+  wrap.querySelectorAll(".zero-n").forEach(b=>b.onclick=()=>{
+    const st=b.closest(".zero-step"), i=+st.dataset.i, k=moneyKey(MONEY[i]);
+    if(MDONE.has(k)){ MDONE.delete(k); st.classList.remove("done");
+      b.textContent=[...st.parentNode.children].filter(x=>x.classList.contains("zero-step")&&x.previousElementSibling).indexOf(st)+1; }
+    else { MDONE.add(k); st.classList.add("done"); b.textContent="✓"; }
+    moneySave(); moneyBarUI(); buildMoney();
+  });
+  if(chips)chips.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>{
+    const el=document.getElementById(b.dataset.k); if(el)el.scrollIntoView({block:"start"}); });
+  const rs=$("#moneyReset");
+  if(rs)rs.onclick=()=>{ if(!confirm(tr("Снять все отметки в этом разделе?")))return;
+    MDONE.clear(); moneySave(); buildMoney(); moneyBarUI(); };
+  moneyBarUI();
+}
 function buildZero(){
   const wrap=$("#zeroList"); if(!wrap)return;
   if(!ZERO.length){ wrap.innerHTML='<div class="muted">раздел не загружен</div>'; return; }
@@ -3747,7 +3827,9 @@ function openSearch(){ if(!gsModal)return; gsModal.hidden=false; gsInput.value="
 function closeSearch(){ if(gsModal)gsModal.hidden=true; }
 /* Общее сопоставление для всех поисков: слова через И, каждое — по основе.
    Раньше вкладки искали точной подстрокой только по заголовку. */
-function jdStem(w){ return w.length>=7?w.slice(0,-2):w.length>=5?w.slice(0,-1):w; }
+/* Пятибуквенные слова не режем: «транш» превращался в «тран» и вытаскивал транзакции,
+   транспорт и трансляцию. С шести букв отрезаем окончание, с семи — два символа. */
+function jdStem(w){ return w.length>=7?w.slice(0,-2):w.length>=6?w.slice(0,-1):w; }
 function jdWords(q){ return String(q||"").trim().toLowerCase().split(/\s+/).filter(Boolean).map(jdStem); }
 function jdHit(words,hay){ if(!words.length)return true; const h=String(hay||"").toLowerCase();
   return words.every(w=>h.indexOf(w)>=0); }
@@ -3811,7 +3893,7 @@ function gsScrollTo(sel,opt,tries){
 }
 function gsRun(q){
   q=(q||"").trim().toLowerCase();
-  if(q.length<2){ gsResults.innerHTML=`<div class="gs-empty">${tr("Печатай запрос — ищу по темам, карточкам, терминам, «на пальцах», «С нуля», поведенческим вопросам и играм.")}</div>`; gsFlat=[]; return; }
+  if(q.length<2){ gsResults.innerHTML=`<div class="gs-empty">${tr("Печатай запрос — ищу по темам, карточкам, терминам, «на пальцах», «С нуля», «Деньгам», диагностике, вопросам собеса и играм.")}</div>`; gsFlat=[]; return; }
   /* Запрос из нескольких слов — это И, а не точная подстрока: «оконные функции»
      раньше не находило карточку со словами «оконная функция». */
   /* Сравниваем по основе слова, отрезая окончание: иначе «оконные функции» не находит
@@ -3855,6 +3937,18 @@ function gsRun(q){
   /* ── «С нуля»: 345 шагов, которые раньше не искались ── */
   const zs=(typeof ZERO!=="undefined"?ZERO:[]).map((z,i)=>({z,i})).filter(x=>inc(x.z.g,x.z.t,x.z.p,x.z.an));
   push(tr("С нуля"),zs,x=>({ico:"🌱",txt:x.z.t,tag:x.z.g,act:()=>{ setMode("zero"); gsScrollTo("#zs"+x.i); }}));
+
+  /* ── деньги: микро, макро, «Игра на понижение», биржа ── */
+  const mn=(typeof MONEY!=="undefined"?MONEY:[]).map((z,i)=>({z,i})).filter(x=>inc(x.z.g,x.z.t,x.z.p,x.z.an));
+  push(tr("Деньги"),mn,x=>({ico:"💰",txt:x.z.t,tag:x.z.g,act:()=>{ setMode("money"); gsScrollTo("#ms"+x.i); }}));
+
+  /* ── сценарии диагностики ── */
+  const dgs=(window.DIAG||[]).filter(d=>inc(d.sym,(d.ev||[]).join(" "),d.correct,d.why,clName(d.t)));
+  push(tr("Что дальше?"),dgs,d=>({ico:"🔍",txt:d.sym,tag:clName(d.t),act:()=>{
+    setMode("game");
+    setTimeout(()=>{ startDiag("all");
+      if(typeof DG!=="undefined"&&DG){ const k=DG.deck.findIndex(x=>x.id===d.id); if(k>0)DG.deck.unshift(DG.deck.splice(k,1)[0]); dgRound(); }
+    },0); }}));
 
   /* ── поведенческие и ситуативные вопросы ── */
   const bh=(typeof BEHAV!=="undefined"?BEHAV:[]).filter(b=>inc(b.q,b.w,b.h,b.bad,b.g));
