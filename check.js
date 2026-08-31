@@ -139,6 +139,24 @@ const check = (name, ok, detail) => {
     "стратегия даёт " + rv.pct + "%, потолок 40%, случайный тык 25%");
   check("код в ревью влезает в телефон", rv.wide === 0, rv.wide + " сниппетов со строкой длиннее 56");
 
+  /* ---- «спроектируй»: тот же запрет ---- */
+  const ds = JSON.parse(await A.ev(`(function(){
+    var T=window.DESIGN||[]; var all=[];
+    T.forEach(function(t){ (t.steps||[]).forEach(function(x){ all.push(x); }); });
+    if(!all.length) return JSON.stringify({n:0,pct:0,bad:[]});
+    var win=0, bad=[];
+    T.forEach(function(t){ if(!t.steps||t.steps.length!==5) bad.push(t.id); });
+    all.forEach(function(x){
+      var mx=Math.max.apply(null,(x.wrong||[]).map(function(w){return String(w).length}));
+      if(String(x.correct).length>mx) win++;
+    });
+    return JSON.stringify({n:all.length,pct:Math.round(win/all.length*100),bad:bad});
+  })()`));
+  check("этапов проектирования загружено", ds.n >= 15, ds.n + "");
+  check("у каждой задачи пять этапов", ds.bad.length === 0, ds.bad.join(", "));
+  check("«спроектируй» не пройти «выбирай самый длинный»", ds.pct <= 40,
+    "стратегия даёт " + ds.pct + "%, потолок 40%, случайный тык 25%");
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);

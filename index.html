@@ -1822,6 +1822,15 @@
   .dg-why-t{font:800 13px var(--sans);margin-bottom:7px}
   .dg-why p{margin:0 0 9px}
   .dg-next{flex:none;margin-top:6px}
+  .ds-steps{display:flex;gap:6px;margin:0 0 12px}
+  .ds-pip{flex:1;height:4px;border-radius:2px;background:var(--line)}
+  .ds-pip.done{background:var(--good)}
+  .ds-pip.now{background:var(--acc)}
+  .ds-sum{display:flex;flex-direction:column;gap:9px}
+  .ds-sum-i{background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:10px 13px;
+    font-size:13.5px;line-height:1.55;color:var(--read)}
+  .ds-sum-n{display:block;font:700 11px var(--sans);color:var(--mut);text-transform:uppercase;
+    letter-spacing:.04em;margin-bottom:4px}
   .wp-tag{margin:2px 0 8px;font:700 11.5px var(--sans);color:var(--mut);letter-spacing:.02em}
   .wp-code{margin:0 0 12px;padding:12px 13px;border-radius:12px;background:#0d1119;
     border:1px solid var(--line);overflow-x:auto;font:500 12.5px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -2282,6 +2291,7 @@
 <script src="pics-new.js"></script>
 <script src="more-new.js"></script>
 <script src="notes-new.js"></script>
+<script src="design.js"></script>
 <script src="review.js"></script>
 <script src="money.js"></script>
 <script src="diag.js"></script>
@@ -3943,6 +3953,12 @@ function gsRun(q){
   const mn=(typeof MONEY!=="undefined"?MONEY:[]).map((z,i)=>({z,i})).filter(x=>inc(x.z.g,x.z.t,x.z.p,x.z.an));
   push(tr("Деньги"),mn,x=>({ico:"💰",txt:x.z.t,tag:x.z.g,act:()=>{ setMode("money"); gsScrollTo("#ms"+x.i); }}));
 
+  /* ── задачи на проектирование ── */
+  const dss=[];
+  (window.DESIGN||[]).forEach(t=>{ if(inc(t.name,t.about,(t.steps||[]).map(x=>x.q+" "+x.correct).join(" "))) dss.push(t); });
+  push(tr("Спроектируй"),dss,t=>({ico:t.ico,txt:t.name,tag:tr("System Design"),act:()=>{
+    setMode("game"); setTimeout(()=>{ startDesign(); dsStart(t.id); },0); }}));
+
   /* ── разборы ревью ── */
   const rvs=(window.REVIEW||[]).filter(r=>inc(r.ctx,r.code,r.correct,r.why,clName(r.t)));
   push(tr("Ревью"),rvs,r=>({ico:"👀",txt:r.ctx,tag:clName(r.t),act:()=>{
@@ -4607,7 +4623,7 @@ function gameMenu(){
     <p class="muted2">${tr("Быстрое запоминание разными способами: скорость, связи, сортировка, чутьё.")}</p>
     <div id="gCats" class="g-cats"></div>
     <div class="mode-cards">
-      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card" id="mRev"><div class="mc-emoji">👀</div><b>${tr("Ревью")}</b><span>${tr("что здесь блокирующее,")}<br>${tr("а что вкусовщина")}</span></button><button class="mode-card" id="mDiag"><div class="mc-emoji">🔍</div><b>${tr("Что дальше?")}</b><span>${tr("прод горит, есть улики")}<br>${tr("выбери следующий шаг")}</span></button><button class="mode-card" id="mWp"><div class="mc-emoji">🖨</div><b>${tr("Что напечатает?")}</b><span>${tr("сниппет — предскажи")}<br>${tr("вывод в консоль")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
+      <button class="mode-card duo arcade-card" id="mTank" style="grid-column:1/-1"><div class="mc-emoji">🚜</div><b>${tr("Танчики")}</b><span>${tr("8-бит оборона базы: волны танков, за подбитый — вопрос и трофей")}</span></button><button class="mode-card duo arcade-card" id="mDesign" style="grid-column:1/-1"><div class="mc-emoji">🏛</div><b>${tr("Спроектируй")}</b><span>${tr("System Design по этапам: требования → оценка → схема → узкое место → компромисс")}</span></button><button class="mode-card" id="mRev"><div class="mc-emoji">👀</div><b>${tr("Ревью")}</b><span>${tr("что здесь блокирующее,")}<br>${tr("а что вкусовщина")}</span></button><button class="mode-card" id="mDiag"><div class="mc-emoji">🔍</div><b>${tr("Что дальше?")}</b><span>${tr("прод горит, есть улики")}<br>${tr("выбери следующий шаг")}</span></button><button class="mode-card" id="mWp"><div class="mc-emoji">🖨</div><b>${tr("Что напечатает?")}</b><span>${tr("сниппет — предскажи")}<br>${tr("вывод в консоль")}</span></button><button class="mode-card duo arcade-card" id="mInv" style="grid-column:1/-1"><div class="mc-emoji">👾</div><b>${tr("Захватчики")}</b><span>${tr("8-бит: строй спускается и бомбит — сбей верный термин")}</span></button><button class="mode-card duo arcade-card" id="mArcade" style="grid-column:1/-1"><div class="mc-emoji">🕹</div><b>${tr("Аркада: Debug Run")}</b><span>${tr("8-бит платформер: беги, прыгай, стреляй по багам")}</span></button>
       <button class="mode-card duo" id="mMock" style="grid-column:1/-1"><div class="mc-emoji">🎯</div><b>${tr("Mock-интервью")}</b><span>${tr("20 вопросов миксом, без подсказок — разбор по темам в конце")}</span></button>
       <button class="mode-card duo" id="mDuo" style="grid-column:1/-1"><div class="mc-emoji">👥</div><b>${tr("2 игрока")}</b><span>${tr("по очереди на одном телефоне — кто наберёт больше")}</span></button>
       <button class="mode-card duo" id="mDuel" style="grid-column:1/-1"><div class="mc-emoji">🤝</div><b>${tr("Дуэль с другом")}</b><span>${tr("одни и те же вопросы на разных телефонах — код через мессенджер")}</span></button>
@@ -4640,6 +4656,7 @@ function gameMenu(){
   $("#mWp").onclick=()=>startWhatPrints(gcatVal());
   $("#mDiag").onclick=()=>startDiag(gcatVal());
   $("#mRev").onclick=()=>startReview(gcatVal());
+  $("#mDesign").onclick=()=>startDesign();
   $("#mMock").onclick=()=>startMock(gcatVal());
 }
 /* ---------- режим «найди баг» ---------- */
@@ -10053,6 +10070,97 @@ function netShowResult(){
 
 
 
+
+
+/* ═════════════════ СПРОЕКТИРУЙ ═════════════════
+   System Design в формате собеседования: пять этапов в том порядке, в каком их ждут.
+   В конце — сводка принятых решений, чтобы после прохода осталась не оценка, а готовый
+   каркас ответа, который можно проговорить вслух. */
+let DS = null;
+function startDesign(){
+  const tasks=(window.DESIGN||[]);
+  if(!tasks.length) return emptyG("🏛",tr("Задачи не загружены."));
+  gameAct({});
+  DS=null;
+  gameStage.innerHTML=`<div class="game-play">
+    <div class="dg-sym">${tr("Выбери задачу. Пять этапов: требования → оценка → схема → узкое место → компромисс.")}</div>
+    <div class="mode-cards">${tasks.map(t=>`<button class="mode-card" data-ds="${esc(t.id)}">
+      <div class="mc-emoji">${t.ico}</div><b>${esc(t.name)}</b><span>${esc(t.about)}</span></button>`).join("")}</div>
+  </div>`;
+  gameStage.querySelectorAll("[data-ds]").forEach(b=>b.onclick=()=>dsStart(b.dataset.ds));
+}
+function dsStart(id){
+  const t=(window.DESIGN||[]).find(x=>x.id===id); if(!t)return;
+  DS={t,i:0,ok:0,bad:0,picked:[],t0:Date.now()};
+  dsRound();
+}
+function dsRound(){
+  if(!DS) return;
+  if(DS.i>=DS.t.steps.length) return dsOver();
+  const st=DS.t.steps[DS.i];
+  const opts=shuffle([{t:st.correct,ok:1},...st.wrong.slice(0,3).map(w=>({t:w,ok:0}))]);
+  const stage=["требования","оценка","схема","узкое место","компромисс"][DS.i]||"";
+  gameStage.innerHTML=`<div class="game-play dg-play">
+    <div class="game-top">
+      <div class="gscore">${DS.t.ico} <b>${DS.ok}</b></div>
+      <div class="q-pill">${tr("этап")} ${DS.i+1}/${DS.t.steps.length} · ${tr(stage)}</div>
+      <div class="gscore mut">${esc(DS.t.name)}</div>
+    </div>
+    <div class="ds-steps">${DS.t.steps.map((_,k)=>`<i class="ds-pip${k<DS.i?" done":k===DS.i?" now":""}"></i>`).join("")}</div>
+    <div class="dg-sym">${esc(st.q)}</div>
+    <div class="dg-opts" id="dsOpts">${opts.map(o=>`<button class="dg-opt" data-ok="${o.ok}">${esc(o.t)}</button>`).join("")}</div>
+    <div class="dg-why" id="dsWhy" hidden></div>
+  </div>`;
+  gameStage.querySelectorAll(".dg-opt").forEach(b=>b.onclick=()=>dsPick(b,st));
+}
+function dsPick(btn,st){
+  if(!DS||DS.done) return;
+  DS.done=true;
+  const ok=btn.dataset.ok==="1";
+  gameStage.querySelectorAll(".dg-opt").forEach(b=>{ b.disabled=true;
+    if(b.dataset.ok==="1")b.classList.add("correct");
+    else if(b===btn)b.classList.add("wrong"); else b.classList.add("dim"); });
+  if(ok){ DS.ok++; arTone(880,.08,"square",.05); } else { DS.bad++; arNoise(.12,.06,400); }
+  DS.picked.push(st.correct);
+  const w=$("#dsWhy");
+  if(w){
+    w.innerHTML=`<div class="dg-why-t">${ok?"\u2713 "+tr("верно"):"\u2717 "+tr("не этот шаг")}</div>`
+      +fmt(st.why)
+      +`<button class="btn primary dg-next" id="dsNext">${DS.i+1>=DS.t.steps.length?tr("Сводка"):tr("Дальше →")}</button>`;
+    w.hidden=false;
+    const n=$("#dsNext");
+    if(n)n.onclick=()=>{ if(!DS)return; DS.i++; DS.done=false; dsRound(); };
+    w.scrollIntoView({block:"nearest"});
+  }
+}
+function dsOver(){
+  if(!DS) return;
+  const g=DS, sec=Math.round((Date.now()-g.t0)/1000);
+  const names=["Требования","Оценка нагрузки","Схема","Узкое место","Компромисс"];
+  DS=null;
+  gameStage.innerHTML=`<div class="game-play">
+    <div class="game-top"><div class="gscore">${g.t.ico}</div>
+      <div class="q-pill">${esc(g.t.name)}</div>
+      <div class="gscore mut">${g.ok}/${g.t.steps.length}</div></div>
+    <div class="dg-sym">${tr("Каркас ответа, который у тебя получился — проговори его вслух целиком.")}</div>
+    <div class="ds-sum">${g.picked.map((p,k)=>`<div class="ds-sum-i">
+      <span class="ds-sum-n">${esc(tr(names[k]||("шаг "+(k+1))))}</span>
+      <span>${esc(p)}</span></div>`).join("")}</div>
+    <div class="dg-why" style="margin-top:14px">
+      <div class="dg-why-t">${g.ok===g.t.steps.length?tr("Все пять этапов взяты"):tr("Верных этапов")+": "+g.ok+" из "+g.t.steps.length}</div>
+      <p>${tr("На собеседовании оценивают не столько попадание, сколько порядок: сначала требования, потом числа, и только потом технологии.")}</p>
+      <div class="exam-row">
+        <button class="btn primary" id="dsAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
+        <button class="btn" id="dsOther" style="flex:none">${tr("Другая задача")}</button>
+        <button class="btn" id="dsMenu" style="flex:none">${tr("← Меню")}</button>
+      </div>
+    </div>
+    <div style="height:20px"></div>
+  </div>`;
+  const a=$("#dsAgain"); if(a)a.onclick=()=>dsStart(g.t.id);
+  const o=$("#dsOther"); if(o)o.onclick=()=>startDesign();
+  const m=$("#dsMenu"); if(m)m.onclick=()=>gameMenu();
+}
 
 /* ═════════════════ РЕВЬЮ ═════════════════
    «Найди баг» спрашивает, где дефект. Здесь вопрос сеньорский: из нескольких верных
