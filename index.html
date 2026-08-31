@@ -3073,11 +3073,28 @@ function setupMic(){
 function reveal(){if(revealed)return;revealed=true;$("#ans").classList.add("show");
   $("#act").innerHTML=`<button class="btn bad" id="btnBad">${tr("Не знал")} <kbd>1</kbd></button><button class="btn mid" id="btnMid">${tr("Почти")} <kbd>2</kbd></button><button class="btn good" id="btnGood">${tr("Знал")} <kbd>3</kbd></button>`;
   $("#btnBad").onclick=()=>grade(0);$("#btnMid").onclick=()=>grade(1);$("#btnGood").onclick=()=>grade(2);}
+/* Игры трогали расписание только в одну сторону: ошибся — карточка падала на первую
+   ступень, ответил верно пятьдесят раз — не получал ничего. Расписание от этого
+   систематически пессимистичное. Здесь обе стороны.
+   Верный ответ в игре — это узнавание из четырёх вариантов, а не воспоминание, поэтому
+   он засчитывается, только если карточка и так подошла к сроку: ответ раньше срока
+   почти ничего не доказывает и лишь раздувал бы интервалы. */
+function srsHit(id, ok){
+  const before=stR(id);
+  if(ok && before.due>today()) return;
+  const s=st(id);
+  if(ok){ s.box=Math.min(s.box+1,BOX_MAX); s.due=today()+BOX_DAYS[s.box]; }
+  else { s.lapses=(s.lapses||0)+1; s.box=Math.max(1,s.box-2); s.due=today(); }
+  save();
+}
 function grade(lvl){const wasNew=!prog[cur.id]; const s=st(cur.id); if(wasNew)newToday(true);
   s.reps=(s.reps||0)+1;
   if(lvl===2){ s.box=Math.min(s.box+1,BOX_MAX); s.due=today()+BOX_DAYS[s.box]; }
   else if(lvl===1){ s.due=today()+Math.max(1,Math.round(BOX_DAYS[s.box]/2)); }   // «почти» — тот же box, короче интервал
-  else { s.lapses=(s.lapses||0)+1; s.box=1; s.due=today(); if(!cramEl.checked)queue.push(cur); }   // провал → +1 к пиявке
+  /* Раньше провал ронял на первую ступень с любой высоты: карточка, которую ты знал
+     полгода, после одной осечки начинала путь с нуля. Опускаем на две ступени —
+     сигнал «забыл» сохраняется, накопленное не стирается. */
+  else { s.lapses=(s.lapses||0)+1; s.box=Math.max(1,s.box-2); s.due=today(); if(!cramEl.checked)queue.push(cur); }
   save();bumpStreak();histBump();updateKpis();next();}
 function renderEmpty(){
   if(drillFav&&!FAV.size){ drillStage.innerHTML=`<div class="empty"><h2>⭐ ${tr("Избранное пусто")}</h2><div>${tr("Отмечай карточки звёздочкой ★ (или клавишей f) — они появятся здесь.")}</div><button class="btn primary" id="favBack" style="margin-top:18px;flex:none">${tr("← Все темы")}</button></div>`; const b=$("#favBack"); if(b)b.onclick=()=>{drillFav=false;rebuild();}; return; }
@@ -8614,10 +8631,11 @@ function arQuiz(kind,onOk,onBad){
       if(AR.streak>=5)arAch("perfect");
       if(AR.streak%3===0&&AR.lives<5){ AR.lives++; extra="  ♥ +1 "+tr("жизнь за серию из 3"); arPop(AR.p.x,AR.p.y-14,"♥ +1","#ff7a85"); }
       else if(kind!=="gate"||AR.wep==="blaster"){ arGiveWeapon(AR.qi*13); extra="  ⚔ "+tr("новое оружие"); }
+      srsHit(c.id,true);
       res.textContent="✓ "+tr("Верно!")+"  +100"+extra; }
     else { AR.bad++; AR.streak=0; SFX.wrong();
       AR.missed.push({id:c.id,q:T('cards',c.id,'q',q.q||c.q),a:qc,cl:c.t});
-      const s=st(c.id); s.lapses=(s.lapses||0)+1; s.box=1; s.due=today(); save();   /* ошибка → в повторение (SRS) */
+      srsHit(c.id,false);   /* ошибка → в повторение (SRS) */
       res.innerHTML="✗ "+tr("Правильно:")+" <b>"+esc(qc)+"</b><br><span class='arq-srs'>↻ "+tr("отправлено в повторение")+"</span>"; }
     res.className="arq-res "+(good?"ok":"bad"); res.hidden=false;
     setTimeout(()=>{ if(!AR)return; m.hidden=true; AR.paused=false; AR.quizOn=false;
@@ -8648,10 +8666,10 @@ function arQuizTF(onOk,onBad){
     const good=(b.dataset.v==="1")===isTrue;
     box.querySelectorAll(".arq-opt").forEach(x=>{x.disabled=true;
       const right=(x.dataset.v==="1")===isTrue; x.classList.add(right?"ok":(x===b?"bad":"dim")); });
-    if(good){ AR.ok++; AR.streak++; SFX.correct(); res.textContent="✓ "+tr("Верно!"); }
+    if(good){ AR.ok++; AR.streak++; SFX.correct(); srsHit(c.id,true); res.textContent="✓ "+tr("Верно!"); }
     else { AR.bad++; AR.streak=0; SFX.wrong();
       AR.missed.push({id:c.id,q:T('cards',c.id,'q',q.q||c.q),a:qc,cl:c.t});
-      const s=st(c.id); s.lapses=(s.lapses||0)+1; s.box=1; s.due=today(); save();
+      srsHit(c.id,false);
       res.innerHTML="✗ "+(isTrue?tr("это правда"):tr("это ложь"))+"<br><span class='arq-srs'>↻ "+tr("отправлено в повторение")+"</span>"; }
     res.className="arq-res "+(good?"ok":"bad"); res.hidden=false;
     setTimeout(()=>{ if(!AR)return; m.hidden=true; AR.paused=false; AR.quizOn=false;
