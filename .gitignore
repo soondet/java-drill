@@ -24,3 +24,6 @@ java-drill.html
 *.docx
 *.xlsx
 *.pdf
+
+# харнесс для прогонов в headless Chrome — локальный инструмент
+jd-harness.js

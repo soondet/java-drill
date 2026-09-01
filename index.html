@@ -1822,6 +1822,7 @@
   .dg-why-t{font:800 13px var(--sans);margin-bottom:7px}
   .dg-why p{margin:0 0 9px}
   .dg-next{flex:none;margin-top:6px}
+  .ds-prog{display:block;margin-top:6px;font:700 10.5px var(--sans);color:var(--mut);letter-spacing:.02em}
   .ds-steps{display:flex;gap:6px;margin:0 0 12px}
   .ds-pip{flex:1;height:4px;border-radius:2px;background:var(--line)}
   .ds-pip.done{background:var(--good)}
@@ -10072,6 +10073,46 @@ function netShowResult(){
 
 
 
+
+/* Память сценарных режимов.
+ *
+ * «Что дальше?», «Ревью» и «Спроектируй» были одноразовыми: 58 решений, и ни одно
+ * не запоминалось — только общий рекорд очков. Это расходится со всем остальным
+ * приложением, которое построено на возврате к слабому. Здесь общий на три режима
+ * счётчик попаданий и промахов по каждому пункту.
+ *
+ * Порядок колоды: сначала невиданное, потом то, где ошибался чаще, чем угадывал,
+ * потом остальное. Так повторный заход не гоняет по кругу уже понятое.
+ */
+const SCEN=(()=>{ try{ return JSON.parse(localStorage.getItem("jdScen")||"{}")||{}; }catch(e){ return {}; } })();
+function scenSave(){ try{localStorage.setItem("jdScen",JSON.stringify(SCEN))}catch(e){} }
+function scenHit(id, ok){
+  const r=SCEN[id]||(SCEN[id]={ok:0,bad:0});
+  if(ok)r.ok++; else r.bad++;
+  r.last=today();
+  scenSave();
+}
+function scenSeen(id){ return !!SCEN[id]; }
+function scenWeak(id){ const r=SCEN[id]; return !!r && r.bad>=r.ok; }
+/* невиданное → слабое → остальное; внутри каждой группы порядок случайный */
+function scenOrder(list, idOf){
+  const fresh=[], weak=[], rest=[];
+  list.forEach(x=>{ const id=idOf(x);
+    if(!scenSeen(id))fresh.push(x); else if(scenWeak(id))weak.push(x); else rest.push(x); });
+  return shuffle(fresh).concat(shuffle(weak), shuffle(rest));
+}
+function scenStats(ids){
+  let seen=0, weak=0;
+  ids.forEach(id=>{ if(scenSeen(id)){ seen++; if(scenWeak(id))weak++; } });
+  return {seen, weak, total:ids.length};
+}
+/* строка «пройдено … · слабых …» для экрана итога */
+function scenLine(ids){
+  const st=scenStats(ids);
+  return `<div class="row"><span>📚 ${tr("пройдено")} ${st.seen} ${tr("из")} ${st.total}`
+    + (st.weak?` · ${tr("слабых")} ${st.weak}`:"") + `</span></div>`;
+}
+
 /* ═════════════════ СПРОЕКТИРУЙ ═════════════════
    System Design в формате собеседования: пять этапов в том порядке, в каком их ждут.
    В конце — сводка принятых решений, чтобы после прохода осталась не оценка, а готовый
@@ -10085,7 +10126,9 @@ function startDesign(){
   gameStage.innerHTML=`<div class="game-play">
     <div class="dg-sym">${tr("Выбери задачу. Пять этапов: требования → оценка → схема → узкое место → компромисс.")}</div>
     <div class="mode-cards">${tasks.map(t=>`<button class="mode-card" data-ds="${esc(t.id)}">
-      <div class="mc-emoji">${t.ico}</div><b>${esc(t.name)}</b><span>${esc(t.about)}</span></button>`).join("")}</div>
+      <div class="mc-emoji">${t.ico}</div><b>${esc(t.name)}</b><span>${esc(t.about)}</span>
+      <span class="ds-prog">${(function(){var st=scenStats(t.steps.map(function(_,k){return t.id+"#"+k}));
+        return st.seen?tr("пройдено")+" "+st.seen+"/"+st.total+(st.weak?" · "+tr("слабых")+" "+st.weak:""):tr("ещё не проходил");})()}</span></button>`).join("")}</div>
   </div>`;
   gameStage.querySelectorAll("[data-ds]").forEach(b=>b.onclick=()=>dsStart(b.dataset.ds));
 }
@@ -10120,6 +10163,7 @@ function dsPick(btn,st){
   gameStage.querySelectorAll(".dg-opt").forEach(b=>{ b.disabled=true;
     if(b.dataset.ok==="1")b.classList.add("correct");
     else if(b===btn)b.classList.add("wrong"); else b.classList.add("dim"); });
+  scenHit(DS.t.id+"#"+DS.i, ok);
   if(ok){ DS.ok++; arTone(880,.08,"square",.05); } else { DS.bad++; arNoise(.12,.06,400); }
   DS.picked.push(st.correct);
   const w=$("#dsWhy");
@@ -10168,13 +10212,15 @@ function dsOver(){
    нет откровенно ложных — есть верное-но-обсуждаемое и вкусовщина, на которой ревью
    буксует чаще всего. Разбор объясняет расстановку приоритетов, а не сам дефект. */
 let RV = null;
-function rvPool(f){
+function rvPool(f, onlyWeak){
   const all=(window.REVIEW||[]).filter(r=>r&&r.correct&&r.wrong&&r.wrong.length>=3);
-  const mine=all.filter(r=>fmatch(f,r.t));
-  return shuffle((mine.length>=3?mine:all).slice());
+  let mine=all.filter(r=>fmatch(f,r.t));
+  if(mine.length<3)mine=all;
+  if(onlyWeak){ const w=mine.filter(r=>scenWeak(r.id)); if(w.length)return shuffle(w); }
+  return scenOrder(mine, r=>r.id);
 }
-function startReview(f){
-  const pool=rvPool(f);
+function startReview(f, onlyWeak){
+  const pool=rvPool(f, onlyWeak);
   if(!pool.length) return emptyG("👀",tr("Мало разборов для этой темы."),f!=="all"?()=>startReview("all"):null);
   gameAct({});
   RV={deck:pool,i:0,ok:0,bad:0,score:0,streak:0,best:0,t0:Date.now(),f};
@@ -10206,6 +10252,7 @@ function rvPick(btn,r){
   gameStage.querySelectorAll(".dg-opt").forEach(b=>{ b.disabled=true;
     if(b.dataset.ok==="1")b.classList.add("correct");
     else if(b===btn)b.classList.add("wrong"); else b.classList.add("dim"); });
+  scenHit(r.id, ok);
   if(ok){ RV.ok++; RV.streak++; RV.best=Math.max(RV.best,RV.streak);
     RV.score+=100+Math.min(300,(RV.streak-1)*50); arTone(880,.08,"square",.05); }
   else { RV.bad++; RV.streak=0; arNoise(.12,.06,400); }
@@ -10236,10 +10283,13 @@ function rvOver(){
     <div class="row"><span>🔥 ${tr("лучшая серия")} ${g.best}</span></div>
     <div class="row"><span>⏱ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}</span></div>
     <div class="row"><span>🏆 ${tr("рекорд")} ${best}</span></div>
+    ${scenLine((window.REVIEW||[]).map(x=>x.id))}
     <button class="btn primary" id="rvAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
+    ${(window.REVIEW||[]).some(x=>scenWeak(x.id))?`<button class="btn" id="rvWeak" style="flex:none">${tr("🩹 Только слабые")}</button>`:""}
     <button class="btn" id="rvMenu" style="flex:none">${tr("← Меню")}</button>
   </div>`;
   const a=$("#rvAgain"); if(a)a.onclick=()=>startReview(g.f);
+  const rw=$("#rvWeak"); if(rw)rw.onclick=()=>startReview(g.f,true);
   const m=$("#rvMenu"); if(m)m.onclick=()=>gameMenu();
 }
 
@@ -10249,13 +10299,15 @@ function rvOver(){
    Разбор показывается всегда, в том числе при верном ответе: половина пользы в том,
    ПОЧЕМУ остальные три варианта хуже, а не в самом попадании. */
 let DG = null;
-function dgPool(f){
+function dgPool(f, onlyWeak){
   const all=(window.DIAG||[]).filter(d=>d&&d.correct&&d.wrong&&d.wrong.length>=3);
-  const mine=all.filter(d=>fmatch(f,d.t));
-  return shuffle((mine.length>=3?mine:all).slice());
+  let mine=all.filter(d=>fmatch(f,d.t));
+  if(mine.length<3)mine=all;
+  if(onlyWeak){ const w=mine.filter(d=>scenWeak(d.id)); if(w.length)return shuffle(w); }
+  return scenOrder(mine, d=>d.id);
 }
-function startDiag(f){
-  const pool=dgPool(f);
+function startDiag(f, onlyWeak){
+  const pool=dgPool(f, onlyWeak);
   if(!pool.length) return emptyG("🔍",tr("Мало сценариев для этой темы."),f!=="all"?()=>startDiag("all"):null);
   gameAct({});
   DG={deck:pool,i:0,ok:0,bad:0,score:0,streak:0,best:0,t0:Date.now(),f};
@@ -10288,6 +10340,7 @@ function dgPick(btn,d){
   gameStage.querySelectorAll(".dg-opt").forEach(b=>{ b.disabled=true;
     if(b.dataset.ok==="1")b.classList.add("correct");
     else if(b===btn)b.classList.add("wrong"); else b.classList.add("dim"); });
+  scenHit(d.id, ok);
   if(ok){ DG.ok++; DG.streak++; DG.best=Math.max(DG.best,DG.streak);
     DG.score+=100+Math.min(300,(DG.streak-1)*50); arTone(880,.08,"square",.05); }
   else { DG.bad++; DG.streak=0; arNoise(.12,.06,400); }
@@ -10318,10 +10371,13 @@ function dgOver(){
     <div class="row"><span>🔥 ${tr("лучшая серия")} ${g.best}</span></div>
     <div class="row"><span>⏱ ${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}</span></div>
     <div class="row"><span>🏆 ${tr("рекорд")} ${best}</span></div>
+    ${scenLine((window.DIAG||[]).map(x=>x.id))}
     <button class="btn primary" id="dgAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
+    ${(window.DIAG||[]).some(x=>scenWeak(x.id))?`<button class="btn" id="dgWeak" style="flex:none">${tr("🩹 Только слабые")}</button>`:""}
     <button class="btn" id="dgMenu" style="flex:none">${tr("← Меню")}</button>
   </div>`;
   const a=$("#dgAgain"); if(a)a.onclick=()=>startDiag(g.f);
+  const wk=$("#dgWeak"); if(wk)wk.onclick=()=>startDiag(g.f,true);
   const m=$("#dgMenu"); if(m)m.onclick=()=>gameMenu();
 }
 
