@@ -46,6 +46,23 @@ const check = (name, ok, detail) => {
 (async () => {
   if (!fs.existsSync(FILE)) { console.error("нет файла " + FILE); process.exit(1); }
   console.log("проверяю " + FILE + "\n");
+
+  /* ---- service worker пересобран ----
+     У обновлений один-единственный механизм: имя кэша меняется вместе с содержимым.
+     Если запушить правку .js, забыв про build.js, имя останется старым — и правка не
+     доедет ни до кого, кто уже заходил. Раньше это подстраховывалось фоновой
+     перепроверкой каждого файла (~47 запросов на загрузку); теперь стережём здесь. */
+  {
+    const dir = path.dirname(FILE);
+    const swPath = path.join(dir, "sw.js");
+    if (fs.existsSync(swPath)) {
+      const swText = fs.readFileSync(swPath, "utf8");
+      const want = require("./swver.js")(fs.readFileSync(FILE), swText, dir);
+      const have = (swText.match(/const CACHE="([^"]+)"/) || [, ""])[1];
+      check("имя кэша sw.js отвечает содержимому (build.js не забыт)", have === want,
+        have === want ? have : have + " ≠ " + want + " — прогони node build.js");
+    }
+  }
   const proc = spawn(CHROME, ["--headless=new", "--remote-debugging-port=" + PORT, "--no-first-run", "--no-sandbox",
     "--disable-gpu", "--disable-dev-shm-usage", "--user-data-dir=/tmp/jd-check-prof", "file://" + FILE],
     { stdio: "ignore", detached: true });

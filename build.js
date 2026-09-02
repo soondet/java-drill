@@ -44,13 +44,8 @@ fs.writeFileSync("java-drill.html", html);
    поэтому у того, кто уже заходил, обновления не доезжали вообще. Пересчитываем имя
    от содержимого: контент изменился → новое имя → activate сносит старый кэш. */
 try {
-  const crypto = require("crypto");
   let sw = fs.readFileSync("sw.js", "utf8");
-  const assets = (sw.match(/const ASSETS=\[([^\]]*)\]/) || [, ""])[1]
-    .split(",").map(s => s.trim().replace(/^"|"$/g, "")).filter(s => s && s !== "./");
-  const h = crypto.createHash("sha1").update(html);
-  for (const a of assets) { try { h.update(fs.readFileSync(a)); } catch (e) {} }
-  const ver = "jd-" + h.digest("hex").slice(0, 10);
+  const ver = require("./swver.js")(html, sw);
   const old = (sw.match(/const CACHE="([^"]+)"/) || [, ""])[1];
   if (old !== ver) {
     fs.writeFileSync("sw.js", sw.replace(/const CACHE="[^"]+"/, 'const CACHE="' + ver + '"'));
