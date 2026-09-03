@@ -10135,7 +10135,7 @@ function startDesign(){
   gameStage.innerHTML=`<div class="game-play">
     <div class="dg-sym">${tr("Выбери задачу. Пять этапов: требования → оценка → схема → узкое место → компромисс.")}</div>
     <div class="mode-cards">${tasks.map(t=>`<button class="mode-card" data-ds="${esc(t.id)}">
-      <div class="mc-emoji">${t.ico}</div><b>${esc(t.name)}</b><span>${esc(t.about)}</span>
+      <div class="mc-emoji">${t.ico}</div><b>${esc(tr(t.name))}</b><span>${esc(tr(t.about))}</span>
       <span class="ds-prog">${(function(){var st=scenStats(t.steps.map(function(_,k){return t.id+"#"+k}));
         return st.seen?tr("пройдено")+" "+st.seen+"/"+st.total+(st.weak?" · "+tr("слабых")+" "+st.weak:""):tr("ещё не проходил");})()}</span></button>`).join("")}</div>
   </div>`;
@@ -10150,16 +10150,16 @@ function dsRound(){
   if(!DS) return;
   if(DS.i>=DS.t.steps.length) return dsOver();
   const st=DS.t.steps[DS.i];
-  const opts=shuffle([{t:st.correct,ok:1},...st.wrong.slice(0,3).map(w=>({t:w,ok:0}))]);
+  const opts=shuffle([{t:tr(st.correct),ok:1},...st.wrong.slice(0,3).map(w=>({t:tr(w),ok:0}))]);
   const stage=["требования","оценка","схема","узкое место","компромисс"][DS.i]||"";
   gameStage.innerHTML=`<div class="game-play dg-play">
     <div class="game-top">
       <div class="gscore">${DS.t.ico} <b>${DS.ok}</b></div>
       <div class="q-pill">${tr("этап")} ${DS.i+1}/${DS.t.steps.length} · ${tr(stage)}</div>
-      <div class="gscore mut">${esc(DS.t.name)}</div>
+      <div class="gscore mut">${esc(tr(DS.t.name))}</div>
     </div>
     <div class="ds-steps">${DS.t.steps.map((_,k)=>`<i class="ds-pip${k<DS.i?" done":k===DS.i?" now":""}"></i>`).join("")}</div>
-    <div class="dg-sym">${esc(st.q)}</div>
+    <div class="dg-sym">${esc(tr(st.q))}</div>
     <div class="dg-opts" id="dsOpts">${opts.map(o=>`<button class="dg-opt" data-ok="${o.ok}">${esc(o.t)}</button>`).join("")}</div>
     <div class="dg-why" id="dsWhy" hidden></div>
   </div>`;
@@ -10178,7 +10178,7 @@ function dsPick(btn,st){
   const w=$("#dsWhy");
   if(w){
     w.innerHTML=`<div class="dg-why-t">${ok?"\u2713 "+tr("верно"):"\u2717 "+tr("не этот шаг")}</div>`
-      +fmt(st.why)
+      +fmt(tr(st.why))
       +`<button class="btn primary dg-next" id="dsNext">${DS.i+1>=DS.t.steps.length?tr("Сводка"):tr("Дальше →")}</button>`;
     w.hidden=false;
     const n=$("#dsNext");
@@ -10239,14 +10239,14 @@ function rvRound(){
   if(!RV) return;
   if(RV.i>=RV.deck.length) return rvOver();
   const r=RV.deck[RV.i];
-  const opts=shuffle([{t:r.correct,ok:1},...r.wrong.slice(0,3).map(w=>({t:w,ok:0}))]);
+  const opts=shuffle([{t:tr(r.correct),ok:1},...r.wrong.slice(0,3).map(w=>({t:tr(w),ok:0}))]);
   gameStage.innerHTML=`<div class="game-play dg-play">
     <div class="game-top">
       <div class="gscore">👀 <b id="rvScore">${RV.score}</b></div>
       <div class="q-pill">${RV.i+1} / ${RV.deck.length}</div>
       <div class="gscore mut">${esc(clName(r.t))}</div>
     </div>
-    <div class="dg-sym">${esc(r.ctx)}</div>
+    <div class="dg-sym">${esc(tr(r.ctx))}</div>
     <pre class="wp-code">${esc(r.code)}</pre>
     <div class="dg-ask">${tr("Какое замечание здесь блокирующее?")}</div>
     <div class="dg-opts" id="rvOpts">${opts.map(o=>`<button class="dg-opt" data-ok="${o.ok}">${esc(o.t)}</button>`).join("")}</div>
@@ -10268,7 +10268,7 @@ function rvPick(btn,r){
   const w=$("#rvWhy");
   if(w){
     w.innerHTML=`<div class="dg-why-t">${ok?"\u2713 "+tr("верно"):"\u2717 "+tr("не это главное")}</div>`
-      +fmt(r.why)
+      +fmt(tr(r.why))
       +`<button class="btn primary dg-next" id="rvNext">${RV.i+1>=RV.deck.length?tr("Итог →"):tr("Дальше →")}</button>`;
     w.hidden=false;
     const n=$("#rvNext");
@@ -10326,16 +10326,16 @@ function dgRound(){
   if(!DG) return;
   if(DG.i>=DG.deck.length) return dgOver();
   const d=DG.deck[DG.i];
-  const opts=shuffle([{t:d.correct,ok:1},...d.wrong.slice(0,3).map(w=>({t:w,ok:0}))]);
+  const opts=shuffle([{t:tr(d.correct),ok:1},...d.wrong.slice(0,3).map(w=>({t:tr(w),ok:0}))]);
   gameStage.innerHTML=`<div class="game-play dg-play">
     <div class="game-top">
       <div class="gscore">🔍 <b id="dgScore">${DG.score}</b></div>
       <div class="q-pill">${DG.i+1} / ${DG.deck.length}</div>
       <div class="gscore mut">${esc(clName(d.t))}</div>
     </div>
-    <div class="dg-sym">${esc(d.sym)}</div>
+    <div class="dg-sym">${esc(tr(d.sym))}</div>
     <div class="dg-ev"><span class="dg-ev-l">${tr("что видно")}</span>
-      <ul>${(d.ev||[]).map(e=>`<li>${esc(e)}</li>`).join("")}</ul></div>
+      <ul>${(d.ev||[]).map(e=>`<li>${esc(tr(e))}</li>`).join("")}</ul></div>
     <div class="dg-ask">${tr("Что делаешь следующим шагом?")}</div>
     <div class="dg-opts" id="dgOpts">${opts.map(o=>`<button class="dg-opt" data-ok="${o.ok}">${esc(o.t)}</button>`).join("")}</div>
     <div class="dg-why" id="dgWhy" hidden></div>
@@ -10356,7 +10356,7 @@ function dgPick(btn,d){
   const w=$("#dgWhy");
   if(w){
     w.innerHTML=`<div class="dg-why-t">${ok?"✓ "+tr("верно"):"✗ "+tr("не этот шаг")}</div>`
-      +fmt(d.why)
+      +fmt(tr(d.why))
       +`<button class="btn primary dg-next" id="dgNext">${DG.i+1>=DG.deck.length?tr("Итог →"):tr("Дальше →")}</button>`;
     w.hidden=false;
     const n=$("#dgNext");
