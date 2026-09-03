@@ -2857,6 +2857,22 @@ const UITR={
 };
 if(pendingUI){ Object.assign(UITR,pendingUI); pendingUI=null; }
 function tr(s){ return (LANG==="en"&&UITR[s]!=null)?UITR[s]:s; }
+/* Подписи внутри схем (кадры карточек, «на пальцах», принципы, «с нуля») лежат
+   готовой HTML-строкой в данных: «⏳ 60с», «нет→», «🔌 порт». Обернуть их в tr()
+   в разметке нельзя — это не шаблон, а текст. Поэтому переводим после вставки,
+   по текстовым узлам: сам HTML не трогаем, атрибуты и классы не страдают. */
+function trDeep(root){
+  if(LANG!=="en"||!root)return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
+  const list=[]; let n;
+  while((n=w.nextNode()))list.push(n);
+  for(const t of list){
+    const raw=t.nodeValue, key=raw.trim();
+    if(!key)continue;
+    const en=UITR[key];
+    if(en!=null&&en!==key)t.nodeValue=raw.replace(key,en);
+  }
+}
 function applyChrome(){
   document.documentElement.lang=LANG;
   const lt=$("#langTog"); if(lt)lt.textContent = LANG==="en"?"RU":"EN";
@@ -3082,7 +3098,7 @@ function render(){const c=cur,s=stR(c.id);
        ${tierOf(c.id)==="core"?`<span class="pill tier-core" title="${tr("основная тема")}">🟢 ${tr("Основа")}</span>`:tierOf(c.id)==="sec"?`<span class="pill tier-sec" title="${tr("второстепенная тема")}">⚫ ${tr("Второстеп.")}</span>`:""}
        ${isTricky(c.id)?`<span class="pill pill-tricky" title="${tr("частая ловушка на собеседовании")}">🦊 ${tr("Коварный")}</span>`:""}
        ${isLeech(c.id)?`<span class="pill pill-leech" title="${tr("часто проваливаешь — переформулируй или добей")}">🩸 ${tr("Проблемная")}</span>`:""}
-       ${c.s?`<span class="pill">${esc(c.s)}</span>`:""}
+       ${c.s?`<span class="pill">${esc(tr(c.s))}</span>`:""}
        <span class="spacer"></span>
        <span class="boxpips" title="${tr("ступень")} ${s.box}/${BOX_MAX} · ${tr("следующий повтор через")} ${BOX_DAYS[s.box]} ${tr("дн.")}">${pips(s.box)}</span>
        <button class="fav-btn${isFav(c.id)?' on':''}" id="favBtn" title="${tr('★ избранное (f)')}" aria-label="favorite">${isFav(c.id)?'★':'☆'}</button>
@@ -3219,6 +3235,7 @@ function setMode(m){mode=m;
   else if(m==="path")buildPath();
   else if(m==="viz")buildViz3D();
   else gameMenu();
+  if(LANG==="en"){ const v=document.querySelector(".view:not([hidden])"); trDeep(v); }
 }
 /* сворачиваемые фильтры */
 function filtLabel(){
