@@ -10269,7 +10269,7 @@ function rvPick(btn,r){
   if(w){
     w.innerHTML=`<div class="dg-why-t">${ok?"\u2713 "+tr("верно"):"\u2717 "+tr("не это главное")}</div>`
       +fmt(r.why)
-      +`<button class="btn primary dg-next" id="rvNext">${RV.i+1>=RV.deck.length?tr("Итог"):tr("Дальше →")}</button>`;
+      +`<button class="btn primary dg-next" id="rvNext">${RV.i+1>=RV.deck.length?tr("Итог →"):tr("Дальше →")}</button>`;
     w.hidden=false;
     const n=$("#rvNext");
     if(n)n.onclick=()=>{ if(!RV)return; RV.i++; RV.done=false; rvRound(); };
@@ -10357,7 +10357,7 @@ function dgPick(btn,d){
   if(w){
     w.innerHTML=`<div class="dg-why-t">${ok?"✓ "+tr("верно"):"✗ "+tr("не этот шаг")}</div>`
       +fmt(d.why)
-      +`<button class="btn primary dg-next" id="dgNext">${DG.i+1>=DG.deck.length?tr("Итог"):tr("Дальше →")}</button>`;
+      +`<button class="btn primary dg-next" id="dgNext">${DG.i+1>=DG.deck.length?tr("Итог →"):tr("Дальше →")}</button>`;
     w.hidden=false;
     const n=$("#dgNext");
     if(n)n.onclick=()=>{ if(!DG)return; DG.i++; DG.done=false; dgRound(); };
@@ -10447,7 +10447,7 @@ function wpPick(btn, q) {
   const why = document.getElementById("wpWhy");
   if (why) {
     why.innerHTML = `<b>${esc(q.n)}</b>` +
-      `<button class="btn primary wp-next" id="wpNext">${WPG.lives <= 0 ? tr("Итог") : tr("Дальше →")}</button>`;
+      `<button class="btn primary wp-next" id="wpNext">${WPG.lives <= 0 ? tr("Итог →") : tr("Дальше →")}</button>`;
     why.hidden = false;
     const n = document.getElementById("wpNext");
     if (n) n.onclick = () => { if (!WPG) return; WPG.i++; WPG.done = false; wpRound(); };

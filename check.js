@@ -86,6 +86,35 @@ const check = (name, ok, detail) => {
     + "addEventListener('unhandledrejection',e=>__err.push('promise: '+e.reason));"
     + "document.querySelectorAll('.onb,#onb').forEach(e=>e.remove());");
 
+  /* ---- ленивый словарь не затирает переводы UI ----
+     Разделы переводятся через плоский tr(): ключ — русская строка. Значит любой
+     раздел может нечаянно переопределить уже существующий перевод интерфейса.
+     Так и вышло: «Связь» была названием игрового режима (Match), а раздел «Для
+     чайника» превратил её в Communication. Двадцать четыре штуки разом. */
+  {
+    const dir = path.dirname(FILE);
+    const idx = path.join(dir, "index.html"), pack = path.join(dir, "i18n-en.js");
+    if (fs.existsSync(idx) && fs.existsSync(pack)) {
+      const html = fs.readFileSync(idx, "utf8");
+      const at = html.search(/const UITR=\{/);
+      let i = html.indexOf("{", at), depth = 0, j = i;
+      for (; j < html.length; j++) {
+        if (html[j] === "{") depth++;
+        else if (html[j] === "}" && --depth === 0) break;
+      }
+      const uitr = {};
+      for (const m of html.slice(i, j + 1).matchAll(/"((?:[^"\\]|\\.)*)"\s*:\s*"((?:[^"\\]|\\.)*)"/g))
+        uitr[m[1].replace(/\\"/g, '"')] = m[2].replace(/\\"/g, '"');
+      const src = fs.readFileSync(pack, "utf8");
+      const a2 = src.search(/^window\.I18N\s*=\s*/m), eq2 = src.indexOf("=", a2);
+      const ui = (JSON.parse(src.slice(eq2 + 1).trim().replace(/;\s*$/, "")).ui) || {};
+      const clash = Object.keys(ui).filter(k => k in uitr && uitr[k] !== ui[k]);
+      check("словарь разделов не переопределяет переводы UI", clash.length === 0,
+        clash.length ? clash.length + " конфликтов: " + clash.slice(0, 4).map(k => "«" + k + "»").join(", ")
+                     : "проверено " + Object.keys(ui).length + " ключей против " + Object.keys(uitr).length);
+    }
+  }
+
   /* ---- содержимое ---- */
   const cards = await A.ev("CARDS.length");
   check("карточек загружено", cards > 700, cards + "");
