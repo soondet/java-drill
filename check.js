@@ -268,6 +268,14 @@ const check = (name, ok, detail) => {
     var db = I18N.bugs || {};
     var bNo = (window.BUGS || []).filter(function(b){ return !db[b.id] }).length;
     if(bNo) other.push("найди баг: без записи " + bNo);
+    var Fp = (typeof FP !== "undefined") ? FP : [], df = I18N.fp || {}, MF = window.MORE_FP || {};
+    var fNo = 0, fHole = 0;
+    Fp.forEach(function(e){
+      var t = df[e.id];
+      if(!t){ fNo++; return; }
+      if(MF[e.id] && (t.more == null || t.more === "")) fHole++;
+    });
+    if(fNo || fHole) other.push("на пальцах: без записи " + fNo + ", без «подробнее» " + fHole);
     return JSON.stringify({ total: total, done: done, quizzed: quizzed, tell: tell, bad: bad,
       mixed: mixed.length, mixedEx: mixed.filter(Boolean), other: other });
   })()`));
@@ -278,8 +286,8 @@ const check = (name, ok, detail) => {
      с запасом в десяток знаков, перевод того же варианта уходит в минус. Замер:
      644 викторины из 755. Долг выплачен целиком, планка опущена до нуля — теперь
      это обычная проверка, а не храповик. Поднимать её обратно нельзя. */
-  check("термины, принципы и «найди баг» переведены", en.other.length === 0,
-    en.other.length ? en.other.join(" · ") : "все три словаря заполнены");
+  check("термины, «на пальцах», принципы и «найди баг» переведены", en.other.length === 0,
+    en.other.length ? en.other.join(" · ") : "все четыре словаря заполнены");
   check("карточка не показывает смесь языков", en.mixed === 0,
     en.mixed ? en.mixed + " карточек с непереведёнными полями: " + en.mixedEx.join(", ")
              : "у всех переведённых заполнены разбор, заметка, крючок и подробнее");
