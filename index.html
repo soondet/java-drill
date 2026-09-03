@@ -2861,6 +2861,23 @@ function tr(s){ return (LANG==="en"&&UITR[s]!=null)?UITR[s]:s; }
    готовой HTML-строкой в данных: «⏳ 60с», «нет→», «🔌 порт». Обернуть их в tr()
    в разметке нельзя — это не шаблон, а текст. Поэтому переводим после вставки,
    по текстовым узлам: сам HTML не трогаем, атрибуты и классы не страдают. */
+/* Вешать trDeep на каждую отрисовку бессмысленно: кадр перерисовывает render(),
+   игры — свои функции, модалки — третьи. Наблюдаем за вставками узлов один раз.
+   Меняем только nodeValue, то есть characterData — childList-наблюдатель на это
+   не срабатывает, зацикливания нет. */
+let trObs=null;
+function trWatch(on){
+  if(!on){ if(trObs){trObs.disconnect(); trObs=null;} return; }
+  if(trObs)return;
+  trObs=new MutationObserver(function(recs){
+    for(const r of recs) for(const n of r.addedNodes)
+      if(n.nodeType===1) trDeep(n); else if(n.nodeType===3){
+        const k=n.nodeValue.trim(), en=k&&UITR[k];
+        if(en!=null&&en!==k)n.nodeValue=n.nodeValue.replace(k,en);
+      }
+  });
+  trObs.observe(document.body,{childList:true,subtree:true});
+}
 function trDeep(root){
   if(LANG!=="en"||!root)return;
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
@@ -2893,7 +2910,7 @@ function setLang(l){
     });
     return;
   }
-  LANG=l; localStorage.setItem("jdLang",l); applyChrome(); refreshView();
+  LANG=l; trWatch(l==="en"); if(l==="en"){ trDeep(document.body); } localStorage.setItem("jdLang",l); applyChrome(); refreshView();
 }
 function refreshView(){ if(mode==="drill"){buildDrillCats();buildFilter();rebuild();} else if(mode==="fp"){buildFpNav($("#fpSearch").value);renderFingers();} else if(mode==="terms"){buildTerms($("#termSearch").value);} else if(mode==="prin"){buildPrinNav($("#prinSearch").value);renderPrin();} else if(mode==="prog"){buildProg();} else if(mode==="sand"){buildSand();} else if(mode==="game"){gameMenu();} }
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -3235,7 +3252,6 @@ function setMode(m){mode=m;
   else if(m==="path")buildPath();
   else if(m==="viz")buildViz3D();
   else gameMenu();
-  if(LANG==="en"){ const v=document.querySelector(".view:not([hidden])"); trDeep(v); }
 }
 /* сворачиваемые фильтры */
 function filtLabel(){
