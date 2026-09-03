@@ -2391,7 +2391,14 @@ function setDrill(token,weak){ drillTokens.clear(); drillWeak=!!weak; drillFav=f
 let LANG = (localStorage.getItem("jdLang")==="en")?"en":"ru";
 const I18N = {cards:{},terms:{},fp:{},prin:{},bugs:{}};
 let enLoaded=false, enLoading=false;
-function adoptEN(){ if(window.I18N){ ["cards","terms","fp","prin","bugs"].forEach(k=>Object.assign(I18N[k],window.I18N[k]||{})); enLoaded=true; return true; } return false; }
+/* Разделы «С нуля», «Для чайника», поведенческий и игровые режимы переводятся не
+   по id, а через плоский словарь tr(): русская строка → английская. Словарь UITR
+   объявлен ниже по файлу, а adoptEN() зовётся и отсюда, и до него (в single-file
+   сборке пакет уже на месте) — в этот момент UITR ещё в мёртвой зоне, обращение к
+   нему бросит ReferenceError. Поэтому кладём в отложенное и добираем после. */
+let pendingUI=null;
+function adoptUI(m){ if(!m)return; try{ Object.assign(UITR,m); }catch(e){ pendingUI=m; } }
+function adoptEN(){ if(window.I18N){ ["cards","terms","fp","prin","bugs"].forEach(k=>Object.assign(I18N[k],window.I18N[k]||{})); adoptUI(window.I18N.ui); enLoaded=true; return true; } return false; }
 adoptEN(); // на случай, если EN всё же встроен (полная single-file сборка)
 function loadEN(cb){
   if(enLoaded||adoptEN())return cb(true);
@@ -2848,6 +2855,7 @@ const UITR={
  "⚠️ Высокие ретраи без backoff+jitter усиливают шторм; перед ретраями ставь circuit breaker, иначе добьёшь упавший downstream.":"⚠️ High retries without backoff+jitter amplify the storm; put a circuit breaker before retries or you'll finish off the failing downstream.",
  "✅ Высокий hit кэша режет нагрузку на БД в разы по формуле 1/(1−hit): 90% → ×10, 99% → ×100.":"✅ A high cache hit rate cuts DB load by 1/(1−hit): 90% → 10×, 99% → 100×.",
 };
+if(pendingUI){ Object.assign(UITR,pendingUI); pendingUI=null; }
 function tr(s){ return (LANG==="en"&&UITR[s]!=null)?UITR[s]:s; }
 function applyChrome(){
   document.documentElement.lang=LANG;

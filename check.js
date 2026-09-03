@@ -190,6 +190,39 @@ const check = (name, ok, detail) => {
   const bad = JSON.parse(wide);
   check("на 390px ничего не вылезает вбок", bad.length === 0, bad.length ? bad.slice(0, 5).join(", ") : cards + " карточек");
 
+  /* ---- английский пакет ----
+     Перевод — это второй шанс завезти подсказку по длине: русский вариант правилу
+     подчиняется, а английский рендер тех же вариантов легко делает верный ответ
+     самым длинным. На первой же партии так вышло у четырёх карточек из шести,
+     поэтому меряем EN отдельно, а не надеемся на дисциплину. */
+  const en = JSON.parse(await A.ev(`(async function(){
+    await new Promise(function(r){ loadEN(r) });
+    var tr = I18N.cards || {};
+    var total = CARDS.length, done = CARDS.filter(function(c){ return tr[c.id] }).length;
+    var quizzed = 0, tell = 0, bad = [];
+    CARDS.forEach(function(c){
+      var e = tr[c.id];
+      if(!e || !e.quizCorrect || !Array.isArray(e.quizWrong) || e.quizWrong.length < 3) return;
+      quizzed++;
+      var lc = e.quizCorrect.length;
+      var longer = e.quizWrong.filter(function(w){ return w.length > lc }).length;
+      if(!longer){ tell++; if(bad.length < 5) bad.push(c.id); }
+    });
+    return JSON.stringify({ total: total, done: done, quizzed: quizzed, tell: tell, bad: bad });
+  })()`));
+  check("перевод карточек не потерялся", en.done > 0, en.done + " из " + en.total
+    + " (" + Math.round(en.done / en.total * 100) + "%)");
+  /* Долг достался по наследству и великоват, чтобы валить им сборку: английский
+     текст в среднем короче русского, и там, где русский вариант правилу подчиняется
+     с запасом в десяток знаков, перевод того же варианта уходит в минус. Замер:
+     644 викторины из 755. Поэтому храповик — планка только опускается. Правишь
+     партию, гонишь проверку, вписываешь новое число сюда. */
+  const EN_TELL_MAX = 644;
+  check("английская подсказка по длине не растёт", en.tell <= EN_TELL_MAX,
+    en.tell + " из " + en.quizzed + " без более длинного неверного (планка " + EN_TELL_MAX + ")"
+      + (en.tell < EN_TELL_MAX ? " — опусти планку до " + en.tell : "")
+      + (en.bad.length ? " · например " + en.bad.slice(0, 3).join(", ") : ""));
+
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }
