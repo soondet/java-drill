@@ -20,7 +20,20 @@ const data = JSON.parse(src.slice(eq + 1).trim().replace(/;\s*$/, ""));
 const add = JSON.parse(fs.readFileSync(file, "utf8"));
 data[section] = data[section] || {};
 let added = 0, replaced = 0;
-for (const k of Object.keys(add)) { (k in data[section]) ? replaced++ : added++; data[section][k] = add[k]; }
+/* Долить ПОЛЯ, а не заменить запись. Раньше здесь было присваивание целиком, и
+   партия с одним полем note стирала у карточки уже переведённые q, a, more и
+   викторину — проверено, семнадцать штук разом. */
+for (const k of Object.keys(add)) {
+  const cur = data[section][k];
+  if (cur && typeof cur === "object" && !Array.isArray(cur) && typeof add[k] === "object" && !Array.isArray(add[k])) {
+    let touched = 0;
+    for (const f of Object.keys(add[k])) { if (!(f in cur)) touched++; cur[f] = add[k][f]; }
+    if (touched) added++; else replaced++;
+  } else {
+    (k in data[section]) ? replaced++ : added++;
+    data[section][k] = add[k];
+  }
+}
 
 fs.writeFileSync("i18n-en.js", head + JSON.stringify(data) + ";\n");
 console.log("  раздел " + section + ": добавлено " + added + ", заменено " + replaced

@@ -228,6 +228,19 @@ const check = (name, ok, detail) => {
     await new Promise(function(r){ loadEN(r) });
     var tr = I18N.cards || {};
     var total = CARDS.length, done = CARDS.filter(function(c){ return tr[c.id] }).length;
+    /* Наличие записи ещё не значит перевод: у карточки может быть q и a, но не быть
+       разбора или заметки — и экран выйдет двуязычным. Проверено: так было у 51. */
+    var mixed = [];
+    CARDS.forEach(function(c){
+      var e = tr[c.id]; if(!e) return;
+      var m = [];
+      if(c.d && !e.d) m.push("d");
+      if((window.MORE||{})[c.id] && !e.more) m.push("more");
+      if(((window.HOOKS||{}).cards||{})[c.id] && !e.hook) m.push("hook");
+      if((window.NOTES||{})[c.id] && !e.note) m.push("note");
+      if(m.length && mixed.length < 5) mixed.push(c.id + "(" + m.join(",") + ")");
+      else if(m.length) mixed.push("");
+    });
     var quizzed = 0, tell = 0, bad = [];
     CARDS.forEach(function(c){
       var e = tr[c.id];
@@ -237,7 +250,8 @@ const check = (name, ok, detail) => {
       var longer = e.quizWrong.filter(function(w){ return w.length > lc }).length;
       if(!longer){ tell++; if(bad.length < 5) bad.push(c.id); }
     });
-    return JSON.stringify({ total: total, done: done, quizzed: quizzed, tell: tell, bad: bad });
+    return JSON.stringify({ total: total, done: done, quizzed: quizzed, tell: tell, bad: bad,
+      mixed: mixed.length, mixedEx: mixed.filter(Boolean) });
   })()`));
   check("перевод карточек не потерялся", en.done > 0, en.done + " из " + en.total
     + " (" + Math.round(en.done / en.total * 100) + "%)");
@@ -246,6 +260,9 @@ const check = (name, ok, detail) => {
      с запасом в десяток знаков, перевод того же варианта уходит в минус. Замер:
      644 викторины из 755. Долг выплачен целиком, планка опущена до нуля — теперь
      это обычная проверка, а не храповик. Поднимать её обратно нельзя. */
+  check("карточка не показывает смесь языков", en.mixed === 0,
+    en.mixed ? en.mixed + " карточек с непереведёнными полями: " + en.mixedEx.join(", ")
+             : "у всех переведённых заполнены разбор, заметка, крючок и подробнее");
   const EN_TELL_MAX = 0;
   check("английская подсказка по длине не растёт", en.tell <= EN_TELL_MAX,
     en.tell + " из " + en.quizzed + " без более длинного неверного (планка " + EN_TELL_MAX + ")"
