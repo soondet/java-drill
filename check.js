@@ -250,8 +250,26 @@ const check = (name, ok, detail) => {
       var longer = e.quizWrong.filter(function(w){ return w.length > lc }).length;
       if(!longer){ tell++; if(bad.length < 5) bad.push(c.id); }
     });
+    /* Карточками пакет не исчерпывается: у терминов, принципов и «найди баг» свои
+       словари и свои ключи. Замер нашёл там 31 принцип и 18 багов вообще без
+       перевода, плюс 4 термина без «подробнее». */
+    var other = [];
+    var dt = I18N.terms || {}, MT = window.MORE_TERM || {};
+    var tNo = 0, tHole = 0;
+    (window.TERMS || []).forEach(function(t){
+      var k = t.t + "|" + t.term, e = dt[k];
+      if(!e){ tNo++; return; }
+      if(MT[k] && (e.more == null || e.more === "")) tHole++;
+    });
+    if(tNo || tHole) other.push("термины: без записи " + tNo + ", без «подробнее» " + tHole);
+    var P = (typeof PRIN !== "undefined") ? PRIN : [], dp = I18N.prin || {};
+    var pNo = P.filter(function(x){ return !dp[x.id] }).length;
+    if(pNo) other.push("принципы: без записи " + pNo + " из " + P.length);
+    var db = I18N.bugs || {};
+    var bNo = (window.BUGS || []).filter(function(b){ return !db[b.id] }).length;
+    if(bNo) other.push("найди баг: без записи " + bNo);
     return JSON.stringify({ total: total, done: done, quizzed: quizzed, tell: tell, bad: bad,
-      mixed: mixed.length, mixedEx: mixed.filter(Boolean) });
+      mixed: mixed.length, mixedEx: mixed.filter(Boolean), other: other });
   })()`));
   check("перевод карточек не потерялся", en.done > 0, en.done + " из " + en.total
     + " (" + Math.round(en.done / en.total * 100) + "%)");
@@ -260,6 +278,8 @@ const check = (name, ok, detail) => {
      с запасом в десяток знаков, перевод того же варианта уходит в минус. Замер:
      644 викторины из 755. Долг выплачен целиком, планка опущена до нуля — теперь
      это обычная проверка, а не храповик. Поднимать её обратно нельзя. */
+  check("термины, принципы и «найди баг» переведены", en.other.length === 0,
+    en.other.length ? en.other.join(" · ") : "все три словаря заполнены");
   check("карточка не показывает смесь языков", en.mixed === 0,
     en.mixed ? en.mixed + " карточек с непереведёнными полями: " + en.mixedEx.join(", ")
              : "у всех переведённых заполнены разбор, заметка, крючок и подробнее");
