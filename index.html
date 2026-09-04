@@ -4541,12 +4541,12 @@ function sbModel(){
     return w.bound==='cpu'?"упор в CPU — добавь поды или ядра":"пул потоков исчерпан — подними threads или реплики (поды)"; };
   // формула под капотом — почему именно это горлышко
   const fmlOf=w=>{ if(w.kind==='db'){
-      if(w.bound==='pool')return "🔌 Литтл: λ×"+SBC.dbQueryMs+"мс = "+fmtN(dbConc)+" одновременных запросов, пул "+dbPool;
-      if(w.bound==='write')return "✍️ "+fmtN(dbWrite)+" зап/с / ёмкость "+fmtN(dbWriteCap)+" ("+db.shards+" шард)";
-      return "📖 "+fmtN(dbRead)+" чт/с / ёмкость "+fmtN(dbReadCap)+" ("+(1+db.replicas)+" нод)"; }
+      if(w.bound==='pool')return "🔌 "+tr("Литтл")+": λ×"+SBC.dbQueryMs+tr("мс")+" = "+fmtN(dbConc)+" "+tr("одновременных запросов, пул")+" "+dbPool;
+      if(w.bound==='write')return "✍️ "+fmtN(dbWrite)+" "+tr("зап/с")+" / "+tr("ёмкость")+" "+fmtN(dbWriteCap)+" ("+db.shards+" "+tr("шард")+")";
+      return "📖 "+fmtN(dbRead)+" "+tr("чт/с")+" / "+tr("ёмкость")+" "+fmtN(dbReadCap)+" ("+(1+db.replicas)+" "+tr("нод")+")"; }
     const s=w.sv; if(!s)return "";
-    if(w.bound==='cpu')return "⚙ CPU: λ×"+s.cpuMs+"мс = "+(s._lam*s.cpuMs/1000).toFixed(1)+" ядер нужно, есть "+(s.replicas*s.cores);
-    return "🧵 Литтл: λ×W = "+fmtN(s._lam)+"×"+Math.round(s._W)+"мс = "+fmtN(s._conc)+" потоков в полёте, ёмкость "+fmtN(s._tCap); };
+    if(w.bound==='cpu')return "⚙ CPU: λ×"+s.cpuMs+tr("мс")+" = "+(s._lam*s.cpuMs/1000).toFixed(1)+" "+tr("ядер нужно, есть")+" "+(s.replicas*s.cores);
+    return "🧵 "+tr("Литтл")+": λ×W = "+fmtN(s._lam)+"×"+Math.round(s._W)+tr("мс")+" = "+fmtN(s._conc)+" "+tr("потоков в полёте, ёмкость")+" "+fmtN(s._tCap); };
   const totalPods=sc.services.reduce((a,s)=>a+s.replicas,0), totalThreads=sc.services.reduce((a,s)=>a+s.replicas*s.threads,0), totalCores=sc.services.reduce((a,s)=>a+s.replicas*s.cores,0);
   const maxRps=sc.rps/Math.max(worst.u,0.01);
   const tips=[];
