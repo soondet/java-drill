@@ -297,26 +297,95 @@ const check = (name, ok, detail) => {
       + (en.tell < EN_TELL_MAX ? " — опусти планку до " + en.tell : "")
       + (en.bad.length ? " · например " + en.bad.slice(0, 3).join(", ") : ""));
 
-  /* ---- переключение языка прямо на вкладке ----
-     Ловушка, которая один раз уже сработала: язык менялся, а вкладка оставалась
-     русской. Две причины были — refreshView не знал про половину вкладок, и trDeep
-     падал на тексте вроде «valueOf» (UITR отдавал метод из прототипа Object,
-     String.replace звал его как функцию-заменитель). Исключение обрывало setLang
-     до перерисовки, и наружу это выглядело как «перевод не доехал».
-     Меряем то, что видит человек: доля кириллицы в видимом тексте до и после. */
-  const ratio = `(function(){var t=document.body.innerText||"";
+  /* ---- переключение языка ----
+     Гейт один раз уже пропустил полный отказ: язык менялся, а вкладка оставалась
+     русской, и проверка была зелёная. Причин было три, и каждая ломала свой путь:
+       · trDeep падал на слове вроде «valueOf» — UITR отдавал метод из прототипа
+         Object, String.replace звал его как функцию-заменитель. Исключение
+         обрывало setLang до перерисовки;
+       · первый тык по EN шёл в обход общей ветки — не запускались ни наблюдатель,
+         ни глубокий проход;
+       · refreshView не знал про половину вкладок.
+     Поэтому проверяем не «словарь заполнен», а четыре пути, которыми ходит человек,
+     и ловим исключение из setLang напрямую: иначе поломка выглядит как «осталось
+     51% кириллицы», и на поиск причины уходит час. */
+  const HOOK = "window.__err=[];addEventListener(\"error\",e=>__err.push(String(e.message)));"
+    + "addEventListener(\"unhandledrejection\",e=>__err.push(\"promise: \"+e.reason));"
+    + "document.querySelectorAll(\".onb,#onb\").forEach(e=>e.remove());";
+  const RATIO = `(function(){var t=document.body.innerText||"";
     var c=(t.match(/[а-яА-ЯёЁ]/g)||[]).length,l=(t.match(/[a-zA-Z]/g)||[]).length;
     return c+l?Math.round(c/(c+l)*100):0;})()`;
-  const stuck = [];
+  /* setLang внутри try: возвращаем текст исключения, а не симптом */
+  const SETLANG = l => `(function(){ try{ setLang(${JSON.stringify(l)}); return ""; }
+    catch(e){ return "исключение из setLang: "+e.message+" | "+String(e.stack||"").split("\\n")[1]; } })()`;
+  const reload = async () => {
+    await A.ev("location.reload()");
+    for (let i = 0; i < 40; i++) { await sleep(500);
+      if (await A.ev("document.readyState===\"complete\" && typeof CARDS!==\"undefined\" && CARDS.length>0")) break; }
+    await sleep(400); await A.ev(HOOK);
+  };
+
+  /* 1. переключение прямо на вкладке — по всем вкладкам */
+  const stuck = [], threw = [];
   for (const m of ["drill","terms","fp","zero","beh","money","basics","prin","prog","path"]) {
-    await A.ev(`localStorage.removeItem("jdLang"); LANG="ru";`);
-    await A.ev(`setLang("ru")`); await A.ev(`setMode(${JSON.stringify(m)})`); await sleep(400);
-    await A.ev(`setLang("en")`); await sleep(900);
-    const left = +(await A.ev(ratio));
+    await A.ev(`localStorage.removeItem("jdLang")`);
+    const e1 = await A.ev(SETLANG("ru"));
+    await A.ev(`setMode(${JSON.stringify(m)})`); await sleep(400);
+    const e2 = await A.ev(SETLANG("en")); await sleep(900);
+    if (e1 || e2) threw.push(m + ": " + (e1 || e2));
+    const left = +(await A.ev(RATIO));
     if (left > 8) stuck.push(m + " " + left + "%");
   }
+  check("setLang не бросает исключений", threw.length === 0,
+    threw.length ? threw[0] : "10 вкладок, оба направления");
   check("переключение на английский работает прямо на вкладке", stuck.length === 0,
     stuck.length ? "осталось русским: " + stuck.join(" · ") : "10 вкладок, кириллицы ≤8% (остаток — имена классов и SQL)");
+
+  /* 2. возврат на русский: trDeep правит текст на месте, восстановить его может
+        только перерисовка — если она не случится, останется английский */
+  await A.ev(`setMode("basics")`); await A.ev(SETLANG("ru")); await sleep(600);
+  const ruBase = +(await A.ev(RATIO));
+  await A.ev(SETLANG("en")); await sleep(800);
+  await A.ev(SETLANG("ru")); await sleep(800);
+  const ruBack = +(await A.ev(RATIO));
+  check("возврат на русский восстанавливает текст", Math.abs(ruBack - ruBase) <= 4,
+    "было " + ruBase + "% → стало " + ruBack + "% кириллицы");
+
+  /* 3. первый тык по кнопке на свежей странице — путь, которым идёт живой человек.
+        Именно он и был сломан: пакет грузится асинхронно, и ветка после загрузки
+        шла мимо общей, без наблюдателя и без глубокого прохода. */
+  await A.ev(`localStorage.removeItem("jdLang")`);
+  await reload();
+  await A.ev(`setMode("basics")`); await sleep(500);
+  const freshBefore = +(await A.ev(RATIO));
+  await A.ev(`var b=document.querySelector("#langTog"); if(b)b.click();`);
+  await sleep(3000);
+  const freshAfter = +(await A.ev(RATIO));
+  check("первый тык по кнопке языка переводит страницу", freshAfter <= 8,
+    "свежая страница: " + freshBefore + "% → " + freshAfter + "% кириллицы");
+
+  /* 3б. проверка самого механизма, а не доли кириллицы.
+        Подписи внутри схем лежат готовой HTML-строкой и переводятся только
+        глубоким проходом trDeep плюс наблюдателем за вставками. Если ветка
+        первого переключения пойдёт мимо них, вкладка всё равно нарисуется
+        по-английски через T() — и доля кириллицы почти не изменится.
+        Поэтому считаем узлы, чей текст ЕСТЬ в словаре, но остался русским:
+        у работающего механизма их ноль. */
+  const missed = +(await A.ev(`(function(){
+    var n=0, w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,null), x;
+    while((x=w.nextNode())){ var k=x.nodeValue.trim(); if(!k)continue;
+      var en=trLook(k); if(en!=null&&en!==k)n++; }
+    return n;})()`));
+  check("глубокий проход по подписям отработал", missed <= 5,
+    missed + " узлов есть в словаре, но остались русскими");
+
+  /* 4. выбор языка пережил перезагрузку */
+  await reload();
+  const savedLang = await A.ev("LANG");
+  const savedRatio = +(await A.ev(RATIO));
+  check("сохранённый английский поднимается при старте", savedLang === "en" && savedRatio <= 8,
+    "LANG=" + savedLang + " · " + savedRatio + "% кириллицы");
+  await A.ev(`localStorage.removeItem("jdLang")`);
 
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
