@@ -7927,7 +7927,69 @@ window.I18N = {
   "делаю": "doing",
   "дня": "days",
   "твоё": "yours",
-  "чужое": "somebody else's"
+  "чужое": "somebody else's",
+  "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"привет\");\n    }\n}": "public class Main { public static void main(String[] args) { System.out.println(\"hello\"); } }",
+  "int a = 5;\nInteger b = a;   // автобоксинг: создался объект\nint c = b;       // распаковка обратно": "int a = 5; Integer b = a; // autoboxing: an object was created int c = b; // unboxed back",
+  "String a = new String(\"да\");\nString b = new String(\"да\");\na == b        // false — разные объекты\na.equals(b)   // true  — одинаковый текст": "String a = new String(\"yes\"); String b = new String(\"yes\"); a == b // false — different objects a.equals(b) // true — same text",
+  "class Order {           // чертёж\n    long id;\n    int amount;\n}\nOrder a = new Order();  // изделие": "class Order { // blueprint long id; int amount; } Order a = new Order(); // the product",
+  "interface Storage {\n    void save(String s);   // что умеет\n}\nclass DiskStorage implements Storage { ... }\nclass CloudStorage implements Storage { ... }": "interface Storage { void save(String s); // what it can do } class DiskStorage implements Storage { ... } class CloudStorage implements Storage { ... }",
+  "List<String> l = new ArrayList<>();\nl.add(\"а\");        // растёт сам\nString s = l.get(0); // по индексу — мгновенно": "List<String> l = new ArrayList<>(); l.add(\"a\"); // grows by itself String s = l.get(0); // by index — instant",
+  "Map<Long,Order> byId = new HashMap<>();\nbyId.put(42L, order);\nOrder o = byId.get(42L);   // сразу, без перебора": "Map<Long,Order> byId = new HashMap<>(); byId.put(42L, order); Order o = byId.get(42L); // straight away, no scanning",
+  "try (var in = new FileInputStream(\"a.txt\")) {\n    // работаем\n}   // закроется само, даже при ошибке": "try (var in = new FileInputStream(\"a.txt\")) { // do the work } // closes itself, even on an error",
+  "var orders = new ArrayList<Order>();   // понятно\nvar x = service.get();                 // непонятно": "var orders = new ArrayList<Order>(); // clear var x = service.get(); // unclear",
+  "String s = switch (p) {\n    case Card c -> \"карта \" + c.last4();\n    case Cash ignored -> \"наличные\";\n    case Transfer t -> \"перевод \" + t.bank();\n};": "String s = switch (p) { case Card c -> \"card \" + c.last4(); case Cash ignored -> \"cash\"; case Transfer t -> \"transfer \" + t.bank(); };",
+  "Method m = obj.getClass().getMethod(\"getId\");\nObject v = m.invoke(obj);   // компилятор ничего не проверил": "Method m = obj.getClass().getMethod(\"getId\"); Object v = m.invoke(obj); // the compiler checked nothing",
+  "when(repo.findById(1L)).thenReturn(Optional.of(order));\n// теперь проверяем ТОЛЬКО свою логику": "when(repo.findById(1L)).thenReturn(Optional.of(order)); // now we test ONLY our own logic",
+  "var repo = new OrderRepo(dataSource);\nvar mail = new MailSender(host, port, user, pass);\nvar svc  = new OrderService(repo, mail);   // и так про каждый объект": "var repo = new OrderRepo(dataSource); var mail = new MailSender(host, port, user, pass); var svc = new OrderService(repo, mail); // and so on for every object",
+  "@Service\nclass OrderService {\n    private final OrderRepo repo;\n    OrderService(OrderRepo repo) {   // просто просим\n        this.repo = repo;\n    }\n}": "@Service class OrderService { private final OrderRepo repo; OrderService(OrderRepo repo) { // we just ask this.repo = repo; } }",
+  "@Transactional\npublic void outer() { inner(); }      // прокси НЕ сработает\n\n@Transactional\npublic void inner() { ... }           // транзакции не будет": "@Transactional public void outer() { inner(); } // the proxy will NOT fire @Transactional public void inner() { ... } // no transaction here",
+  "java -jar app.jar        # всё, приложение работает": "java -jar app.jar # that's it, the app is running",
+  "interface OrderRepo extends JpaRepository<Order, Long> {\n    List<Order> findByClientId(long id);   // реализация не нужна\n}": "interface OrderRepo extends JpaRepository<Order, Long> { List<Order> findByClientId(long id); // no implementation needed }",
+  "// два потока по 1000 инкрементов\n// ожидаем 2000, получаем 1873, 1946, 2000 — как повезёт": "// two threads, 1000 increments each // we expect 2000, we get 1873, 1946, 2000 — luck of the draw",
+  "var pool = Executors.newFixedThreadPool(4);\npool.submit(() -> обработать(заказ));": "var pool = Executors.newFixedThreadPool(4); pool.submit(() -> process(order));",
+  "CompletableFuture.supplyAsync(() -> клиент())\n    .thenApply(c -> c.getEmail())\n    .thenAccept(this::отправить);": "CompletableFuture.supplyAsync(() -> client()) .thenApply(c -> c.getEmail()) .thenAccept(this::send);",
+  "AtomicInteger c = new AtomicInteger();\nc.incrementAndGet();   // атомарно, без блокировки": "AtomicInteger c = new AtomicInteger(); c.incrementAndGet(); // atomic, no lock",
+  "Thread.startVirtualThread(() -> {\n    var r = jdbcCall();   // блокирует, но не занимает поток ОС\n});": "Thread.startVirtualThread(() -> { var r = jdbcCall(); // blocks, but holds no OS thread });",
+  "try { ctx.set(user); doWork(); }\nfinally { ctx.remove(); }   // обязательно": "try { ctx.set(user); doWork(); } finally { ctx.remove(); } // mandatory",
+  "@Transactional\nvoid renameClient(long id) {\n    var c = repo.findById(id).get();\n    c.setName(\"новое\");     // UPDATE уйдёт сам на коммите\n}": "@Transactional void renameClient(long id) { var c = repo.findById(id).get(); c.setName(\"new name\"); // the UPDATE goes out by itself on commit }",
+  "@Query(\"select o from Order o join fetch o.client\")\nList<Order> allWithClient();   // один запрос вместо N+1": "@Query(\"select o from Order o join fetch o.client\") List<Order> allWithClient(); // one query instead of N+1",
+  "@Version\nprivate long version;   // JPA сам проверит и бросит ошибку": "@Version private long version; // JPA checks it and throws for you",
+  "@Transactional\nvoid create(Order o) {\n    orders.save(o);\n    outbox.save(new Event(\"OrderCreated\", o.id()));  // одна транзакция\n}": "@Transactional void create(Order o) { orders.save(o); outbox.save(new Event(\"OrderCreated\", o.id())); // one transaction }",
+  "HttpClient.newBuilder()\n    .connectTimeout(Duration.ofSeconds(2))   // соединение\n    .build();\n// и отдельно таймаут на чтение ответа": "HttpClient.newBuilder() .connectTimeout(Duration.ofSeconds(2)) // the connection .build(); // and a separate timeout for reading the response",
+  "// опасно\n\"SELECT * FROM users WHERE name='\" + name + \"'\"\n// безопасно\n\"SELECT * FROM users WHERE name=?\"": "// dangerous \"SELECT * FROM users WHERE name='\" + name + \"'\" // safe \"SELECT * FROM users WHERE name=?\"",
+  "// ничего не настраиваем — SDK сам возьмёт роль\nvar s3 = S3Client.create();": "// nothing to configure — the SDK picks up the role itself var s3 = S3Client.create();",
+  "// ссылка на 15 минут, трафик не идёт через приложение\nvar url = presigner.presignGetObject(...);": "// a 15-minute link, the traffic never touches the app var url = presigner.presignGetObject(...);",
+  "# ADR-012: берём Kafka вместо RabbitMQ\nКонтекст · Варианты · Решение · Последствия": "# ADR-012: Kafka over RabbitMQ Context · Options · Decision · Consequences",
+  "ответ ·": "answer ·",
+  "snapshot isolation · ловушка имени": "snapshot isolation · a trap in the name",
+  "Composite index: = первым, range последним": "Composite index: equality first, range last",
+  "8 саг = 3 оси": "8 sagas = 3 axes",
+  "at-least-once · порядок ack": "at-least-once · ack ordering",
+  "Deep vs Shallow модуль": "Deep vs Shallow modules",
+  "Вероятностные и спец": "Probabilistic and specialised",
+  "Кардинальность метрик": "Metric cardinality",
+  "стили": "styles",
+  "Старт и DI": "Startup and DI",
+  "Конфиг и Dev": "Config and Dev mode",
+  "Хранение и ротация ключей": "Key storage and rotation",
+  "🎙 объясни сам": "🎙 explain it yourself",
+  "git config core.hooksPath .githooks\ngit commit --no-verify   # обходит pre-commit ⚠": "git config core.hooksPath .githooks\ngit commit --no-verify   # bypasses pre-commit ⚠",
+  "8.3: клиентские хуки не копируются при clone; 8.4": "8.3: client-side hooks are not copied on clone; 8.4",
+  "что здесь блокирующее,": "what here is blocking,",
+  "а что вкусовщина": "and what is just taste",
+  "прод горит, есть улики": "production is on fire, there are clues",
+  "выбери следующий шаг": "pick the next step",
+  "сниппет — предскажи": "a snippet — predict",
+  "вывод в консоль": "the console output",
+  "новых в день": "new per day",
+  "устройство полнотекстовых индексов Lucene": "how Lucene full-text indexes are built",
+  "📚 Все": "📚 All",
+  "🩹 Слабые": "🩹 Weak",
+  "⭐ Избранное": "⭐ Favourites",
+  "🟢 Основа": "🟢 Basics",
+  "📚 Все темы": "📚 All topics",
+  "🩹 Слабые места": "🩹 Weak spots",
+  "🩸 Проблемные": "🩸 Trouble cards"
  },
  "cards": {
   "jc-eqhash": {
@@ -22708,55 +22770,55 @@ window.I18N = {
    "term": "ScopedValue",
    "def": "An immutable replacement for ThreadLocal aimed at virtual threads: the value is visible only inside a bounded block (where().run()), is automatically inherited by the scope's child tasks, and needs no manual cleanup — hence its cheapness across millions of vthreads.",
    "hook": "A team of climbers on a single rope: roped into one party, moving together. One slips — the belay yanks the rest, and the group doesn't scatter across the mountain alone. The leader (parent) doesn't leave the route until the whole party is gathered.",
-   "more": ""
+   "more": "`ThreadLocal` is a mutable map glued to a thread, and it lives as long as the thread does: put a value in a filter, forget to remove it, and the thread goes back to the pool with somebody else's tenantId. And `InheritableThreadLocal` copies the map into every new thread — across a million virtual ones that is no longer free.\n\nInside, the binding is immutable and lives on the stack: `ScopedValue.where(USER, u).run(task)` puts the binding into the call frame, and when the frame ends the binding goes with it — there is nothing to clean up by hand. Reads walk the chain of bindings with a small per-thread cache, so `get()` is cheap. Inheritance works not «into any new thread» but only into `StructuredTaskScope` forks — they see the parent's bindings without copying.\n\nWhere it breaks: `get()` outside the block throws `NoSuchElementException` rather than returning null. A value cannot be overwritten — only shadowed by a nested `where`. Throw a task into an ordinary `ExecutorService` and the binding does not travel with it. Finalised in Java 25 (JEP 506); `StructuredTaskScope` alongside it is still preview.\n\nAt the interview they'll ask: why is ThreadLocal bad for virtual threads, and what does ScopedValue do instead."
   },
   "Web|Confused deputy": {
    "term": "Confused deputy",
    "def": "A class of vulnerabilities where a trusted component performs a privileged action on the orders of a less-privileged party, with no grounds for doing so. In JWT — the validator picks the algorithm/key from the alg field, which the attacker controls.",
    "hook": "It's like a guard who admits people by their passes, but the way to check the pass is dictated by the person walking in. The guest says \"my pass doesn't need checking\" — and the guard dutifully doesn't check it. Fixed by one rule: security decides how to verify, not the guest.",
-   "more": ""
+   "more": "This is not a separate hole but a pattern that CSRF, SSRF and half the bugs in microservices fit. The gap is that **authentication** answers «who is asking» while the **authority** used is somebody else's — the one the executor holds. A browser with your cookie is the deputy in CSRF. A backend with access to the private network is the deputy in SSRF. A service that calls a neighbour with a technical account holding the `admin` role is the deputy in any internal API.\n\nIt breaks where only *what to do* travels along the chain, never *on whose behalf*. The classic: the front end calls the gateway with the user's JWT, the gateway goes to `orders` as its own service client — and `orders` no longer knows the initiator, has nothing to check ownership against, and is left with «it came from inside, so it's allowed».\n\nTwo cures: carry the user context through the whole chain (**OAuth2 token exchange** / on-behalf-of instead of a «trusted internal call»), or pass not a resource identifier but a **capability** — a signed link or token that carries the rights itself and cannot be used to ask for somebody else's data.\n\nAt the interview they'll ask: why are CSRF and SSRF considered special cases of one problem?"
   },
   "Algorithms|Floyd's Tortoise and Hare": {
    "term": "Floyd's Tortoise and Hare",
    "def": "A cycle-detection algorithm using two pointers of different speeds in O(n) time and O(1) memory; it also lets you find the cycle's entry point and its length.",
    "hook": "Two runners on a circular track at different speeds: the fast one inevitably laps the slow one and catches up from behind.",
-   "more": ""
+   "more": "The interesting part is not the detection but the second phase. Let there be μ steps before the cycle's entry and a cycle of length λ. At the meeting the slow pointer has taken k steps, the fast one 2k, and the difference k is a multiple of λ. Hence: put one pointer at the head, leave the other at the meeting point, advance both one step at a time — they meet exactly at the cycle's entry. You then find the cycle length by walking one pointer round until they meet again.\n\nA linked list is the textbook example; the real applications are more interesting: finding the duplicate in an array of n+1 numbers from 1..n, where `a[i]` is treated as a pointer (O(1) memory, input untouched), **Pollard's rho** for factorisation and discrete logarithms, and detecting a loop in a state machine or an iterated function.\n\nAgainst a `HashSet` of visited nodes: that is O(n) in time too, but eats O(n) memory — and the whole point of Floyd is O(1). In practice **Brent's algorithm** often wins: the same idea with a doubling step, usually noticeably fewer function calls, which matters when a step is an expensive computation rather than a pointer dereference.\n\nAt the interview they'll ask: why do you move one pointer back to the start after the meeting — prove it."
   },
   "Algorithms|Quickselect": {
    "term": "Quickselect",
    "def": "An algorithm for finding the k-th order element via partition (as in quicksort) with recursion into a single half; average O(n), worst case O(n²), deterministic O(n) via median-of-medians.",
    "hook": "You're looking for a particular book on a shelf by its height: you grab a random one, split the shelf into \"shorter\" and \"taller,\" and dig only through the pile where yours could be — you never touch the other one.",
-   "more": ""
+   "more": "The win over «sort and take the k-th» works out on your fingers: quicksort recurses into both halves and gives n log n, quickselect only into the half holding k, and the sum n + n/2 + n/4 + … collapses to **O(n)**. On large arrays that is several times faster than sorting.\n\nThe O(n²) worst case is triggered by bad pivots (sorted input plus first-element pivot). Cured with a random pivot — expectation O(n), a failure improbable — or with median-of-medians, which gives an honest worst-case O(n) but with a constant that loses in practice. The industrial compromise is **introselect**: a random pivot, falling back to median-of-medians when a depth limit is exceeded (that is how C++'s `nth_element` is built).\n\nThe pitfalls in Java: there is nothing ready, and a hand-rolled quickselect **destroys the input array** — it permutes the elements. If you need the original order, copy. And for a stream, or for k ≪ n, it is no use at all: there a heap of size k gives O(n log k) in one pass without holding the whole array.\n\nAt the interview they'll ask: how do you find the 100 largest numbers in a stream of a billion elements?"
   },
   "Reactive|Reactor Context": {
    "term": "Reactor Context",
    "def": "An immutable key-value store bound to the Subscription (not to a thread), which propagates from subscribe() up to the source; written with contextWrite, read with deferContextual.",
    "hook": "It's like a relay run backwards: the anchor (subscribe) grabs the Context baton first and passes it back down the lane — to the runner at the start (the source). Whoever stands HIGHER up the lane gets the baton; whoever's below the handoff point doesn't.",
-   "more": ""
+   "more": "It exists because `ThreadLocal` died in reactive: one request wanders across several threads, so there is nowhere to keep a traceId, MDC logs, the user's token or the tenant. Context is the ThreadLocal replacement, bound to the subscription rather than to the thread.\n\nThe main counter-intuitive part is the direction. `contextWrite(ctx -> ctx.put(\"userId\", id))` writes for what is **above** in the chain (that is, earlier in the code), because the context travels with the `Subscription` from subscriber to source at `subscribe()` time. Put `contextWrite` at the end of the chain and every operator before it sees the value; put it at the start and nobody after it does.\n\nIt is immutable: every `put` creates a new instance, so «pass a value out from the middle of the chain» is impossible, the context's data flow is one-way. You read it with `Mono.deferContextual((sig, ctx) -> ...)` or `transformDeferredContextual`; for wiring it to MDC and Micrometer there is `contextCapture()` and context-propagation.\n\nAt the interview they'll ask: why does `contextWrite` affect the operators above it rather than below."
   },
   "Build|Filer": {
    "term": "Filer",
    "def": "A service from the ProcessingEnvironment through which a processor creates new sources/classes/resources (createSourceFile). The only \"legal\" way to generate code in APT — it's what guarantees the new file makes it into the next round.",
    "hook": "A processor is a contractor that the foreman (javac) lets onto the site before the concrete is poured: it draws in the missing blueprints (sources), and only once there's nothing left to draw does everything get poured at once.",
-   "more": ""
+   "more": "The Filer is the only channel through which an annotation processor hands generated code back to the compiler. You can write a file with `new FileWriter(...)`, but javac will never know about it: in that same run the class is not compiled, and the build tool does not see it as a task output.\n\nIt works in rounds: a file created through `filer.createSourceFile(...)` enters the **next round** of processing and itself passes through every processor — that is how chained generation works. When there are no new files, the final round runs, where `roundEnv.processingOver()` returns true; writing to the Filer there is no longer allowed, only logging through the `Messager`.\n\nThe typical error is `FilerException: Attempt to recreate a file`: the processor creates the same class twice. Cured by accumulating state and generating exactly once. And do not forget to pass originating elements to `createSourceFile` — the build tool uses them to work out which source to rebuild. Lombok does not belong here: it does not write files through the Filer, it edits the compiler's AST.\n\nAt the interview they'll ask: what are processing rounds and what is `processingOver()` for."
   },
   "JVM|Cleaner / PhantomReference": {
    "term": "Cleaner / PhantomReference",
    "def": "A deferred-cleanup mechanism: a PhantomReference is attached to the direct-buffer wrapper; when the GC declares the wrapper garbage, a background Cleaner thread triggers the release of the native memory. A replacement for finalize() without its downsides, but still non-deterministic — the moment of free() is dictated by the GC.",
    "hook": "A direct buffer is like a storage locker outside your apartment. In the apartment (heap) only the tag-key hangs. As long as the key sits in your pocket, nobody frees the locker — even if you stopped needing the junk inside long ago.",
-   "more": ""
+   "more": "An awkward fact: the GC manages only the heap. A direct buffer, an mmap region, a native handle live outside it, and people forget to free them by hand. A Cleaner ties the release to the death of the Java wrapper, but without `finalize()`: that one could resurrect the object and is therefore living out its last days (JEP 421).\n\nInside: the wrapper is registered as a **PhantomReference** in a **ReferenceQueue**. The GC declares it garbage → the `ReferenceHandler` puts the reference into the queue → the Cleaner thread takes it out and runs the `Runnable`. For a DirectByteBuffer it is the internal `jdk.internal.ref.Cleaner`: its `clean()` (`unsafe.freeMemory`) is called by the ReferenceHandler itself, with no separate thread. The rule: the cleanup task must not reference the object itself, or it becomes immortal — the classic bug with a lambda capturing `this`.\n\nIt breaks on non-determinism: native memory runs out before the GC decides to fire, which is why `Bits.reserveMemory` calls `System.gc()` itself and waits. With `-XX:+DisableExplicitGC` you get an `OOM: Direct buffer memory` on a half-empty heap.\n\nAt the interview they'll ask: how does a PhantomReference differ from Weak/Soft, and why is its `get()` always `null`."
   },
   "DevOps|cgroup memory limit": {
    "term": "cgroup memory limit",
    "def": "A memory limit set by the Linux kernel for a group of processes (control group). The container runtime puts the value from resources.limits.memory here; on exceeding it, the kernel signals the OOM killer — hence OOMKilled.",
    "hook": "It's like a bouncer at a club with a fire-safety capacity limit: when there are more people than allowed, he doesn't ask and doesn't warn — he just throws you out the door. Inside the club nobody announced \"we're full\" (no Java OOM), the decision was made outside (the kernel).",
-   "more": ""
+   "more": "In practice this is the main reason a pod dies with exit code 137 (SIGKILL) and not a single exception in the logs. The kernel first tries reclaim, and when that fails the cgroup OOM killer kills the process: no shutdown hook, no `OutOfMemoryError`, no final log line.\n\nThe mechanics: the limit counts not only RSS but page cache, tmpfs and socket buffers. For the JVM that hurts — heap + metaspace + code cache + thread stacks (~0.5–1 MB each) + Netty's direct ByteBuffers. The classic mistake is setting `-Xmx` equal to `limits.memory`: the heap fits, and the native part pushes the container over the edge. Better is `-XX:MaxRAMPercentage=70..75` — since Java 10+ `UseContainerSupport` is on by default and the JVM reads the cgroup limit itself.\n\nThe second trap: cgroup v2 has a soft `memory.high` (throttles allocations and forces reclaim) and a hard `memory.max` (kills). Kubernetes sets only `max` by default, and `memory.high` appears only with the MemoryQoS feature gate. There will be no «warning» phase — straight to a corpse.\n\nAt the interview they'll ask: why was the container OOM-killed if the heap dump shows the heap only 40% full?"
   },
   "Crypto|Envelope encryption": {
    "term": "Envelope encryption",
    "def": "Two-level encryption: the data is encrypted with a fast data-key, and the data-key is encrypted with a master key in the KMS. Rotating the master requires no re-encryption of the data itself.",
    "hook": "A safe in a bank: inside is your apartment key (data-key), outside is the bank's lock (the master in the KMS). Changing the bank's lock is easy, and you don't have to re-key every apartment.",
-   "more": ""
+   "more": "The scheme solves two things: volume (KMS will not pass terabytes through itself) and latency (a network call per write kills it). `GenerateDataKey` returns the key in two forms — plaintext and wrapped; you encrypt the data with the plaintext one and wipe it from memory, and store the wrapped blob next to the ciphertext. On a read it is one `Decrypt` of the blob, and everything after that is local.\n\nGranularity is the main choice. A key per record is the safest but means a KMS call per read; hence a cache of decrypted data keys (LRU + a short TTL), or a key per tenant or per day. The encryption context (this is AAD) binds the blob to a record id or tenant_id and must match exactly on decryption.\n\nA nuance about rotation: changing the master does not re-encrypt the already-wrapped data keys, so the old versions must live on. «Rotation without re-encryption» holds right up until an old version genuinely has to be destroyed — then you need a rewrap. On the plus side you get crypto-shredding for free: delete a tenant's key and their data is dead.\n\nAt the interview they'll ask: how many KMS calls will a read of a million rows make, and how do you cut that down."
   },
   "Design|Stateless server": {
    "term": "Stateless server",

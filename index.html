@@ -2856,7 +2856,12 @@ const UITR={
  "✅ Высокий hit кэша режет нагрузку на БД в разы по формуле 1/(1−hit): 90% → ×10, 99% → ×100.":"✅ A high cache hit rate cuts DB load by 1/(1−hit): 90% → 10×, 99% → 100×.",
 };
 if(pendingUI){ Object.assign(UITR,pendingUI); pendingUI=null; }
-function tr(s){ return (LANG==="en"&&UITR[s]!=null)?UITR[s]:s; }
+function trLook(k){
+  if(typeof k!=="string"||!Object.prototype.hasOwnProperty.call(UITR,k))return null;
+  const v=UITR[k];
+  return typeof v==="string"?v:null;
+}
+function tr(s){ if(LANG!=="en")return s; const v=trLook(s); return v==null?s:v; }
 /* Подписи внутри схем (кадры карточек, «на пальцах», принципы, «с нуля») лежат
    готовой HTML-строкой в данных: «⏳ 60с», «нет→», «🔌 порт». Обернуть их в tr()
    в разметке нельзя — это не шаблон, а текст. Поэтому переводим после вставки,
@@ -2872,7 +2877,7 @@ function trWatch(on){
   trObs=new MutationObserver(function(recs){
     for(const r of recs) for(const n of r.addedNodes)
       if(n.nodeType===1) trDeep(n); else if(n.nodeType===3){
-        const k=n.nodeValue.trim(), en=k&&UITR[k];
+        const k=n.nodeValue.trim(), en=k&&trLook(k);
         if(en!=null&&en!==k)n.nodeValue=n.nodeValue.replace(k,en);
       }
   });
@@ -2886,7 +2891,7 @@ function trDeep(root){
   for(const t of list){
     const raw=t.nodeValue, key=raw.trim();
     if(!key)continue;
-    const en=UITR[key];
+    const en=trLook(key);
     if(en!=null&&en!==key)t.nodeValue=raw.replace(key,en);
   }
 }
@@ -2906,13 +2911,30 @@ function setLang(l){
     const lt=$("#langTog"); if(lt){lt.textContent="…";lt.disabled=true;}
     loadEN(ok=>{ if(lt)lt.disabled=false;
       if(!ok){ if(lt)lt.textContent="EN"; alert("EN-пакет не найден.\nПоложите файл i18n-en.js рядом с java-drill.html (в ту же папку)."); return; }
-      LANG="en"; localStorage.setItem("jdLang","en"); applyChrome(); refreshView();
+      setLang("en");   /* enLoaded уже true — уходим в общую ветку ниже, там trWatch + trDeep */
     });
     return;
   }
   LANG=l; trWatch(l==="en"); if(l==="en"){ trDeep(document.body); } localStorage.setItem("jdLang",l); applyChrome(); refreshView();
 }
-function refreshView(){ if(mode==="drill"){buildDrillCats();buildFilter();rebuild();} else if(mode==="fp"){buildFpNav($("#fpSearch").value);renderFingers();} else if(mode==="terms"){buildTerms($("#termSearch").value);} else if(mode==="prin"){buildPrinNav($("#prinSearch").value);renderPrin();} else if(mode==="prog"){buildProg();} else if(mode==="sand"){buildSand();} else if(mode==="game"){gameMenu();} }
+/* Перерисовка текущей вкладки — нужна при смене языка: половина вкладок строит
+   разметку один раз, и без перестройки нажатие EN не меняло на них ничего, пока
+   пользователь не уйдёт и не вернётся. 3D-мир и музыку намеренно не трогаем:
+   перестройка сбросила бы прогулку и оборвала звук, а статику там переводит trDeep. */
+function refreshView(){
+  if(mode==="drill"){buildDrillCats();buildFilter();rebuild();}
+  else if(mode==="fp"){buildFpNav($("#fpSearch").value);renderFingers();}
+  else if(mode==="terms"){buildTerms($("#termSearch").value);}
+  else if(mode==="prin"){buildPrinNav($("#prinSearch").value);renderPrin();}
+  else if(mode==="prog"){buildProg();}
+  else if(mode==="sand"){buildSand();}
+  else if(mode==="game"){gameMenu();}
+  else if(mode==="basics"){buildBasics($("#basSearch").value);}
+  else if(mode==="zero"){buildZero();}
+  else if(mode==="beh"){buildBeh();}
+  else if(mode==="money"){buildMoney();}
+  else if(mode==="path"){buildPath();}
+}
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function fmt(t){
   let s=esc(t);
@@ -11950,7 +11972,7 @@ $("#fsBtn").onclick=e=>{ e.stopPropagation(); const p=$("#fsPop"); if(p)p.hidden
 $("#fsRange").oninput=e=>applyZoom(parseFloat(e.target.value));
 $("#fsReset").onclick=()=>applyZoom(1);
 applyZoom(jdZoom);
-if(LANG==="en"){ LANG="ru"; applyChrome(); loadEN(ok=>{ if(ok){ LANG="en"; applyChrome(); refreshView(); } }); } else applyChrome();
+if(LANG==="en"){ LANG="ru"; applyChrome(); loadEN(ok=>{ if(ok){ enLoaded=true; setLang("en"); } }); } else applyChrome();
 buildDrillCats();buildFilter();
 updateKpis();
 rebuild();

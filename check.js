@@ -297,6 +297,27 @@ const check = (name, ok, detail) => {
       + (en.tell < EN_TELL_MAX ? " — опусти планку до " + en.tell : "")
       + (en.bad.length ? " · например " + en.bad.slice(0, 3).join(", ") : ""));
 
+  /* ---- переключение языка прямо на вкладке ----
+     Ловушка, которая один раз уже сработала: язык менялся, а вкладка оставалась
+     русской. Две причины были — refreshView не знал про половину вкладок, и trDeep
+     падал на тексте вроде «valueOf» (UITR отдавал метод из прототипа Object,
+     String.replace звал его как функцию-заменитель). Исключение обрывало setLang
+     до перерисовки, и наружу это выглядело как «перевод не доехал».
+     Меряем то, что видит человек: доля кириллицы в видимом тексте до и после. */
+  const ratio = `(function(){var t=document.body.innerText||"";
+    var c=(t.match(/[а-яА-ЯёЁ]/g)||[]).length,l=(t.match(/[a-zA-Z]/g)||[]).length;
+    return c+l?Math.round(c/(c+l)*100):0;})()`;
+  const stuck = [];
+  for (const m of ["drill","terms","fp","zero","beh","money","basics","prin","prog","path"]) {
+    await A.ev(`localStorage.removeItem("jdLang"); LANG="ru";`);
+    await A.ev(`setLang("ru")`); await A.ev(`setMode(${JSON.stringify(m)})`); await sleep(400);
+    await A.ev(`setLang("en")`); await sleep(900);
+    const left = +(await A.ev(ratio));
+    if (left > 8) stuck.push(m + " " + left + "%");
+  }
+  check("переключение на английский работает прямо на вкладке", stuck.length === 0,
+    stuck.length ? "осталось русским: " + stuck.join(" · ") : "10 вкладок, кириллицы ≤8% (остаток — имена классов и SQL)");
+
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }
