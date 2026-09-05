@@ -63,9 +63,22 @@ const check = (name, ok, detail) => {
         have === want ? have : have + " ≠ " + want + " — прогони node build.js");
     }
   }
+  /* Браузер detached и переживает родителя, а прибивался он только в самом конце.
+     Любой ранний выход («страница не поднялась», «не догрузилась») и любое исключение
+     оставляли headless-Chrome работать вечно — с портом, профилем и живой вкладкой.
+     Вешаем уборку на выход процесса и на сигналы: теперь при любом финале, включая
+     Ctrl+C и падение, браузер гасится и временный профиль удаляется. */
+  const PROFILE = "/tmp/jd-check-prof";
   const proc = spawn(CHROME, ["--headless=new", "--remote-debugging-port=" + PORT, "--no-first-run", "--no-sandbox",
-    "--disable-gpu", "--disable-dev-shm-usage", "--user-data-dir=/tmp/jd-check-prof", "file://" + FILE],
+    "--disable-gpu", "--disable-dev-shm-usage", "--user-data-dir=" + PROFILE, "file://" + FILE],
     { stdio: "ignore", detached: true });
+  let cleaned = false;
+  const cleanup = () => { if (cleaned) return; cleaned = true;
+    try { process.kill(-proc.pid) } catch (e) {}
+    try { fs.rmSync(PROFILE, { recursive: true, force: true }) } catch (e) {} };
+  process.once("exit", cleanup);
+  ["SIGINT", "SIGTERM", "SIGHUP"].forEach(sig => process.once(sig, () => { cleanup(); process.exit(1); }));
+  process.once("uncaughtException", e => { cleanup(); console.error(e); process.exit(1); });
 
   let t;
   for (let i = 0; i < 60; i++) {
@@ -393,7 +406,7 @@ const check = (name, ok, detail) => {
   const errs = JSON.parse(await A.ev("JSON.stringify(__err)"));
   check("ошибок JS на всех вкладках нет", errs.length === 0, errs.slice(0, 3).join(" | "));
 
-  A.close(); try { process.kill(-proc.pid) } catch (e) {}
+  A.close(); cleanup();
   console.log("");
   if (fail.length) { console.error("ПРОВЕРКА НЕ ПРОШЛА (" + fail.length + "):\n  " + fail.join("\n  ")); process.exit(1); }
   console.log("всё чисто");
