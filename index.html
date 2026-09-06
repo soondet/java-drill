@@ -86,6 +86,14 @@
   .rm-x{flex:none;border:0;background:var(--panel-2);color:var(--mut);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px}
   .rm-ghost{flex:none;margin-left:auto;border:0;background:var(--panel-2);color:var(--mut);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;transition:.15s}
   .rm-ghost.on{background:var(--grad);color:#0a0b12}
+  .tip-day{margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
+  .tip-day .tip-lbl{display:block;font:700 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+  .tip-day p{margin:0;font:15px/1.6 var(--sans);color:var(--read,var(--fg))}
+  .tip-sec{margin:0 0 18px}
+  .tip-sec h4{margin:0 0 10px;font:700 13px var(--sans);color:var(--mut);letter-spacing:.02em}
+  .tip-item{margin:0 0 12px;padding-left:12px;border-left:2px solid var(--line-2)}
+  .tip-item b{display:block;font:700 14px var(--sans);margin-bottom:3px}
+  .tip-item span{display:block;font:14px/1.62 var(--sans);color:var(--read,var(--fg));opacity:.88}
   .rm-drawer.ghost{background:rgba(12,14,20,.72)}
   .rm-backdrop.ghost{background:transparent;backdrop-filter:none;pointer-events:none}
   .rm-x:hover{color:var(--txt)}
@@ -2091,6 +2099,7 @@
   </div>
   <button id="gsBtn" class="lang-tog" title="Поиск по всему (/)" aria-label="Поиск">🔍</button>
   <button id="langTog" class="lang-tog" title="Язык / Language">EN</button>
+  <button id="tipBtn" class="lang-tog" title="Как заниматься" aria-label="Как заниматься">💡</button>
 </nav>
 
 <section id="viewDrill" class="view">
@@ -2247,6 +2256,15 @@
   <div id="rmTree" class="rm-tree"></div>
 </aside>
 <div id="rmBackdrop" class="rm-backdrop" hidden></div>
+
+<aside id="tipDrawer" class="rm-drawer" hidden aria-label="Как заниматься">
+  <div class="rm-head">
+    <span class="rm-title">💡 <b>Как заниматься</b></span>
+    <button id="tipClose" class="rm-x" aria-label="close">✕</button>
+  </div>
+  <div id="tipBody" class="rm-tree"></div>
+</aside>
+<div id="tipBackdrop" class="rm-backdrop" hidden></div>
 <div id="trefTip" class="tref-tip" hidden></div>
 <div id="trefModal" class="tref-modal" hidden><div class="tref-backdrop" id="trefBack"></div><div class="tref-card" id="trefCard"></div></div>
 <div id="toast" class="toast" role="status" aria-live="polite" hidden><span id="toastMsg"></span><button id="toastAct" hidden></button></div>
@@ -2269,6 +2287,7 @@
 <script src="ord.js"></script>
 <script src="principles.js"></script>
 <script src="notes.js"></script>
+<script src="tips.js"></script>
 <script src="tier.js"></script>
 <script src="basics.js"></script>
 <script src="zero.js"></script>
@@ -2894,7 +2913,16 @@ function trDeep(root){
     const en=trLook(key);
     if(en!=null&&en!==key)t.nodeValue=raw.replace(key,en);
   }
+  /* Подсказки и подписи для читалки экрана живут в атрибутах, а обход по текстовым
+     узлам их не видит: на английском оставались русские title и aria-label. */
+  const el=(root.nodeType===1?[root]:[]).concat([...root.querySelectorAll("[title],[aria-label],[placeholder]")]);
+  for(const e of el) for(const a of TR_ATTRS){
+    const v=e.getAttribute&&e.getAttribute(a); if(!v)continue;
+    const en=trLook(v.trim());
+    if(en!=null&&en!==v)e.setAttribute(a,en);
+  }
 }
+const TR_ATTRS=["title","aria-label","placeholder"];
 function applyChrome(){
   document.documentElement.lang=LANG;
   const lt=$("#langTog"); if(lt)lt.textContent = LANG==="en"?"RU":"EN";
@@ -3305,6 +3333,7 @@ $("#tabPath").onclick=()=>setMode("path");
 $("#tabViz").onclick=()=>setMode("viz");
 $("#tabMore").onclick=(e)=>{ e.stopPropagation(); const m=$("#moreMenu"); m.hidden=!m.hidden; };
 $("#rmFab").onclick=openRoadmap; $("#rmClose").onclick=closeRoadmap; $("#rmBackdrop").onclick=closeRoadmap;
+$("#tipBtn").onclick=openTips; $("#tipClose").onclick=closeTips; $("#tipBackdrop").onclick=closeTips;
 $("#dDDBtn").onclick=e=>{ e.stopPropagation(); const p=$("#dDDPanel"); if(p)p.hidden=!p.hidden; };
 document.addEventListener("click",e=>{ const dd=$("#dDD"),p=$("#dDDPanel"); if(p&&!p.hidden&&dd&&!dd.contains(e.target))p.hidden=true; const m=$("#moreMenu"); if(m&&!m.hidden&&!e.target.closest(".more-tab"))m.hidden=true; const fp=$("#fsPop"); if(fp&&!fp.hidden&&!e.target.closest(".fs-wrap"))fp.hidden=true; });
 let rmGhost=localStorage.getItem("jdRmGhost")==="1";
@@ -11849,6 +11878,33 @@ function endMock(){
   $("#gAgain").onclick=()=>gameMenu();
 }
 
+/* ---------- 💡 Как заниматься ----------
+   Содержимое не про предмет, а про метод. «Совет дня» выбирается по номеру суток,
+   поэтому он одинаков весь день и меняется назавтра: так он попадается на глаза,
+   а не читается один раз и навсегда. Тексты идут через tr() — иначе на английском
+   вылезет русский. */
+function tipToday(){
+  const t=(window.TIPS&&TIPS.daily)||[];
+  return t.length?t[Math.floor(Date.now()/864e5)%t.length]:"";
+}
+function buildTips(){
+  const T=window.TIPS, el=$("#tipBody");
+  if(!el||!T)return;
+  el.innerHTML=`<div class="tip-day"><span class="tip-lbl">${tr("Совет дня")}</span><p>${esc(tr(tipToday()))}</p></div>`
+    + T.sections.map(sec=>`<div class="tip-sec"><h4>${esc(sec.ico)} ${esc(tr(sec.title))}</h4>`
+        + sec.items.map(i=>`<div class="tip-item"><b>${esc(tr(i.h))}</b><span>${esc(tr(i.d))}</span></div>`).join("")
+      + `</div>`).join("");
+}
+function openTips(){
+  $("#tipDrawer").hidden=false; $("#tipBackdrop").hidden=false;
+  requestAnimationFrame(()=>$("#tipDrawer").classList.add("open"));
+  buildTips();
+}
+function closeTips(){
+  $("#tipDrawer").classList.remove("open"); $("#tipBackdrop").hidden=true;
+  setTimeout(()=>{$("#tipDrawer").hidden=true;},260);
+}
+
 /* ---------- 🗺 Роадмап (древо пути по теме) ---------- */
 function openRoadmap(){
   $("#rmDrawer").hidden=false; $("#rmBackdrop").hidden=false;
@@ -11924,7 +11980,7 @@ function renderMilestones(cl,container,focus){
 
 /* ---------- клавиатура ---------- */
 document.addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ if(gsModal&&!gsModal.hidden){closeSearch();return;} if(trefModal&&!trefModal.hidden){closeTermModal();return;} const d=$("#rmDrawer"); if(d&&!d.hidden){closeRoadmap();return;}
+  if(e.key==="Escape"){ const td=$("#tipDrawer"); if(td&&!td.hidden){closeTips();return;} if(gsModal&&!gsModal.hidden){closeSearch();return;} if(trefModal&&!trefModal.hidden){closeTermModal();return;} const d=$("#rmDrawer"); if(d&&!d.hidden){closeRoadmap();return;}
     /* Поповеры закрывались только кликом мимо. С клавиатуры выйти из них было нельзя,
        хотя «Ещё» объявлено как меню (aria-haspopup) и Escape там ожидаем. */
     for(const sel of ["#moreMenu","#dDDPanel","#fsPop"]){ const p=$(sel); if(p&&!p.hidden){ p.hidden=true; return; } } }
