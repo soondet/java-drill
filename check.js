@@ -400,6 +400,28 @@ const check = (name, ok, detail) => {
     "LANG=" + savedLang + " · " + savedRatio + "% кириллицы");
   await A.ev(`localStorage.removeItem("jdLang")`);
 
+  /* ---- длинные полотна не рисуются целиком ----
+     «С нуля» (146 000px) и «Для чайника» (21 800px) держат сотни блоков в одном
+     слое. Мобильные браузеры такие слои перестают дорисовывать — пользователь
+     это и заметил: листаешь вниз, верхние карточки пропадают. Лечится пропуском
+     отрисовки за экраном; сторож не даёт снять его молча. */
+  const heavy = [];
+  for (const [m, sel] of [["zero",".zero-step"],["basics",".bas-card"],["money",".zero-step"]]) {
+    await A.ev(`try{setMode(${JSON.stringify(m)})}catch(e){}`); await sleep(500);
+    const r = await A.ev(`(function(){
+      var el=document.querySelectorAll(${JSON.stringify(sel)});
+      if(!el.length) return JSON.stringify({нет:true});
+      var sc=[...document.querySelectorAll("#view"+${JSON.stringify(m)}.replace(/^./,function(c){return c.toUpperCase()})+" *")]
+        .filter(function(e){var c=getComputedStyle(e);return (c.overflowY==="auto")&&e.scrollHeight>e.clientHeight+40;})[0];
+      return JSON.stringify({полотно:sc?sc.scrollHeight:0, пропуск:getComputedStyle(el[0]).contentVisibility, блоков:el.length});
+    })()`);
+    const d = JSON.parse(r);
+    if (d.нет) continue;
+    if (d.полотно > 15000 && d.пропуск !== "auto") heavy.push(m + " " + d.полотно + "px без пропуска");
+  }
+  check("длинные полотна не рисуются целиком", heavy.length === 0,
+    heavy.length ? heavy.join(" · ") : "«С нуля», «Для чайника» и «Деньги» — пропуск отрисовки за экраном на месте");
+
   /* ---- содержимое достижимо целиком ----
      Пользователь нашёл руками: заходишь в игры, а верх меню не виден и не
      долистывается. Причина — display:flex + align-items:center + overflow:auto:
