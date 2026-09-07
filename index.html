@@ -177,7 +177,12 @@
   #filtBody[hidden]{display:none}
   @media(max-width:620px){ .filt-bar{padding:9px 13px 2px} .hint-keys{display:none} }
   .subbar{display:flex;align-items:center;gap:12px;padding:14px 22px;flex-wrap:wrap}
-  .stage{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 22px 36px}
+  /* safe center, а не просто center: когда содержимое выше контейнера, обычное
+     центрирование вываливает его поровну вверх и вниз, и верхняя половина
+     становится недостижимой — прокрутка вверх упирается в край. В меню игр так
+     терялось 934px, в «На пальцах» 190px. Ключевое слово safe при переполнении
+     прижимает содержимое к началу, и всё снова долистывается. */
+  .stage{flex:1;display:flex;align-items:safe center;justify-content:center;padding:8px 22px 36px}
 
   select{font:inherit;color:var(--txt);background:var(--panel-2);border:1px solid var(--line);border-radius:11px;padding:9px 13px;outline:none;cursor:pointer}
   select:focus{border-color:var(--acc)}
