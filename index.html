@@ -358,6 +358,13 @@
   .term.has-extra{cursor:pointer}
   .term.has-extra .term-head::after{content:"▾";float:right;color:var(--mut);font-size:12px;margin-left:8px}
   /* перф: не рендерить длинные списки вне экрана */
+  /* Полотно «С нуля» — 345 шагов со схемами, это ~140 000px в одном слое, в 158 раз
+     выше словаря. Слои такой высоты мобильные браузеры перестают дорисовывать
+     целиком: прокручиваешь вниз — верхние карточки пропадают. Пропуск отрисовки
+     за экраном (тот же, что у словаря) держит полотно в разумных пределах и заодно
+     останавливает анимации схем, которых не видно. Размер-заглушка auto: реальную
+     высоту браузер запоминает после первой отрисовки, 310px — среднее по замеру: 141709px на 456 блоков. */
+  .zero-step{content-visibility:auto;contain-intrinsic-size:auto 310px}
   .term{content-visibility:auto;contain-intrinsic-size:auto 56px}
   .ntopic{content-visibility:auto;contain-intrinsic-size:auto 32px}
   .clrow,.weak-row,.sb-svc{content-visibility:auto;contain-intrinsic-size:auto 60px}
