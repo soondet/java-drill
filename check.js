@@ -400,6 +400,48 @@ const check = (name, ok, detail) => {
     "LANG=" + savedLang + " · " + savedRatio + "% кириллицы");
   await A.ev(`localStorage.removeItem("jdLang")`);
 
+  /* ---- содержимое достижимо целиком ----
+     Пользователь нашёл руками: заходишь в игры, а верх меню не виден и не
+     долистывается. Причина — display:flex + align-items:center + overflow:auto:
+     когда содержимое выше контейнера, центрирование вываливает его поровну вверх
+     и вниз, но прокрутка достаёт только низ. Теряло 934px в играх и 190px в
+     «На пальцах». Лечится словом safe, а этот сторож не даёт вернуться. */
+  const unreachable = [];
+  for (const m of ["drill","terms","fp","prin","prog","sand","basics","zero","beh","money","path","game","mus"]) {
+    await A.ev(`try{setMode(${JSON.stringify(m)})}catch(e){}`); await sleep(400);
+    const r = await A.ev(`(function(){
+      var out=[];
+      document.querySelectorAll("*").forEach(function(e){
+        var cs=getComputedStyle(e);
+        if(cs.display.indexOf("flex")<0)return;
+        if(cs.overflowY!=="auto"&&cs.overflowY!=="scroll")return;
+        if(e.clientHeight<150)return;
+        var k=[...e.children].filter(function(c){return c.getBoundingClientRect().height>0})[0];
+        if(!k)return;
+        var lost=Math.round(e.getBoundingClientRect().top-k.getBoundingClientRect().top);
+        if(lost>4) out.push((e.id||e.className||"?").slice(0,18)+" "+lost+"px");
+      });
+      return JSON.stringify([...new Set(out)]);
+    })()`);
+    JSON.parse(r).forEach(x => unreachable.push(m + "/" + x));
+  }
+  check("содержимое не уезжает за верх контейнера", unreachable.length === 0,
+    unreachable.length ? "недостижимо: " + unreachable.join(" · ") : "13 вкладок, прокрутка достаёт начало везде");
+
+  /* ---- лист советов ----
+     Данные лежат в отдельном tips.js, и если он не доедет или сменит форму,
+     кнопка откроет пустой лист, а гейт этого не заметит. */
+  const tips = JSON.parse(await A.ev(`(function(){
+    try{ openTips(); }catch(e){ return JSON.stringify({ошибка:e.message}); }
+    var b=document.getElementById("tipBody");
+    var r={день:!!b.querySelector(".tip-day p"), разделов:b.querySelectorAll(".tip-sec").length,
+           пунктов:b.querySelectorAll(".tip-item").length,
+           длина:(b.querySelector(".tip-day p")||{textContent:""}).textContent.length};
+    try{ closeTips(); }catch(e){}
+    return JSON.stringify(r);
+  })()`));
+  check("лист советов открывается и заполнен", !tips.ошибка && tips.день && tips.разделов >= 3 && tips.пунктов >= 8,
+    tips.ошибка ? tips.ошибка : "совет дня " + tips.длина + " знаков · разделов " + tips.разделов + " · пунктов " + tips.пунктов);
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }
