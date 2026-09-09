@@ -8044,7 +8044,12 @@ window.I18N = {
   "снять все": "clear all",
   "Прозрачный фон — видеть контент": "Transparent background — see the content behind",
   "Прозрачный фон": "Transparent background",
-  "Иконки технологий": "Technology icons"
+  "Иконки технологий": "Technology icons",
+  "всего в день": "total per day",
+  "0 — без ограничения": "0 — no limit",
+  "новых сегодня нет — сначала повторы": "no new cards today — reviews first",
+  "Всего карточек в день": "Total cards per day",
+  "без ограничения": "no limit"
  },
  "cards": {
   "jc-eqhash": {

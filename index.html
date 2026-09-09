@@ -2384,6 +2384,20 @@ const KEY="javaDrillProgress.v1", SKEY="javaDrillStreak.v1";
  * плана подготовки идут мимо него, потому что там объём выбираешь ты сам.
  */
 const NEW_DEFAULT=20;
+/* Дневной бюджет: сколько всего карточек за день, повторы плюс новые.
+   Без него норма новых прибавлялась к повторам вслепую, и на сороковой день
+   набегало под сто пятьдесят карточек за раз — тот самый вал, на котором бросают.
+   Замер по лестнице [0,0,1,3,7,16,35,75] при 20 новых: пик 144 на 41-й день,
+   а дальше провал до 25. С бюджетом 60 пик становится 81, а нагрузка ровной
+   (60 · 63 · 60 · 65 · 42 на 7/14/30/60/90-й день). Колода осваивается за 90 дней
+   вместо 41 — размен сознательный: ровные пятнадцать минут каждый день полезнее,
+   чем полчаса, а потом бросить. Ноль отключает ограничение. */
+const DAY_BUDGET_DEFAULT=60;
+function dayBudget(v){
+  if(v!==undefined){ try{localStorage.setItem("jdDayBudget",String(Math.max(0,v|0)))}catch(e){} }
+  const r=parseInt(localStorage.getItem("jdDayBudget"),10);
+  return isNaN(r)?DAY_BUDGET_DEFAULT:Math.max(0,r);
+}
 function newPerDay(v){
   if(v!==undefined){ try{localStorage.setItem("jdNewPerDay",String(Math.max(0,v|0)))}catch(e){} }
   const r=parseInt(localStorage.getItem("jdNewPerDay"),10);
@@ -3151,7 +3165,7 @@ function weakCards(){
 }
 
 /* ---------- движок дрила ---------- */
-let queue=[],cur=null,revealed=false,drillTrimmed=0;
+let queue=[],cur=null,revealed=false,drillTrimmed=0,drillHeld=false;
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 function rebuild(){
   syncDrillCats(); syncFiltBar();
@@ -3167,8 +3181,14 @@ function rebuild(){
         const due=pool.filter(c=>stR(c.id).due<=today());
         const rep=due.filter(c=>prog[c.id]);              // уже начатые — берём все, это долг
         const fresh=due.filter(c=>!prog[c.id]);           // новые — сколько осталось по потолку
-        const room=Math.max(0,newPerDay()-newToday());
+        /* Повторы — это долг, их берём все. Новые добавляем только на то место,
+           что осталось от дневного бюджета: иначе в тяжёлый день к сотне повторов
+           прибавится ещё двадцать новых, и завтра будет только хуже. */
+        const byCap=Math.max(0,newPerDay()-newToday());
+        const budget=dayBudget();
+        const room=budget?Math.min(byCap,Math.max(0,budget-rep.length)):byCap;
         drillTrimmed=Math.max(0,fresh.length-room);
+        drillHeld=!!budget&&rep.length>=budget;
         return shuffle(rep.concat(shuffle(fresh).slice(0,room)));
       })();
   if(pendingTopic){                                      // roadmap → этот вопрос первым
@@ -3181,7 +3201,9 @@ function rebuild(){
 }
 function next(){revealed=false;cur=queue.shift();
   $("#sessLeft").textContent=cur
-    ? tr("в сессии")+": "+(queue.length+1)+(drillTrimmed?" · "+tr("новых сверх дневной нормы отложено")+": "+drillTrimmed:"")
+    ? tr("в сессии")+": "+(queue.length+1)
+      +(drillTrimmed?" · "+(drillHeld?tr("новых сегодня нет — сначала повторы")
+                                     :tr("новых сверх дневной нормы отложено")+": "+drillTrimmed):"")
     : "";
   if(!cur){renderEmpty();return;} render();}
 /* Откуда это знание. Показываем мелко и приглушённо: видно, если посмотреть,
@@ -4484,6 +4506,9 @@ function buildProg(){
       <label class="exam-cap">${tr("новых в день")}
         <input type="number" id="newCap" min="0" max="200" step="5" value="${newPerDay()}">
         <span class="exam-cap-n">${tr("сегодня взято")}: ${newToday()}</span></label>
+      <label class="exam-cap">${tr("всего в день")}
+        <input type="number" id="dayCap" min="0" max="400" step="10" value="${dayBudget()}">
+        <span class="exam-cap-n">${tr("0 — без ограничения")}</span></label>
     </div>
     <div class="prog-kpis">
       <div class="pk"><b>${total}</b><span>${tr("карточек")}</span></div>
@@ -4519,6 +4544,7 @@ function buildProg(){
   if(eClr)eClr.onclick=()=>{ examDate(""); buildProg(); };
   const ps=$("#printBtn"); if(ps)ps.onclick=printSheet;
   const nc=$("#newCap"); if(nc)nc.onchange=()=>{ newPerDay(+nc.value); toast(tr("Норма новых карточек")+": "+newPerDay()); };
+  const dc=$("#dayCap"); if(dc)dc.onchange=()=>{ dayBudget(+dc.value); toast(tr("Всего карточек в день")+": "+(dayBudget()||tr("без ограничения"))); };
   const hra=$("#hidRestoreAll"); if(hra)hra.onclick=()=>{ hiddenCards.forEach(c=>HIDDEN.delete(c.id)); try{localStorage.setItem("jdHidden",JSON.stringify([...HIDDEN]))}catch(e){} buildProg(); };
   stg.querySelectorAll(".leech-clear").forEach(b=>b.onclick=e=>{ e.stopPropagation(); const p=prog[b.dataset.id]; if(p){p.lapses=0;save();} buildProg(); });
   stg.querySelectorAll(".leech-row").forEach(r=>r.onclick=()=>drillTopic(r.dataset.id));

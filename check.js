@@ -503,6 +503,34 @@ const check = (name, ok, detail) => {
   check("переключатель выключает иконки", off.выкл === 0 && off.вкл > 0,
     "выключено " + off.выкл + " · включено " + off.вкл);
 
+  /* ---- дневной бюджет ----
+     Раньше норма новых прибавлялась к повторам вслепую: по замеру лестницы
+     на сороковой день набегало 144 карточки за раз. Теперь новые уступают
+     место долгу. Сторож проверяет то, что важно: при долге больше бюджета
+     новых не добавляется ни одной, а при выключенном бюджете поведение прежнее. */
+  const bud = JSON.parse(await A.ev(`(function(){
+    if(typeof dayBudget!=="function") return JSON.stringify({нет:true});
+    var было=localStorage.getItem("javaDrillProgress.v1");
+    function прогон(долг,бюджет){
+      var P={}; CARDS.slice(0,долг).forEach(function(c){ P[c.id]={box:3,due:today()-1,lapses:0}; });
+      localStorage.setItem("javaDrillProgress.v1",JSON.stringify(P));
+      localStorage.removeItem("jdNewDay");
+      prog=JSON.parse(localStorage.getItem("javaDrillProgress.v1"));
+      dayBudget(бюджет); setMode("drill"); rebuild();
+      var n=queue.filter(function(c){return !prog[c.id]}).length+((cur&&!prog[cur.id])?1:0);
+      return n;
+    }
+    var r={пусто:прогон(0,60), половина:прогон(50,60), завал:прогон(100,60), безЛимита:прогон(100,0)};
+    dayBudget(60);
+    if(было!==null) localStorage.setItem("javaDrillProgress.v1",было); else localStorage.removeItem("javaDrillProgress.v1");
+    prog=JSON.parse(localStorage.getItem("javaDrillProgress.v1")||"{}");
+    rebuild();
+    return JSON.stringify(r);
+  })()`));
+  check("дневной бюджет придерживает новые карточки", !bud.нет && bud.завал === 0 && bud.половина > 0 && bud.половина < bud.пусто && bud.безЛимита > 0,
+    bud.нет ? "dayBudget не найден" :
+      "долг 0 → " + bud.пусто + " новых · долг 50 → " + bud.половина + " · долг 100 → " + bud.завал + " · без лимита → " + bud.безЛимита);
+
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }
