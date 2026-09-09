@@ -37,11 +37,16 @@
 
   /* анимированный фон */
   .bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:#05060c}
-  .bg::before,.bg::after{content:"";position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(90px);opacity:.45;animation:drift 28s ease-in-out infinite}
+  /* Вкладка ушла из виду — движение останавливаем: браузер продолжает
+     растеризовать анимированные слои даже у невидимой страницы. */
+  html.bg-still .bg::before,html.bg-still .bg::after,html.bg-still .bg i{animation-play-state:paused}
+  /* Кому движение мешает — не показываем его вовсе. */
+  @media (prefers-reduced-motion:reduce){ .bg::before,.bg::after,.bg i{animation:none} }
+  .bg::before,.bg::after{content:"";position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(24px);opacity:.45;will-change:transform;animation:drift 28s ease-in-out infinite}
   .bg::before{background:radial-gradient(circle,#2f57ff,transparent 60%);top:-16vmax;left:-12vmax}
   .bg::after{background:radial-gradient(circle,#7d3bff,transparent 60%);bottom:-20vmax;right:-14vmax;animation-delay:-14s}
-  .bg i{position:absolute;width:44vmax;height:44vmax;border-radius:50%;filter:blur(90px);opacity:.3;background:radial-gradient(circle,#11a48f,transparent 60%);top:28%;left:42%;animation:drift 34s ease-in-out infinite}
-  @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(9vmax,6vmax) scale(1.15)}66%{transform:translate(-7vmax,4vmax) scale(.9)}}
+  .bg i{position:absolute;width:44vmax;height:44vmax;border-radius:50%;filter:blur(24px);opacity:.3;background:radial-gradient(circle,#11a48f,transparent 60%);top:28%;left:42%;will-change:transform;animation:drift 34s ease-in-out infinite}
+  @keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(9vmax,6vmax)}66%{transform:translate(-7vmax,4vmax)}}}
 
   /* верхняя панель */
   /* viewport-fit=cover раздвигает страницу под чёлку и домашний индикатор,
@@ -2920,6 +2925,18 @@ function trLook(k){
   return typeof v==="string"?v:null;
 }
 function tr(s){ if(LANG!=="en")return s; const v=trLook(s); return v==null?s:v; }
+
+/* ---------- Фон замирает, когда вкладку не видно ----------
+   Анимированные слои браузер продолжает растеризовать и у невидимой страницы.
+   У этого приложения фон — три круга во весь экран с размытием, и открытая
+   в фоне вкладка жгла до половины ядра непрерывно. Останавливаем движение,
+   пока страницу не смотрят: возвращаясь, она продолжит с того же места. */
+(function(){
+  var применить=function(){ document.documentElement.classList.toggle("bg-still", document.hidden); };
+  document.addEventListener("visibilitychange", применить);
+  window.addEventListener("pageshow", применить);
+  применить();
+})();
 
 /* ---------- Иконки технологий ----------
    Слева в строках списков. Сначала ищем конкретный продукт по слову в названии

@@ -531,6 +531,40 @@ const check = (name, ok, detail) => {
     bud.нет ? "dayBudget не найден" :
       "долг 0 → " + bud.пусто + " новых · долг 50 → " + bud.половина + " · долг 100 → " + bud.завал + " · без лимита → " + bud.безЛимита);
 
+  /* ---- фон не жжёт процессор ----
+     Дважды за неделю страница жгла по половине ядра непрерывно, в том числе
+     в фоновой вкладке. Виноват был фон: три круга во весь экран с blur(90px),
+     и в движении был scale — масштабирование размытого слоя заставляет
+     растеризовать его заново каждый кадр. Профайлер молчал, потому что работа
+     идёт не в JS, а в процессе отрисовки. Сторож держит три условия сразу. */
+  const bg = JSON.parse(await A.ev(`(function(){
+    /* Только анимации фона: в карточках и схемах свои, они живут по другим правилам. */
+    function фоновые(){ return document.getAnimations().filter(function(x){
+      var t=x.effect&&x.effect.target; if(!t||!t.closest)return false;
+      return t.classList.contains("bg")||t.closest(".bg")!==null; }); }
+    var a=фоновые();
+    var скейл=false; try{ скейл=a.some(function(x){
+      return JSON.stringify(x.effect.getKeyframes()).indexOf("scale")>=0; }); }catch(e){}
+    var радиус=0;
+    [".bg::before",".bg::after"].forEach(function(){});
+    var el=document.querySelector(".bg i");
+    if(el){ var f=getComputedStyle(el).filter||""; var m=f.match(/blur\\((\\d+)/); if(m) радиус=+m[1]; }
+    /* прячем страницу так же, как браузер при уходе на другую вкладку */
+    Object.defineProperty(document,"hidden",{get:function(){return true},configurable:true});
+    Object.defineProperty(document,"visibilityState",{get:function(){return "hidden"},configurable:true});
+    document.dispatchEvent(new Event("visibilitychange"));
+    var идутСкрытыми=фоновые().filter(function(x){return x.playState==="running"}).length;
+    Object.defineProperty(document,"hidden",{get:function(){return false},configurable:true});
+    Object.defineProperty(document,"visibilityState",{get:function(){return "visible"},configurable:true});
+    document.dispatchEvent(new Event("visibilitychange"));
+    var идутВидимыми=фоновые().filter(function(x){return x.playState==="running"}).length;
+    return JSON.stringify({скейл:скейл, радиус:радиус, скрыто:идутСкрытыми, видно:идутВидимыми});
+  })()`));
+  check("фон замирает, когда вкладку не видно", bg.скрыто === 0 && bg.видно > 0,
+    "скрытой идёт " + bg.скрыто + " · видимой " + bg.видно);
+  check("фон не растеризуется каждый кадр", !bg.скейл && bg.радиус <= 40,
+    (bg.скейл ? "в кадрах вернулся scale · " : "") + "радиус размытия " + bg.радиус + "px (потолок 40)");
+
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }
