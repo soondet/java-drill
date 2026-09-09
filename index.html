@@ -86,6 +86,14 @@
   .rm-x{flex:none;border:0;background:var(--panel-2);color:var(--mut);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px}
   .rm-ghost{flex:none;margin-left:auto;border:0;background:var(--panel-2);color:var(--mut);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;transition:.15s}
   .rm-ghost.on{background:var(--grad);color:#0a0b12}
+  /* Иконка технологии слева в строке списка. Размер в em — растёт вместе с текстом,
+     когда двигаешь ползунок размера. Цвет бренда задаётся инлайном, свои глифы
+     наследуют currentColor. */
+  .tech-ico{width:1em;height:1em;flex:none;vertical-align:-.14em;margin-right:.42em;fill:currentColor}
+  .term-head .tech-ico,.zero-t .tech-ico{width:.9em;height:.9em;opacity:.9}
+  .g-cat .tech-ico{margin-right:.3em}
+  .fs-sw{display:flex;align-items:center;gap:8px;margin-top:12px;font:13px var(--sans);color:var(--fg);cursor:pointer}
+  .fs-sw input{accent-color:var(--acc);width:16px;height:16px;flex:none}
   .tip-day{margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel-2)}
   .tip-day .tip-lbl{display:block;font:700 10.5px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
   .tip-day p{margin:0;font:15px/1.6 var(--sans);color:var(--read,var(--fg))}
@@ -2110,6 +2118,7 @@
       <div class="fs-row"><span id="fsLbl">Размер текста</span><span class="fs-val" id="fsVal">100%</span></div>
       <input type="range" id="fsRange" min="0.85" max="1.5" step="0.05" value="1" aria-label="Размер текста">
       <button id="fsReset" class="fs-reset">Сбросить</button>
+      <label class="fs-sw"><input type="checkbox" id="icoSw" checked><span>Иконки технологий</span></label>
     </div>
   </div>
   <button id="gsBtn" class="lang-tog" title="Поиск по всему (/)" aria-label="Поиск">🔍</button>
@@ -2303,6 +2312,7 @@
 <script src="principles.js"></script>
 <script src="notes.js"></script>
 <script src="tips.js"></script>
+<script src="icons.js"></script>
 <script src="tier.js"></script>
 <script src="basics.js"></script>
 <script src="zero.js"></script>
@@ -2896,6 +2906,39 @@ function trLook(k){
   return typeof v==="string"?v:null;
 }
 function tr(s){ if(LANG!=="en")return s; const v=trLook(s); return v==null?s:v; }
+
+/* ---------- Иконки технологий ----------
+   Слева в строках списков. Сначала ищем конкретный продукт по слову в названии
+   (Redis, Kafka, Docker) — иначе берём иконку кластера. Понятиям вроде «Архитектуры»
+   официального лого не существует, для них нарисованы свои глифы.
+   Выключено → возвращаем пустую строку, и разметка совпадает с прежней. */
+let ICONS_ON=(function(){ try{ return localStorage.getItem("jdIcons")!=="0" }catch(e){ return true } })();
+let TECH_RE=null;
+function techRe(){
+  if(TECH_RE)return TECH_RE;
+  const W=window.TECH_BY_WORD||{};
+  TECH_RE=Object.keys(W).map(function(w){
+    return [new RegExp("\\b"+w.replace(/[.+]/g,"\\$&")+"\\b","i"), W[w]];
+  });
+  return TECH_RE;
+}
+function techIco(text,cluster){
+  if(!ICONS_ON||!window.TECH_ICONS)return "";
+  var key=null, t=String(text||"");
+  var re=techRe();
+  for(var i=0;i<re.length;i++){ if(re[i][0].test(t)){ key=re[i][1]; break; } }
+  if(!key&&cluster!=null) key=(window.TECH_BY_CLUSTER||{})[cluster]||null;
+  var ic=key&&window.TECH_ICONS[key];
+  if(!ic)return "";
+  return '<svg class="tech-ico" viewBox="0 0 24 24" aria-hidden="true"'
+    +(ic.c?' style="color:#'+ic.c+'"':"")+'><path d="'+ic.d+'"/></svg>';
+}
+function setIcons(on){
+  ICONS_ON=!!on;
+  try{ localStorage.setItem("jdIcons",ICONS_ON?"1":"0"); }catch(e){}
+  TECH_RE=null;
+  refreshView();
+}
 /* Подписи внутри схем (кадры карточек, «на пальцах», принципы, «с нуля») лежат
    готовой HTML-строкой в данных: «⏳ 60с», «нет→», «🔌 порт». Обернуть их в tr()
    в разметке нельзя — это не шаблон, а текст. Поэтому переводим после вставки,
@@ -3028,7 +3071,7 @@ function clusterOn(cl){ return drillTokens.has("t:"+cl)||[...drillTokens].some(t
 function buildDrillCats(){
   const cats=$("#dCats"); if(!cats)return;
   const allCl=[...new Set(CARDS.map(c=>c.t))];
-  cats.innerHTML=`<button class="g-cat all" data-cl="__all">📚 ${tr("Все")}</button><button class="g-cat" data-cl="__weak">🩹 ${tr("Слабые")}</button><button class="g-cat" data-cl="__fav">⭐ ${tr("Избранное")}</button>`+allCl.map(c=>`<button class="g-cat" data-cl="${esc(c)}">${esc(clName(c))}</button>`).join("");
+  cats.innerHTML=`<button class="g-cat all" data-cl="__all">📚 ${tr("Все")}</button><button class="g-cat" data-cl="__weak">🩹 ${tr("Слабые")}</button><button class="g-cat" data-cl="__fav">⭐ ${tr("Избранное")}</button>`+allCl.map(c=>`<button class="g-cat" data-cl="${esc(c)}">${techIco(c,c)}${esc(clName(c))}</button>`).join("");
   cats.querySelectorAll(".g-cat").forEach(b=>b.onclick=()=>{
     const cl=b.dataset.cl; drillLeech=false;
     if(cl==="__all"){drillTokens.clear();drillWeak=false;drillFav=false;}
@@ -3176,7 +3219,7 @@ function render(){const c=cur,s=stR(c.id);
   drillStage.innerHTML=`
    <div class="card glass">
      <div class="card-tags">
-       <span class="pill grad-pill">${esc(clName(c.t))}</span>
+       <span class="pill grad-pill">${techIco(c.q+" "+c.t,c.t)}${esc(clName(c.t))}</span>
        ${tierOf(c.id)==="core"?`<span class="pill tier-core" title="${tr("основная тема")}">🟢 ${tr("Основа")}</span>`:tierOf(c.id)==="sec"?`<span class="pill tier-sec" title="${tr("второстепенная тема")}">⚫ ${tr("Второстеп.")}</span>`:""}
        ${isTricky(c.id)?`<span class="pill pill-tricky" title="${tr("частая ловушка на собеседовании")}">🦊 ${tr("Коварный")}</span>`:""}
        ${isLeech(c.id)?`<span class="pill pill-leech" title="${tr("часто проваливаешь — переформулируй или добей")}">🩸 ${tr("Проблемная")}</span>`:""}
@@ -3349,6 +3392,7 @@ $("#tabViz").onclick=()=>setMode("viz");
 $("#tabMore").onclick=(e)=>{ e.stopPropagation(); const m=$("#moreMenu"); m.hidden=!m.hidden; };
 $("#rmFab").onclick=openRoadmap; $("#rmClose").onclick=closeRoadmap; $("#rmBackdrop").onclick=closeRoadmap;
 $("#tipBtn").onclick=openTips; $("#tipClose").onclick=closeTips; $("#tipBackdrop").onclick=closeTips;
+(function(){ var sw=$("#icoSw"); if(!sw)return; sw.checked=ICONS_ON; sw.onchange=function(){ setIcons(sw.checked); }; })();
 $("#dDDBtn").onclick=e=>{ e.stopPropagation(); const p=$("#dDDPanel"); if(p)p.hidden=!p.hidden; };
 document.addEventListener("click",e=>{ const dd=$("#dDD"),p=$("#dDDPanel"); if(p&&!p.hidden&&dd&&!dd.contains(e.target))p.hidden=true; const m=$("#moreMenu"); if(m&&!m.hidden&&!e.target.closest(".more-tab"))m.hidden=true; const fp=$("#fsPop"); if(fp&&!fp.hidden&&!e.target.closest(".fs-wrap"))fp.hidden=true; });
 let rmGhost=localStorage.getItem("jdRmGhost")==="1";
@@ -3373,7 +3417,7 @@ function buildFpNav(q){
     if(!items.length)return;
     const subs=[...new Set(items.map(x=>x.e.g||"Прочее"))];
     const clOpen=q||items.some(x=>x.i===fpCur);
-    html+=`<div class="ncluster"><button class="nhead${clOpen?" open":""}"><span class="chev">▸</span><span class="nlabel">${esc(clName(cl))}</span><span class="cnt">${items.length}</span></button><div class="nbody"${clOpen?"":" hidden"}>`;
+    html+=`<div class="ncluster"><button class="nhead${clOpen?" open":""}"><span class="chev">▸</span><span class="nlabel">${techIco(cl,cl)}${esc(clName(cl))}</span><span class="cnt">${items.length}</span></button><div class="nbody"${clOpen?"":" hidden"}>`;
     subs.forEach(g=>{
       const gi=items.filter(x=>(x.e.g||"Прочее")===g).sort((a,b)=>ordF(a.e.id)-ordF(b.e.id));
       const sOpen=q||gi.some(x=>x.i===fpCur);
@@ -3431,7 +3475,7 @@ function termRow(t){
   const tm=(window.MORE_TERM&&window.MORE_TERM[key])||(window.MORE_TERM_NEW&&window.MORE_TERM_NEW[key]);
   const hasX=ex||tm;
   return `<div class="term${hasX?" has-extra":""}" data-key="${esc(key)}">`
-    +`<div class="term-head"><button class="fav-btn term-fav${isFav('tm:'+key)?' on':''}" data-k="${esc(key)}" title="${tr('★ избранное')}">${isFav('tm:'+key)?'★':'☆'}</button>${ex&&ex.icon?`<span class="term-ico">${ex.icon}</span>`:""}<b>${esc(T('terms',key,'term',t.term))}</b> — ${esc(T('terms',key,'def',t.def))}</div>`
+    +`<div class="term-head"><button class="fav-btn term-fav${isFav('tm:'+key)?' on':''}" data-k="${esc(key)}" title="${tr('★ избранное')}">${isFav('tm:'+key)?'★':'☆'}</button>${ex&&ex.icon?`<span class="term-ico">${ex.icon}</span>`:""}<b>${techIco(t.term+" "+t.t,null)}${esc(T('terms',key,'term',t.term))}</b> — ${esc(T('terms',key,'def',t.def))}</div>`
     +(hasX?`<div class="term-extra" hidden>${ex&&ex.pic?`<div class="term-pic">${ex.pic}</div>`:""}${ex&&ex.hook?`<div class="term-hook">🧠 ${esc(T('terms',key,'hook',ex.hook))}</div>`:""}${tm?`<div class="more-text">${fmt(T('terms',key,'more',tm))}</div>`:""}</div>`:"")
     +`</div>`;
 }
@@ -3449,7 +3493,7 @@ function buildTerms(q){
     const items=TERMS.filter(t=>t.t===cl&&match(t)).sort(ts);
     if(!items.length)continue;
     const clOpen=!!q;
-    html+=`<div class="tcluster"><button class="thead${clOpen?" open":""}"><span class="chev">▸</span><span class="nlabel">${esc(clName(cl))}</span><span class="cnt">${items.length}</span></button><div class="tbody"${clOpen?"":" hidden"}>`+items.map(termRow).join("")+`</div></div>`;
+    html+=`<div class="tcluster"><button class="thead${clOpen?" open":""}"><span class="chev">▸</span><span class="nlabel">${techIco(cl,cl)}${esc(clName(cl))}</span><span class="cnt">${items.length}</span></button><div class="tbody"${clOpen?"":" hidden"}>`+items.map(termRow).join("")+`</div></div>`;
   }
   wrap.innerHTML=html||'<div class="muted">ничего не найдено</div>';
   wrap.querySelectorAll(".thead").forEach(h=>h.onclick=()=>{const b=h.nextElementSibling;b.hidden=!b.hidden;h.classList.toggle("open",!b.hidden);});
@@ -3788,7 +3832,7 @@ function buildMoney(){
     html+=`<div class="zero-step${done?" done":""}" id="ms${i}" data-i="${i}">
       <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
       <div class="zero-b">
-        <div class="zero-t">${esc(tr(z.t))}</div>
+        <div class="zero-t">${techIco(z.t,null)}${esc(tr(z.t))}</div>
         <div class="zero-p">${esc(tr(z.p))}</div>
         <div class="zero-an">${esc(tr(z.an))}</div>
       </div></div>`;
@@ -3824,7 +3868,7 @@ function buildZero(){
     html+=`<div class="zero-step${done?" done":""}${viz?" has-viz":""}" id="zs${i}" data-i="${i}">
       <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
       <div class="zero-b">
-        <div class="zero-t">${esc(tr(z.t))}</div>
+        <div class="zero-t">${techIco(z.t,null)}${esc(tr(z.t))}</div>
         <div class="zero-p">${zeroFmt(tr(z.p))}</div>
         ${z.c?`<div class="zero-code">${esc(z.c)}</div>`:""}
         <div class="zero-an">${esc(tr(z.an))}</div>
@@ -4247,7 +4291,7 @@ function buildPrinNav(q){
     const items=PRIN.map((p,i)=>({p,i})).filter(x=>x.p.t===cl && (!q||(x.p.title+" "+T('prin',x.p.id,'title','')).toLowerCase().includes(q)));
     if(!items.length)return;
     const open=q||items.some(x=>x.i===prinCur);
-    html+=`<div class="ncluster"><button class="nhead${open?" open":""}"><span class="chev">▸</span><span class="nlabel">${esc(clName(cl))}</span><span class="cnt">${items.length}</span></button><div class="nbody"${open?"":" hidden"}>`;
+    html+=`<div class="ncluster"><button class="nhead${open?" open":""}"><span class="chev">▸</span><span class="nlabel">${techIco(cl,cl)}${esc(clName(cl))}</span><span class="cnt">${items.length}</span></button><div class="nbody"${open?"":" hidden"}>`;
     items.forEach(x=>{ html+=`<button class="ntopic${x.i===prinCur?" active":""}" data-i="${x.i}">${esc(T('prin',x.p.id,'title',x.p.title))}</button>`; });
     html+=`</div></div>`;
   });

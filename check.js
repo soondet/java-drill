@@ -464,6 +464,45 @@ const check = (name, ok, detail) => {
   })()`));
   check("лист советов открывается и заполнен", !tips.ошибка && tips.день && tips.разделов >= 3 && tips.пунктов >= 8,
     tips.ошибка ? tips.ошибка : "совет дня " + tips.длина + " знаков · разделов " + tips.разделов + " · пунктов " + tips.пунктов);
+  /* ---- иконки технологий ----
+     Данные в отдельном icons.js: не доедет — иконки молча пропадут, а гейт этого
+     не заметит. Плюс сторож на контраст: официальный цвет Java это #000000, и на
+     тёмном фоне лого было невидимо, пока не отдали его цвету текста. */
+  const ico = JSON.parse(await A.ev(`(function(){
+    if(!window.TECH_ICONS) return JSON.stringify({нет:true});
+    if(!ICONS_ON) setIcons(true);
+    setMode("terms");
+    var фон=[7,8,14];
+    function Y(c){var v=c.map(function(x){x/=255;return x<=0.04045?x/12.92:Math.pow((x+0.055)/1.055,2.4)});
+      return 0.2126*v[0]+0.7152*v[1]+0.0722*v[2];}
+    var Yф=Y(фон), тусклые=[];
+    Object.keys(TECH_ICONS).forEach(function(k){ var c=TECH_ICONS[k].c; if(!c)return;
+      var rgb=[0,2,4].map(function(i){return parseInt(c.slice(i,i+2),16)});
+      var kk=(Math.max(Y(rgb),Yф)+0.05)/(Math.min(Y(rgb),Yф)+0.05);
+      if(kk<2.2) тусклые.push(k); });
+    return JSON.stringify({иконок:Object.keys(TECH_ICONS).length,
+      кластеров:Object.keys(TECH_BY_CLUSTER||{}).length,
+      вразметке:document.querySelectorAll(".tech-ico").length, тусклые:тусклые});
+  })()`));
+  check("иконки технологий на месте", !ico.нет && ico.иконок >= 30 && ico.кластеров >= 19 && ico.вразметке > 0,
+    ico.нет ? "icons.js не доехал" : ico.иконок + " иконок · " + ico.кластеров + " кластеров · в разметке " + ico.вразметке);
+  check("иконки видны на тёмном фоне", !ico.нет && (ico.тусклые || []).length === 0,
+    (ico.тусклые || []).length ? "сливаются с фоном: " + ico.тусклые.join(", ") : "контраст к фону у всех выше 2.2");
+
+  /* переключатель обязан возвращать прежний вид без иконок */
+  const off = JSON.parse(await A.ev(`(function(){
+    /* Считаем в АКТИВНОЙ вкладке: refreshView перерисовывает только её, а скрытые
+       обновятся при переходе — там застой пользователю не виден. */
+    function вВидимой(){ var v=document.getElementById("viewTerms");
+      return v?v.querySelectorAll(".tech-ico").length:-1; }
+    setIcons(false); setMode("terms");
+    var n=вВидимой();
+    setIcons(true); setMode("terms");
+    return JSON.stringify({выкл:n, вкл:вВидимой()});
+  })()`));
+  check("переключатель выключает иконки", off.выкл === 0 && off.вкл > 0,
+    "выключено " + off.выкл + " · включено " + off.вкл);
+
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }

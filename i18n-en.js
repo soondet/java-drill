@@ -8043,7 +8043,8 @@ window.I18N = {
   "закрепить при прокрутке": "pin while scrolling",
   "снять все": "clear all",
   "Прозрачный фон — видеть контент": "Transparent background — see the content behind",
-  "Прозрачный фон": "Transparent background"
+  "Прозрачный фон": "Transparent background",
+  "Иконки технологий": "Technology icons"
  },
  "cards": {
   "jc-eqhash": {
