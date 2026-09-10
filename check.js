@@ -17,23 +17,37 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const get = u => new Promise((res, rej) =>
   http.get(u, r => { let d = ""; r.on("data", c => d += c); r.on("end", () => res(d)); }).on("error", rej));
 
+/* Каждый вызов по CDP раньше был обещанием, которое НИКОГДА не отклонялось.
+   Потерялся ответ, упал рендерер, закрылся сокет — await висел вечно, скрипт
+   стоял на нуле процентов, а headless-Chrome продолжал жечь ядро. Так набежало
+   3 часа 38 минут забытого браузера. Теперь у каждого вызова свой срок, а обрыв
+   сокета будит всех, кто ждёт ответа. */
+const ВЫЗОВ_МС = 90e3;
 function conn(url) {
-  return new Promise(res => {
+  return new Promise((res, rej) => {
     const ws = new WebSocket(url); let id = 0; const pend = new Map();
+    const всех = причина => { for (const [, f] of pend) f(null, причина); pend.clear(); };
     ws.onmessage = e => { const m = JSON.parse(e.data); if (pend.has(m.id)) { pend.get(m.id)(m); pend.delete(m.id); } };
-    ws.onopen = () => res({
-      ev: x => new Promise(r => {
-        const i = ++id;
-        pend.set(i, m => {
-          const R = m.result || {};
-          if (R.exceptionDetails) return r("__ОШИБКА__ " + ((R.exceptionDetails.exception || {}).description || R.exceptionDetails.text).split("\n")[0]);
-          r(R.result && R.result.value);
-        });
-        ws.send(JSON.stringify({ id: i, method: "Runtime.evaluate", params: { expression: x, returnByValue: true, awaitPromise: true } }));
-      }),
-      raw: (m, p) => new Promise(r => { const i = ++id; pend.set(i, x => r(x.result)); ws.send(JSON.stringify({ id: i, method: m, params: p })); }),
-      close: () => ws.close()
+    ws.onerror = () => { rej(new Error("сокет отладчика не открылся")); всех("сокет отладчика оборвался"); };
+    ws.onclose = () => всех("сокет отладчика закрылся");
+    /* ждать открытия тоже нельзя бесконечно */
+    const срок = setTimeout(() => rej(new Error("сокет отладчика не открылся за 30с")), 30e3);
+    const зов = (метод, послать) => new Promise((r, j) => {
+      const i = ++id;
+      const т = setTimeout(() => { pend.delete(i); j(new Error("CDP " + метод + " не ответил за " + (ВЫЗОВ_МС / 1000) + "с")); }, ВЫЗОВ_МС);
+      pend.set(i, (m, обрыв) => { clearTimeout(т); if (обрыв) return j(new Error(обрыв + " (ждали " + метод + ")")); r(m); });
+      try { ws.send(послать(i)); } catch (e) { clearTimeout(т); pend.delete(i); j(e); }
     });
+    ws.onopen = () => { clearTimeout(срок); res({
+      ev: x => зов("Runtime.evaluate", i => JSON.stringify({ id: i, method: "Runtime.evaluate",
+        params: { expression: x, returnByValue: true, awaitPromise: true } })).then(m => {
+        const R = m.result || {};
+        if (R.exceptionDetails) return "__ОШИБКА__ " + ((R.exceptionDetails.exception || {}).description || R.exceptionDetails.text).split("\n")[0];
+        return R.result && R.result.value;
+      }),
+      raw: (m, p) => зов(m, i => JSON.stringify({ id: i, method: m, params: p })).then(x => x.result),
+      close: () => ws.close()
+    }); };
   });
 }
 
@@ -69,16 +83,38 @@ const check = (name, ok, detail) => {
      Вешаем уборку на выход процесса и на сигналы: теперь при любом финале, включая
      Ctrl+C и падение, браузер гасится и временный профиль удаляется. */
   const PROFILE = "/tmp/jd-check-prof";
+  /* kill -9 по родителю уборку не запускает — браузер остаётся жить с портом и
+     профилем. Гасим хвост прошлого прогона до того, как поднимем свой. */
+  try {
+    const прошлые = require("child_process").execSync(
+      "pgrep -f " + JSON.stringify("user-data-dir=" + PROFILE) + " || true",
+      { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+    if (прошлые.length) {
+      console.log("  · гашу " + прошлые.length + " процессов от прошлого прогона");
+      for (const pid of прошлые) { try { process.kill(+pid, "SIGKILL") } catch (e) {} }
+    }
+  } catch (e) {}
   const proc = spawn(CHROME, ["--headless=new", "--remote-debugging-port=" + PORT, "--no-first-run", "--no-sandbox",
     "--disable-gpu", "--disable-dev-shm-usage", "--user-data-dir=" + PROFILE, "file://" + FILE],
     { stdio: "ignore", detached: true });
   let cleaned = false;
   const cleanup = () => { if (cleaned) return; cleaned = true;
-    try { process.kill(-proc.pid) } catch (e) {}
+    /* Именно SIGKILL: по мягкому сигналу Chrome завершается неспешно и продолжает
+       дописывать профиль, так что rmSync ниже сносил каталог наполовину и тот
+       оставался в /tmp. Браузер здесь одноразовый, беречь его состояние незачем. */
+    try { process.kill(-proc.pid, "SIGKILL") } catch (e) {}
     try { fs.rmSync(PROFILE, { recursive: true, force: true }) } catch (e) {} };
   process.once("exit", cleanup);
   ["SIGINT", "SIGTERM", "SIGHUP"].forEach(sig => process.once(sig, () => { cleanup(); process.exit(1); }));
   process.once("uncaughtException", e => { cleanup(); console.error(e); process.exit(1); });
+  process.once("unhandledRejection", e => { cleanup(); console.error(e); process.exit(1); });
+  /* Последний рубеж: сколько бы ни было таймаутов на отдельных вызовах, весь прогон
+     обязан уложиться в срок. Обычно он занимает две минуты; даём с большим запасом. */
+  const ПРОГОН_МИН = 15;
+  setTimeout(() => {
+    console.error("прогон не уложился в " + ПРОГОН_МИН + " минут — гашу браузер");
+    cleanup(); process.exit(1);
+  }, ПРОГОН_МИН * 60e3).unref();
 
   let t;
   for (let i = 0; i < 60; i++) {
