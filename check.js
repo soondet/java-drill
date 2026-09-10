@@ -280,6 +280,38 @@ const check = (name, ok, detail) => {
   check("«спроектируй» не пройти «выбирай самый длинный»", ds.pct <= 40,
     "стратегия даёт " + ds.pct + "%, потолок 40%, случайный тык 25%");
 
+  /* ---- у «спроектируй» есть английский ----
+     Добавив восемь сценариев, я забыл про словарь: в английском режиме раздел
+     показывал бы русский текст вперемешку с переведённым интерфейсом. Общая
+     проверка «кириллицы ≤8% на вкладке» этого не поймала — раздел не входит
+     в десятку, по которой она ходит. Считаем строки напрямую. */
+  /* Пакет перевода грузится асинхронно, поэтому мерить сразу после setLang нельзя:
+     словаря ещё нет и «непереведённым» выглядит вообще всё. Ждём загрузку явно. */
+  const язык0 = await A.ev(`LANG`);
+  await A.ev(`try{ if(LANG!=="en") setLang("en"); }catch(e){}`);
+  for (let i = 0; i < 40; i++) {
+    if (await A.ev(`LANG==="en" && tr("Сокращатель ссылок")!=="Сокращатель ссылок"`)) break;
+    await sleep(300);
+  }
+  const dsen = JSON.parse(await A.ev(`(function(){
+    var всего=0, без=[];
+    (window.DESIGN||[]).forEach(function(t){
+      var поля=[t.name,t.about];
+      (t.steps||[]).forEach(function(x){ поля.push(x.q,x.correct,x.why);
+        (x.wrong||[]).forEach(function(w){поля.push(w)}); });
+      var свой=0;
+      поля.forEach(function(f){ всего++;
+        if(/[А-Яа-яЁё]/.test(f) && tr(f)===f) свой++; });
+      if(свой) без.push(t.id+"×"+свой);
+    });
+    return JSON.stringify({всего:всего, без:без, язык:LANG});
+  })()`));
+  check("у «спроектируй» есть английский перевод", dsen.без.length === 0 && dsen.язык === "en",
+    dsen.язык !== "en" ? "язык не переключился, замер недействителен"
+      : dsen.без.length ? "без перевода " + dsen.без.length + " сценариев: " + dsen.без.slice(0, 5).join(", ")
+                        : "проверено " + dsen.всего + " строк, все переводятся");
+  await A.ev(`try{ setLang(${JSON.stringify(язык0)}) }catch(e){}`); await sleep(900);
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);
