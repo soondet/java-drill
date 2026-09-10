@@ -910,6 +910,76 @@
     background:rgba(70,214,160,.09);border:1px solid rgba(70,214,160,.3);
     font:600 12px var(--sans);color:#8fe6c4}
   .mus-verd{min-height:24px;margin-top:12px;font:600 14px var(--sans);text-align:center}
+  /* ---- Книга: курс страницами ----
+     Бумажная страница на тёмном столе — нарочно чужеродный объект: книга должна
+     читаться как книга, а не как ещё одна панель. Лист поворачивается вокруг
+     корешка настоящим 3D; при prefers-reduced-motion листа нет вовсе. */
+  .bk{display:grid;grid-template-columns:212px minmax(0,1fr);gap:18px;align-items:start;margin-top:4px}
+  .bk-toc{display:flex;flex-direction:column;gap:4px;position:sticky;top:82px}
+  .bk-ch{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;text-align:left;cursor:pointer;
+    padding:9px 10px;border-radius:11px;border:1px solid var(--line-2);background:transparent;transition:.15s}
+  .bk-ch i{font-style:normal;font-size:15px}
+  .bk-ch b{font:600 13px var(--sans);color:var(--txt)}
+  .bk-ch span{font:600 11px var(--mono);color:var(--mut)}
+  .bk-ch:hover{border-color:var(--line);background:var(--panel-2)}
+  .bk-ch.full span{color:var(--good)}
+  .bk-ch.on{border-color:transparent;background:var(--grad)}
+  .bk-ch.on b,.bk-ch.on span{color:#0a0b12}
+  .bk-scene{perspective:2000px;perspective-origin:20% 50%;padding-left:16px}
+  .bk-book{position:relative;min-height:440px;border-radius:4px 16px 16px 4px;color:#2b2620;
+    background:radial-gradient(120% 90% at 25% 15%,#f6eedd,#eadfc7 85%);
+    box-shadow:0 30px 60px -24px rgba(0,0,0,.7),
+      0 2px 0 #dccfb4,0 4px 0 #cfc1a4,0 6px 0 #c2b396,2px 0 0 #dccfb4,4px 0 0 #cfc1a4,6px 0 0 #c2b396}
+  .bk-book::before{content:"";position:absolute;left:-16px;top:-2px;bottom:-8px;width:18px;border-radius:5px 0 0 5px;
+    background:linear-gradient(90deg,#2a2019,#5a4736 45%,#3a2c22 80%,#1f1712);box-shadow:inset -2px 0 3px rgba(0,0,0,.5)}
+  .bk-book::after{content:"";position:absolute;left:0;top:0;bottom:0;width:28px;pointer-events:none;border-radius:4px 0 0 4px;
+    background:linear-gradient(90deg,rgba(0,0,0,.16),rgba(0,0,0,.04) 60%,transparent)}
+  .bk-page,.bk-face{padding:26px 34px 22px 40px}
+  .bk-page.in{animation:bkIn .3s var(--ease)}
+  @keyframes bkIn{from{opacity:0}to{opacity:1}}
+  .bk-head{display:flex;justify-content:space-between;gap:10px;font:600 11px var(--sans);letter-spacing:.8px;text-transform:uppercase;color:#8a7a66}
+  .bk-page h2,.bk-face h2{font:700 calc(24px * var(--ts)) Georgia,"Times New Roman",serif;margin:8px 0 12px;color:#221d18;letter-spacing:-.2px}
+  .bk-text{font:calc(17px * var(--ts))/1.62 Georgia,"Times New Roman",serif;color:#2b2620}
+  .bk-text b{color:#1f4e9c;font-weight:700}
+  .bk-staff{margin:14px 0 4px;padding:8px 10px;background:rgba(255,255,255,.45);border-radius:10px}
+  .bk-staff svg{width:100%;max-width:520px;height:auto;display:block}
+  .bk-staff svg line{stroke:#7a6a58!important}
+  .bk-staff svg text{fill:#3c3229!important}
+  .bk-staff :not(svg):not(svg *){color:#3c3229!important}     /* заголовок и легенда стана были под тёмный фон */
+  .bk-plays{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .bk-pl,.bk-nav{font:650 13px var(--sans);cursor:pointer;padding:9px 13px;border-radius:10px;border:1px solid #d5c7ab;background:#fff8ea;color:#2b2620;transition:.15s}
+  .bk-pl:hover,.bk-nav:hover:not(:disabled){border-color:#1f4e9c;color:#1f4e9c;transform:translateY(-1px)}
+  .bk-task{display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:11px 14px;border-radius:10px;
+    border-left:3px solid #c9a24d;background:#f9f1de;font:500 14px/1.5 var(--sans);color:#4a3f33}
+  .bk-task i{font-style:normal;font-size:16px;line-height:1.3}
+  .bk-task.ok{border-left-color:#2e9e6b;background:#e6f4ea;color:#1f5c3d}
+  .bk-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:20px;padding-top:12px;border-top:1px dashed #d5c7ab}
+  .bk-num{font:600 12px var(--mono);color:#8a7a66}
+  .bk-nav:disabled{opacity:.4;cursor:default}
+  .bk-nav.next.go{background:#2e9e6b;border-color:#2e9e6b;color:#fff}
+  .bk-hint{font:500 12px var(--sans);color:var(--mut);text-align:center;margin:14px 0 0}
+  .bk-leaf{position:absolute;inset:0;transform-origin:left center;transform-style:preserve-3d;z-index:3;pointer-events:none;
+    border-radius:4px 16px 16px 4px;transition:transform .8s cubic-bezier(.3,.15,.25,1)}   /* середина поворота не проскакивает — лист видно */
+  .bk-leaf.snap{transition:none}
+  .bk-leaf.off{display:none}
+  .bk-leaf.turn{transform:rotateY(-180deg)}
+  .bk-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:inherit;overflow:hidden;
+    background:radial-gradient(120% 90% at 25% 15%,#f6eedd,#eadfc7 85%)}
+  .bk-face.front::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.3));opacity:0;transition:opacity .8s}
+  .bk-leaf.turn .bk-face.front::after{opacity:1}
+  /* Обратной стороны у листа нет нарочно: перевалив за 90°, он исчезает. Иначе
+     пустое полотно шириной со страницу ложилось на оглавление слева от корешка. */
+  @media (prefers-reduced-motion:reduce){ .bk-leaf{display:none!important} .bk-page.in{animation:none} }
+  @media(max-width:760px){
+    .bk{grid-template-columns:1fr;gap:12px}
+    .bk-toc{position:static;flex-direction:row;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+    .bk-toc::-webkit-scrollbar{display:none}
+    .bk-ch{flex:none;grid-template-columns:auto auto auto;padding:7px 10px}
+    .bk-ch b{font-size:12px}
+    .bk-scene{padding-left:12px;perspective:1200px}
+    .bk-book::before{left:-12px;width:14px}
+    .bk-page,.bk-face{padding:18px 18px 16px 24px}
+  }
   .mus-verd .ok{color:#46d6a0}.mus-verd .bad{color:#ff7a85}
   .mus-score{margin-top:12px;font:600 12.5px var(--sans);color:var(--mut)}
   .mus-score b{color:var(--txt)}
@@ -2359,6 +2429,7 @@
 <script src="tricky.js"></script>
 <script src="hacks.js"></script>
 <script src="music-ref.js"></script>
+<script src="music-book.js"></script>
 <script src="guitar.js"></script>
 <script src="more-term-new.js"></script>
 <script src="cards-new.js"></script>
@@ -12967,7 +13038,8 @@ const MUS_KEYS=[
 const MUS_DUR=[["целая","4 доли",100],["половинная","2 доли",50],["четверть","1 доля",25],
   ["восьмая","½ доли",12.5],["шестнадцатая","¼ доли",6.25]];
 const MUS_BASE=60;                                     /* до первой октавы */
-let MUSMIC=null, MUS_MODE="hack", MUS_Q=null;
+let MUSMIC=null, MUS_MODE="book", MUS_Q=null;
+let MUS_TAP_HOOK=null;                                 /* задания книги перехватывают нажатие клавиши */
 
 /* ---- клавиатура: интервал и аккорд видно рукой, а не цифрами ----
    Чёрные клавиши стоят не по центру между белыми — на настоящем рояле они
@@ -13083,6 +13155,10 @@ function musMidiInit(){
    Набранное держится, поэтому аккорд можно собрать руками и услышать целиком. */
 let KB_SEL=[];
 function musKeyTap(m){
+  if(MUS_TAP_HOOK&&MUS_TAP_HOOK(m)===true)return;
+  musKeyDefault(m);
+}
+function musKeyDefault(m){
   const i=KB_SEL.indexOf(m);
   if(i>=0)KB_SEL.splice(i,1); else KB_SEL.push(m);
   musPaint();
@@ -13215,7 +13291,7 @@ function gtShow(list){                                 /* показать ак�
 function musUI(){
   const b=$("#musBody"); if(!b)return;
   if(MUS_INS==="guitar")musFb(); else musKb();
-  musMicStop(); gtStopRhy(); MUS_MIDI_HOOK=null;
+  musMicStop(); gtStopRhy(); MUS_MIDI_HOOK=null; MUS_TAP_HOOK=null;
   if(MUS_INS==="guitar"){
     if(MUS_MODE==="gchord")return gtChords(b);
     if(MUS_MODE==="grhy")return gtRhythm(b);
@@ -13223,13 +13299,14 @@ function musUI(){
     if(MUS_MODE==="gref")return gtRef(b);
     return musHacks(b,window.GTHACK,"гитарные лайфхаки ещё не подгрузились");
   }
+  if(MUS_MODE==="book")return musBook(b);
   if(MUS_MODE==="hack")return musHacks(b);
   if(MUS_MODE==="ref")return musRef(b);
   if(MUS_MODE==="ear")return musEar(b);
   return musVoice(b);
 }
 const MUS_TABS={
-  piano:[["hack","💡 Лайфхаки"],["ref","📖 Шпоры"],["ear","👂 Интервал на слух"],["voice","🎤 Спой интервал"]],
+  piano:[["book","📕 Книга"],["hack","💡 Лайфхаки"],["ref","📖 Шпоры"],["ear","👂 Интервал на слух"],["voice","🎤 Спой интервал"]],
   guitar:[["ghack","💡 Лайфхаки"],["gchord","🎵 Аккорды"],["grhy","🥁 Бои и переборы"],["gtune","🎯 Тюнер"],["gref","📖 Гриф и строй"]]
 };
 /* Тюнер: переиспользует то же определение высоты, что и вокальные тренажёры.
@@ -13461,6 +13538,170 @@ function musInsUI(){
   if(fb)fb.hidden=MUS_INS!=="guitar";
   [...document.querySelectorAll("#musIns .ins-tab")].forEach(el=>el.classList.toggle("on",el.dataset.i===MUS_INS));
 }
+/* ═══ Книга: курс с нуля страницами ═══
+   Шпоры и лайфхаки отвечают на «где посмотреть», книга — на «с чего начать и
+   что дальше». Одна страница — одна мысль и одно действие на клавишах. Лист
+   переворачивается вокруг корешка настоящим 3D; при prefers-reduced-motion не
+   крутится вовсе. Задания проверяет сама клавиатура через MUS_TAP_HOOK.
+   Данные — music-book.js, window.MUSBOOK. */
+const BK={ch:0,pg:0,busy:false,el:null,taps:[]};
+const BK_KEY="jdMusBook", BK_DONE="jdMusBookDone";
+function bkDone(id,v){
+  let s={}; try{ s=JSON.parse(localStorage.getItem(BK_DONE)||"{}"); }catch(e){}
+  if(id!==undefined){ if(v)s[id]=1; else delete s[id]; try{ localStorage.setItem(BK_DONE,JSON.stringify(s)); }catch(e){} }
+  return s;
+}
+function bkChapters(){ return (window.MUSBOOK&&window.MUSBOOK.chapters)||[]; }
+function bkPage(){ const c=bkChapters()[BK.ch]; return c&&c.pages[BK.pg]; }
+function bkId(ch,pg){ const c=bkChapters()[ch]; return c?c.id+"#"+pg:""; }
+function bkMark(t){ return esc(t).replace(/\*([^*]+)\*/g,"<b>$1</b>"); }
+function bkLightOf(l){
+  if(!l)return [];
+  if(Array.isArray(l))return l;
+  const out=[]; for(let m=KB_LO;m<=KB_HI;m++) if((l.pcs||[]).indexOf(((m%12)+12)%12)>=0)out.push(m);
+  return out;
+}
+function bkReduced(){ return !!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches); }
+function bkSave(){ try{ localStorage.setItem(BK_KEY,JSON.stringify({ch:BK.ch,pg:BK.pg})); }catch(e){} }
+
+function bkHtml(ch,pg){
+  const C=bkChapters(), c=C[ch], p=c.pages[pg], done=bkDone(), id=bkId(ch,pg);
+  const total=C.reduce((a,x)=>a+x.pages.length,0);
+  const abs=C.slice(0,ch).reduce((a,x)=>a+x.pages.length,0)+pg+1;
+  const last=ch===C.length-1&&pg===c.pages.length-1;
+  let h='<header class="bk-head"><span>'+c.ico+" "+esc(c.title)+'</span><span>стр. '+abs+" из "+total+"</span></header>"
+    +"<h2>"+esc(p.t)+"</h2>"
+    +'<div class="bk-text">'+bkMark(p.p)+"</div>";
+  if(p.staff&&typeof musStaffSvg==="function")h+='<div class="bk-staff">'+musStaffSvg(p.staff)+"</div>";
+  if(p.plays&&p.plays.length)h+='<div class="bk-plays">'+p.plays.map((x,i)=>'<button class="bk-pl" data-i="'+i+'">🔊 '+esc(x.l)+"</button>").join("")+"</div>";
+  if(p.task)h+='<div class="bk-task'+(done[id]?" ok":"")+'" id="bkTask"><i>'+(done[id]?"✓":"🎹")+"</i><span>"+esc(done[id]?p.task.ok:p.task.hint)+"</span></div>";
+  h+='<footer class="bk-foot"><button class="bk-nav" id="bkPrev"'+(ch===0&&pg===0?" disabled":"")+'>← назад</button>'
+    +'<span class="bk-num">'+(pg+1)+" / "+c.pages.length+"</span>"
+    +'<button class="bk-nav next'+(done[id]&&p.task?" go":"")+'" id="bkNext"'+(last?" disabled":"")+">"+(last?"конец книги":"дальше →")+"</button></footer>";
+  return h;
+}
+function bkTocItems(){
+  const done=bkDone();
+  return bkChapters().map((c,i)=>{
+    const d=c.pages.filter((_,k)=>done[c.id+"#"+k]).length;
+    return '<button class="bk-ch'+(i===BK.ch?" on":"")+(d===c.pages.length?" full":"")+'" data-ch="'+i+'"><i>'+c.ico+"</i><b>"+esc(c.title)+"</b><span>"+d+"/"+c.pages.length+"</span></button>";
+  }).join("");
+}
+function bkTocRefresh(){ const t=$("#bkToc"); if(t)t.innerHTML=bkTocItems(); }
+
+function musBook(b){
+  const C=bkChapters();
+  if(!C.length){ b.innerHTML='<div class="mus-card"><p class="mus-p">Книга не загрузилась — нужен файл music-book.js рядом.</p></div>'; return; }
+  let bm={}; try{ bm=JSON.parse(localStorage.getItem(BK_KEY)||"{}"); }catch(e){}
+  BK.ch=Math.min(C.length-1,Math.max(0,bm.ch|0)); BK.pg=Math.min(C[BK.ch].pages.length-1,Math.max(0,bm.pg|0)); BK.busy=false; BK.el=b;
+  b.innerHTML='<div class="bk"><nav class="bk-toc" id="bkToc">'+bkTocItems()+"</nav>"
+    +'<div class="bk-scene"><div class="bk-book" id="bkBook">'
+    +'<article class="bk-page" id="bkPage"></article>'
+    +'<div class="bk-leaf off" id="bkLeaf"><div class="bk-face front" id="bkFront"></div></div>'
+    +'</div><p class="bk-hint">← → на клавиатуре · свайп на телефоне · закладка запоминается</p></div></div>';
+  bkShow();
+  $("#bkToc").onclick=e=>{
+    const t=e.target.closest(".bk-ch"); if(!t)return;
+    const ch=+t.dataset.ch, c=C[ch], done=bkDone();
+    let pg=c.pages.findIndex((_,k)=>!done[c.id+"#"+k]); if(pg<0)pg=0;   /* первая непрочитанная страница главы */
+    bkGo(ch,pg);
+  };
+  let x0=null; const book=$("#bkBook");
+  book.addEventListener("touchstart",e=>{ x0=e.touches[0].clientX; },{passive:true});
+  book.addEventListener("touchend",e=>{
+    if(x0==null)return; const dx=e.changedTouches[0].clientX-x0; x0=null;
+    if(Math.abs(dx)>50)(dx<0?bkNext:bkPrev)();
+  },{passive:true});
+}
+function bkBind(){
+  const p=bkPage(); if(!p||!BK.el)return;
+  [...BK.el.querySelectorAll(".bk-pl")].forEach(el=>el.onclick=()=>{
+    const x=p.plays[+el.dataset.i]; if(!x)return;
+    musLight(x.s.map(v=>MUS_BASE+v)); musPlay(x.s,!!x.t); musKbCap(x.l);
+  });
+  const pr=$("#bkPrev"), nx=$("#bkNext");
+  if(pr)pr.onclick=bkPrev; if(nx)nx.onclick=bkNext;
+}
+function bkShow(){                                     /* страница встаёт на место без поворота */
+  const page=$("#bkPage"); if(!page)return;
+  page.innerHTML=bkHtml(BK.ch,BK.pg); bkBind(); bkEnter(); bkSave(); bkTocRefresh();
+  page.classList.remove("in"); void page.offsetWidth; page.classList.add("in");
+}
+/* Что происходит, когда страница стала текущей: подсветка под текст или задание.
+   На странице с заданием подсветки нет — в этой клавиатуре подсветка и есть набор
+   нажатых, и подсказка мешала бы проверке. */
+function bkEnter(){
+  const p=bkPage(); if(!p)return;
+  BK.taps=[]; MUS_TAP_HOOK=null; MUS_MIDI_HOOK=null;
+  if(!p.task){
+    musLight(bkLightOf(p.light));
+    if(p.light&&!Array.isArray(p.light)){ const r=document.querySelector("#musKb .root"); if(r){ r.classList.remove("root"); r.classList.add("on"); } }
+    musKbCap(p.light?"подсвечено то, о чём страница — нажми и послушай":"жми клавиши — можно несколько, повторное нажатие снимает");
+    return;
+  }
+  const T=p.task, id=bkId(BK.ch,BK.pg);
+  KB_SEL=[]; musPaint(); musKbCap("задание: "+T.hint);
+  const check=()=>{
+    let ok=false;
+    if(T.m==="set"){ const a=[...KB_SEL].sort((x,y)=>x-y), k=[...T.k].sort((x,y)=>x-y); ok=a.length===k.length&&a.every((m,i)=>m===k[i]); }
+    else if(T.m==="pcs"){ ok=KB_SEL.length>=(T.n||1)&&KB_SEL.every(m=>T.pcs.indexOf(((m%12)+12)%12)>=0); }
+    else if(T.m==="seq"){ const n=T.k.length, t=BK.taps; ok=t.length>=n&&T.k.every((m,i)=>t[t.length-n+i]===m); }
+    if(!ok)return;
+    bkDone(id,true);
+    const el=$("#bkTask"); if(el){ el.classList.add("ok"); el.innerHTML="<i>✓</i><span>"+esc(T.ok)+"</span>"; }
+    const nx=$("#bkNext"); if(nx)nx.classList.add("go");
+    musKbCap("✓ "+T.ok); bkTocRefresh();
+    MUS_TAP_HOOK=null; MUS_MIDI_HOOK=null;
+  };
+  MUS_TAP_HOOK=m=>{
+    if(T.m==="seq"){                                   /* по одной: звучит только нажатая, а не весь набор */
+      BK.taps.push(m); KB_SEL=[m]; musPaint(); musPlay([m-MUS_BASE],false); musKbCap(musName([m]));
+      check(); return true;
+    }
+    musKeyDefault(m); check(); return true;            /* набор: клавиша добавляется и звучит вместе с остальными */
+  };
+  MUS_MIDI_HOOK=m=>{ if(T.m==="seq")BK.taps.push(m); setTimeout(check,0); return false; };
+}
+function bkGo(ch,pg,dir){
+  if(BK.busy)return;
+  const C=bkChapters(); if(!C[ch]||!C[ch].pages[pg])return;
+  if(ch===BK.ch&&pg===BK.pg)return;
+  if(dir==null)dir=(ch>BK.ch||(ch===BK.ch&&pg>BK.pg))?1:-1;
+  const cur=bkPage(); if(dir>0&&cur&&!cur.task)bkDone(bkId(BK.ch,BK.pg),true);   /* ушёл вперёд — прочитал */
+  const from=BK.ch, fromPg=BK.pg;
+  BK.ch=ch; BK.pg=pg;
+  const page=$("#bkPage"), leaf=$("#bkLeaf"), front=$("#bkFront");
+  if(!page||!leaf||bkReduced()){ bkShow(); return; }
+  BK.busy=true; MUS_TAP_HOOK=null; MUS_MIDI_HOOK=null;
+  let finish;
+  if(dir>0){                                           /* лист с текущей страницей уходит влево, под ним уже новая */
+    front.innerHTML=bkHtml(from,fromPg);
+    page.innerHTML=bkHtml(ch,pg); bkBind();
+    leaf.classList.add("snap"); leaf.classList.remove("turn","off"); void leaf.offsetWidth;
+    leaf.classList.remove("snap"); leaf.classList.add("turn");
+    finish=()=>{ leaf.classList.add("off"); leaf.classList.remove("turn"); };
+  }else{                                               /* лист с новой страницей приходит слева и ложится сверху */
+    front.innerHTML=bkHtml(ch,pg);
+    leaf.classList.add("snap","turn"); leaf.classList.remove("off"); void leaf.offsetWidth;
+    leaf.classList.remove("snap"); leaf.classList.remove("turn");
+    finish=()=>{ page.innerHTML=bkHtml(ch,pg); bkBind(); leaf.classList.add("off"); };
+  }
+  let done=false;
+  const end=()=>{ if(done)return; done=true; leaf.removeEventListener("transitionend",end);
+    finish(); BK.busy=false; bkEnter(); bkSave(); bkTocRefresh(); };
+  leaf.addEventListener("transitionend",end);
+  setTimeout(end,1100);                                /* страховка: transitionend может не прийти; дольше самого поворота */
+}
+function bkNext(){ const C=bkChapters(), c=C[BK.ch]; if(!c)return;
+  if(BK.pg<c.pages.length-1)bkGo(BK.ch,BK.pg+1,1); else if(C[BK.ch+1])bkGo(BK.ch+1,0,1); }
+function bkPrev(){ const C=bkChapters(); if(BK.pg>0)bkGo(BK.ch,BK.pg-1,-1); else if(BK.ch>0)bkGo(BK.ch-1,C[BK.ch-1].pages.length-1,-1); }
+document.addEventListener("keydown",e=>{
+  const v=$("#viewMus"); if(!v||v.hidden||MUS_MODE!=="book"||MUS_INS!=="piano")return;
+  const t=e.target; if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))return;
+  if(e.key==="ArrowRight"){ e.preventDefault(); bkNext(); }
+  else if(e.key==="ArrowLeft"){ e.preventDefault(); bkPrev(); }
+});
+
 /* Лайфхаки: приёмы, которые дают результат за дни, а не «занимайся больше».
    Данные лежат в hacks.js — window.MUSHACK. */
 let HK_APPLY=null;

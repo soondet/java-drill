@@ -312,6 +312,57 @@ const check = (name, ok, detail) => {
                         : "проверено " + dsen.всего + " строк, все переводятся");
   await A.ev(`try{ setLang(${JSON.stringify(язык0)}) }catch(e){}`); await sleep(900);
 
+  /* ---- книга по музыке ----
+     Курс страницами живёт поверх клавиатуры и перехватывает нажатия через
+     MUS_TAP_HOOK. Ломается тихо: подсветка мимо клавиш, задание, которое нельзя
+     выполнить, перехват, забытый после ухода со страницы. Проходим все страницы
+     подряд и выполняем по заданию каждого вида. Вход — кликом по вкладке, как
+     у пользователя: setMode("mus") раздел не инициализирует. */
+  {
+    await A.ev(`localStorage.removeItem("jdMusBook");localStorage.removeItem("jdMusBookDone");document.getElementById("tabMus").click()`);
+    await sleep(900);
+    const bk0 = JSON.parse(await A.ev(`(function(){
+      var C=(window.MUSBOOK||{}).chapters||[], bad=[], n=0;
+      C.forEach(function(c){ c.pages.forEach(function(p,i){ n++; var id=c.id+"#"+i;
+        var l=Array.isArray(p.light)?p.light:[]; if(l.some(function(m){return m<KB_LO||m>KB_HI})) bad.push(id+" подсветка вне клавиатуры");
+        if(p.task){ var T=p.task; if(["set","pcs","seq"].indexOf(T.m)<0||!T.hint||!T.ok) bad.push(id+" задание");
+          if(T.k&&T.k.some(function(m){return m<KB_LO||m>KB_HI})) bad.push(id+" клавиши задания вне клавиатуры"); }
+        (p.plays||[]).forEach(function(x){ if(!x.l||!Array.isArray(x.s)) bad.push(id+" звук"); });
+      }); });
+      return JSON.stringify({глав:C.length, страниц:n, плохие:bad, режим:MUS_MODE, есть:!!document.getElementById("bkPage")});
+    })()`));
+    check("книга по музыке открывается первой", bk0.есть && bk0.режим === "book" && bk0.глав >= 7 && bk0.страниц >= 25,
+      bk0.глав + " глав · " + bk0.страниц + " страниц · режим " + bk0.режим + (bk0.есть ? "" : " · страницы нет"));
+    check("страницы книги ссылаются на настоящие клавиши", bk0.плохие.length === 0,
+      bk0.плохие.length ? bk0.плохие.slice(0, 4).join(", ") : bk0.страниц + " страниц проверено");
+    let листов = 0;
+    for (let i = 0; i < 40; i++) {
+      const r = await A.ev(`(function(){var b=document.getElementById("bkNext"); if(!b||b.disabled)return "end"; bkNext(); return "ok";})()`);
+      if (r !== "ok") break; листов++; await sleep(1000);   /* поворот 800мс + страховка; раньше bkNext отбросит busy */
+    }
+    await sleep(400);
+    const bk1 = JSON.parse(await A.ev(`(function(){
+      var C=MUSBOOK.chapters, всего=C.reduce(function(a,c){return a+c.pages.length},0);
+      var анимаций=document.getAnimations().filter(function(a){var e=a.effect&&a.effect.target;return e&&e.closest&&e.closest(".bk")}).length;
+      return JSON.stringify({всего:всего, конец:BK.ch===C.length-1&&BK.pg===C[BK.ch].pages.length-1,
+        лист:document.getElementById("bkLeaf").classList.contains("off"), анимаций:анимаций, busy:BK.busy});
+    })()`));
+    check("книга листается до конца и лист не зависает",
+      листов === bk1.всего - 1 && bk1.конец && bk1.лист && !bk1.busy && bk1.анимаций === 0,
+      "пролистано " + листов + " из " + (bk1.всего - 1) + " · лист скрыт " + bk1.лист + " · анимаций " + bk1.анимаций + " · busy " + bk1.busy);
+    await A.ev(`bkGo(0,1)`); await sleep(900);
+    await A.ev(`musKeyTap(60); musKeyTap(72);`); await sleep(200);
+    const двеДо = await A.ev(`!!document.getElementById("bkTask")&&document.getElementById("bkTask").classList.contains("ok")`);
+    await A.ev(`bkGo(2,1)`); await sleep(900);
+    await A.ev(`[60,62,64,65,67,69,71,72].forEach(function(m){musKeyTap(m)})`); await sleep(200);
+    const гамма = await A.ev(`!!document.getElementById("bkTask")&&document.getElementById("bkTask").classList.contains("ok")&&KB_SEL.length===1`);
+    await A.ev(`MUS_MODE="hack"; musUI();`); await sleep(200);
+    const снят = await A.ev(`MUS_TAP_HOOK===null`);
+    check("задания книги проверяет клавиатура", двеДо === true && гамма === true && снят === true,
+      "две до: " + двеДо + " · гамма по порядку: " + гамма + " · перехват снят после ухода: " + снят);
+    await A.ev(`document.getElementById("tabDrill").click()`); await sleep(300);
+  }
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);
