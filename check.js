@@ -130,6 +130,34 @@ const check = (name, ok, detail) => {
 
   /* ---- содержимое ---- */
   const cards = await A.ev("CARDS.length");
+  /* ---- скобки в стилях сходятся ----
+     Одна лишняя закрывающая скобка в @keyframes оборвала разбор CSS, и браузер
+     молча выбросил следующее правило — .topbar. Шапка перестала быть флексом и
+     развалилась на шесть строк вместо четырёх. Ни ошибки в консоли, ни падения:
+     из 1644 правил пропало ровно одно, так что считать правила бесполезно.
+     Считаем скобки в исходнике — это ловит саму причину, а не последствие. */
+  {
+    const dir = path.dirname(FILE);
+    const idx = path.join(dir, "index.html");
+    if (fs.existsSync(idx)) {
+      const html = fs.readFileSync(idx, "utf8");
+      let баланс = 0, строка = 0, где = 0;
+      for (const m of html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)) {
+        const начало = html.slice(0, m.index).split("\n").length;
+        const css = m[1].replace(/\/\*[\s\S]*?\*\//g, c => c.replace(/[^\n]/g, " "));
+        for (let i = 0; i < css.length; i++) {
+          if (css[i] === "\n") строка++;
+          else if (css[i] === "{") баланс++;
+          else if (css[i] === "}" && --баланс < 0 && !где) где = начало + строка;
+        }
+      }
+      check("скобки в стилях сходятся", баланс === 0,
+        баланс === 0 ? "баланс ноль"
+          : (баланс < 0 ? "лишняя закрывающая скобка" + (где ? " около строки " + где : "")
+                        : баланс + " незакрытых блоков — правила ниже браузер выбросит"));
+    }
+  }
+
   check("карточек загружено", cards > 700, cards + "");
   check("у всех есть кадр", await A.ev("CARDS.every(c=>PICS[c.id])"), await A.ev("CARDS.filter(c=>!PICS[c.id]).length+' без кадра'"));
   check("у всех есть «подробнее»", await A.ev("CARDS.every(c=>MORE[c.id])"), await A.ev("CARDS.filter(c=>!MORE[c.id]).length+' без текста'"));
@@ -572,6 +600,86 @@ const check = (name, ok, detail) => {
     "скрытой идёт " + bg.скрытоВсе + " анимаций (" + (bg.кто||"") + ") · видимой " + bg.видно + " фоновых");
   check("фон не растеризуется каждый кадр", !bg.скейл && bg.радиус <= 40,
     (bg.скейл ? "в кадрах вернулся scale · " : "") + "радиус размытия " + bg.радиус + "px (потолок 40)");
+
+  /* ---- стили разобраны целиком ----
+     Одна лишняя закрывающая скобка в @keyframes оборвала разбор, и следующее
+     правило .topbar браузер выбросил целиком: шапка перестала быть флексом,
+     развалилась на шесть строк и заняла 184px вместо 71. Ошибка была невидимой —
+     ни ошибок JS, ни падений, просто съехавшая вёрстка. Ловим двумя способами:
+     считаем разобранные правила и проверяем, что ключевые элементы остались
+     теми, чем задуманы. */
+  const css = JSON.parse(await A.ev(`(function(){
+    var правил=0;
+    for (var i=0;i<document.styleSheets.length;i++){
+      try{ правил+=document.styleSheets[i].cssRules.length; }catch(e){}
+    }
+    var nav=document.querySelector("nav.topbar");
+    var cs=nav?getComputedStyle(nav):null;
+    var строк=0;
+    if(nav){ var y={}; [].forEach.call(nav.children,function(e){
+      var r=e.getBoundingClientRect(); if(r.height>0) y[Math.round(r.top)]=1; });
+      строк=Object.keys(y).length; }
+    return JSON.stringify({правил:правил, display:cs?cs.display:"—",
+      wrap:cs?cs.flexWrap:"—", высота:nav?Math.round(nav.getBoundingClientRect().height):0, строк:строк});
+  })()`));
+  /* Высоту не проверяем — на узком экране она законно растёт. Поломка узнаётся
+     по двум признакам: display стал block и строк стало шесть вместо четырёх. */
+  check("шапка осталась флексом", css.display === "flex" && css.wrap === "wrap" && css.строк <= 4,
+    "display:" + css.display + " · wrap:" + css.wrap + " · строк " + css.строк + " · высота " + css.высота + "px");
+
+  /* ---- шапка на разных ширинах ----
+     Три таблетки — вкладки, счётчики, инструменты — должны стоять одной высотой,
+     иначе правый край шапки выглядит рваным. А на телефоне пять вкладок должны
+     влезать в одну строку: при переносе «Ещё» уезжала туда одна и шапка съедала
+     137px из 700 — пятую часть экрана. И то и другое держится на пикселях,
+     так что ломается от любой правки шрифта или отступа. */
+  {
+    const мерка = `(function(){
+      var h=function(s){var e=document.querySelector(s);return e?Math.round(e.getBoundingClientRect().height):0};
+      var t=document.querySelector(".tabs");
+      var bs=[].slice.call(t.querySelectorAll(":scope > button, :scope > .more-tab"));
+      var стр=Object.keys(bs.reduce(function(a,e){a[Math.round(e.getBoundingClientRect().top)]=1;return a},{})).length;
+      var nav=document.querySelector("nav.topbar");
+      var вылез=[].slice.call(nav.querySelectorAll("*")).some(function(e){
+        var r=e.getBoundingClientRect(); return r.width>0 && (r.right>innerWidth+1 || r.left<-1); });
+      var влез=function(s){var e=document.querySelector(s);
+        return !e || (e.scrollHeight<=e.clientHeight+1 && e.scrollWidth<=e.clientWidth+1)};
+      return JSON.stringify({вкладки:h(".tabs"),счётчики:h(".kpis"),инструменты:h(".tools"),
+        обрез:[".tabs",".kpis",".tools"].filter(function(s){return !влез(s)}).join(", "),
+        шапка:h("nav.topbar"), строк:стр, вылез:вылез, ширина:innerWidth,
+        отступ:getComputedStyle(t.querySelector("button")).paddingLeft,
+        шрифт:getComputedStyle(t.querySelector("button")).fontFamily.split(",")[0],
+        inter:(document.fonts&&document.fonts.check)?document.fonts.check("600 13px Inter"):"?",
+        место:Math.round(t.clientWidth-6),
+        надо:Math.round(bs.reduce(function(a,e){return a+e.getBoundingClientRect().width},0)),
+        кнопки:bs.map(function(e){return Math.round(e.getBoundingClientRect().width)}).join("/")});
+    })()`;
+    await A.raw("Emulation.setDeviceMetricsOverride", { width: 1400, height: 900, deviceScaleFactor: 1, mobile: false });
+    await sleep(400);
+    const ш = JSON.parse(await A.ev(мерка));
+    /* Одну высоту трём таблеткам задаёт правило .tabs,.kpis,.tools{height:42px} —
+       проверять её бессмысленно, правило её же и держит. Опасность в другом: при
+       фиксированной высоте выросший шрифт или отступ не раздвинет таблетку,
+       а обрежется внутри неё. Это и ловим. */
+    check("содержимое таблеток шапки не обрезано", !ш.обрез && ш.вкладки === ш.инструменты,
+      ш.обрез ? "обрезано в " + ш.обрез
+              : "вкладки " + ш.вкладки + " · счётчики " + ш.счётчики + " · инструменты " + ш.инструменты + " (1400px)");
+    check("на широком экране шапка в одну полосу", ш.шапка <= 80 && !ш.вылез,
+      ш.шапка + "px на 1400px" + (ш.вылез ? " · что-то вылезает за экран" : ""));
+    await A.raw("Emulation.setDeviceMetricsOverride", { width: 360, height: 780, deviceScaleFactor: 1, mobile: true });
+    /* К этому месту страница уже по-английски, а там подписи вкладок вдвое короче
+       («Drill» против «Дрил», «Visual» против «На пальцах») — мерить надо худший
+       случай, иначе сторож проспит любое раздутие русских вкладок. */
+    await A.ev(`setLang("ru")`); await sleep(700);
+    const у = JSON.parse(await A.ev(мерка));
+    check("на телефоне вкладки влезают в одну строку", у.строк === 1 && у.шапка <= 110 && !у.вылез,
+      "окно " + у.ширина + "px · строк " + у.строк + " · шапка " + у.шапка + "px · отступ " + у.отступ
+        + " · шрифт " + у.шрифт + " (Inter загружен: " + у.inter + ")"
+        + " · место " + у.место + " надо " + у.надо + " [" + у.кнопки + "]");
+    await A.ev(`setLang("en")`); await sleep(700);
+    await A.raw("Emulation.clearDeviceMetricsOverride");
+    await sleep(300);
+  }
 
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
