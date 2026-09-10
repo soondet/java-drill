@@ -911,13 +911,17 @@
     font:600 12px var(--sans);color:#8fe6c4}
   .mus-verd{min-height:24px;margin-top:12px;font:600 14px var(--sans);text-align:center}
   /* ---- Книга: курс страницами ----
-     Бумажная страница на тёмном столе — нарочно чужеродный объект: книга должна
-     читаться как книга, а не как ещё одна панель. Лист поворачивается вокруг
-     корешка настоящим 3D; при prefers-reduced-motion листа нет вовсе. */
-  .bk{display:grid;grid-template-columns:212px minmax(0,1fr);gap:18px;align-items:start;margin-top:4px}
-  .bk-toc{display:flex;flex-direction:column;gap:4px;position:sticky;top:82px}
-  .bk-ch{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;text-align:left;cursor:pointer;
-    padding:9px 10px;border-radius:11px;border:1px solid var(--line-2);background:transparent;transition:.15s}
+     Настоящий разворот: обложка, корешок посередине, две страницы, обрез
+     из страниц по бокам, который сдвигается по мере чтения. Бумага с зерном —
+     SVG-шум в data-URI, растеризуется один раз. Лист переворачивается вокруг
+     корешка с двумя сторонами: лицо — уходящая страница, изнанка — она же,
+     уже как левая. Тень от листа ложится на страницу под ним, по бумаге
+     бежит блик. При prefers-reduced-motion листа нет, страницы сменяются. */
+  .bk{margin-top:4px}
+  /* оглавление полосой над книгой: колонкой сбоку оно оставляло развороту 600px */
+  .bk-toc{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+  .bk-ch{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:8px;text-align:left;cursor:pointer;
+    padding:8px 12px;border-radius:11px;border:1px solid var(--line-2);background:transparent;transition:.15s}
   .bk-ch i{font-style:normal;font-size:15px}
   .bk-ch b{font:600 13px var(--sans);color:var(--txt)}
   .bk-ch span{font:600 11px var(--mono);color:var(--mut)}
@@ -925,60 +929,135 @@
   .bk-ch.full span{color:var(--good)}
   .bk-ch.on{border-color:transparent;background:var(--grad)}
   .bk-ch.on b,.bk-ch.on span{color:#0a0b12}
-  .bk-scene{perspective:2000px;perspective-origin:20% 50%;padding-left:16px}
-  .bk-book{position:relative;min-height:440px;border-radius:4px 16px 16px 4px;color:#2b2620;
-    background:radial-gradient(120% 90% at 25% 15%,#f6eedd,#eadfc7 85%);
-    box-shadow:0 30px 60px -24px rgba(0,0,0,.7),
-      0 2px 0 #dccfb4,0 4px 0 #cfc1a4,0 6px 0 #c2b396,2px 0 0 #dccfb4,4px 0 0 #cfc1a4,6px 0 0 #c2b396}
-  .bk-book::before{content:"";position:absolute;left:-16px;top:-2px;bottom:-8px;width:18px;border-radius:5px 0 0 5px;
-    background:linear-gradient(90deg,#2a2019,#5a4736 45%,#3a2c22 80%,#1f1712);box-shadow:inset -2px 0 3px rgba(0,0,0,.5)}
-  .bk-book::after{content:"";position:absolute;left:0;top:0;bottom:0;width:28px;pointer-events:none;border-radius:4px 0 0 4px;
-    background:linear-gradient(90deg,rgba(0,0,0,.16),rgba(0,0,0,.04) 60%,transparent)}
-  .bk-page,.bk-face{padding:26px 34px 22px 40px}
-  .bk-page.in{animation:bkIn .3s var(--ease)}
+  /* обложка: кожа с зерном, фаска сверху, тень на стол */
+  .bk-book{position:relative;padding:16px 18px 20px;border-radius:12px;
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+      linear-gradient(135deg,#523a2a,#2e1d13 50%,#3d2818);
+    box-shadow:0 44px 80px -34px rgba(0,0,0,.85),0 10px 24px -14px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.14),inset 0 -2px 0 rgba(0,0,0,.45)}
+  .bk-spread{position:relative;display:grid;grid-template-columns:1fr 1fr;aspect-ratio:2/1.42;                /* страница 1:1.42 — пропорция A-формата */
+    perspective:2400px;perspective-origin:50% 40%}
+  #bkL,#bkR{display:flex;min-width:0}                /* страница растягивается на всю высоту разворота */
+  #bkL>.bk-page,#bkR>.bk-page{flex:1}
+  .bk-spread{
+    box-shadow:0 2px 0 #d8cbb0,0 4px 0 #c9bb9e,0 6px 0 #b9ab8e}
+  /* корешок — ложбина между страницами */
+  .bk-spread::before{content:"";position:absolute;left:50%;top:-5px;bottom:-5px;width:26px;margin-left:-13px;z-index:3;pointer-events:none;
+    background:linear-gradient(to right,rgba(0,0,0,.36),rgba(0,0,0,.06) 42%,rgba(0,0,0,.06) 58%,rgba(0,0,0,.36))}
+  /* обрез: прочитанные страницы слева, оставшиеся справа */
+  .bk-stack{position:absolute;top:8px;bottom:6px;pointer-events:none;
+    background:repeating-linear-gradient(to right,#efe6d0 0 1px,#c7b897 1px 2px)}
+  .bk-stack.l{right:100%;width:var(--rd,4px);border-radius:3px 0 0 3px}
+  .bk-stack.r{left:100%;width:var(--lt,10px);border-radius:0 3px 3px 0}
+  .bk-page,.bk-face{
+    background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+      radial-gradient(130% 100% at 50% 0%,#f8f1e1,#ece2cb 80%,#e2d6bc)}
+  .bk-page{position:relative;display:flex;flex-direction:column;min-height:0;padding:26px 28px 24px;color:#2b2620}
+  .bk-page.l{padding-right:38px} .bk-page.r{padding-left:38px}
+  /* тень в ложбине у корешка */
+  .bk-page::after{content:"";position:absolute;top:0;bottom:0;width:16%;pointer-events:none}
+  .bk-page.l::after{right:0;background:linear-gradient(to right,transparent,rgba(0,0,0,.14))}
+  .bk-page.r::after{left:0;background:linear-gradient(to left,transparent,rgba(0,0,0,.14))}
+  .bk-page.in{animation:bkIn .35s var(--ease)}
   @keyframes bkIn{from{opacity:0}to{opacity:1}}
-  .bk-head{display:flex;justify-content:space-between;gap:10px;font:600 11px var(--sans);letter-spacing:.8px;text-transform:uppercase;color:#8a7a66}
-  .bk-page h2,.bk-face h2{font:700 calc(24px * var(--ts)) Georgia,"Times New Roman",serif;margin:8px 0 12px;color:#221d18;letter-spacing:-.2px}
-  .bk-text{font:calc(17px * var(--ts))/1.62 Georgia,"Times New Roman",serif;color:#2b2620}
+  .bk-run{display:flex;justify-content:space-between;font:600 10.5px var(--sans);letter-spacing:.9px;text-transform:uppercase;color:#93826c}
+  .bk-page.l .bk-run{flex-direction:row-reverse}
+  .bk-page.r .bk-run{padding-right:26px}          /* место под ленту закладки */
+  .bk-page h2{font:700 calc(23px * var(--ts)) Georgia,"Times New Roman",serif;margin:12px 0 10px;color:#221d18;letter-spacing:-.2px;line-height:1.2}
+  .bk-text{font:calc(15.5px * var(--ts))/1.6 Georgia,"Times New Roman",serif;color:#2b2620}
+  .bk-text::first-letter{float:left;font-size:3em;line-height:.82;padding:5px 8px 0 0;font-weight:700;color:#1f4e9c}
   .bk-text b{color:#1f4e9c;font-weight:700}
-  .bk-staff{margin:14px 0 4px;padding:8px 10px;background:rgba(255,255,255,.45);border-radius:10px}
-  .bk-staff svg{width:100%;max-width:520px;height:auto;display:block}
+  .bk-fig{margin:14px 0 2px}
+  .bk-fig svg{width:100%;height:auto;display:block}
+  .bk-staff{margin:10px 0 0;padding:6px 8px;background:rgba(255,255,255,.5);border-radius:8px;border:1px solid rgba(0,0,0,.06)}
+  /* На бумаге стан — только рисунок: его шапку и легенду страница пересказывает
+     сама, а фиксированные 132px высоты не влезали в страницу. */
+  .bk-staff .st-h,.bk-staff .st-scroll~*{display:none}
+  .bk-staff svg{width:100%;max-width:520px;height:auto!important;display:block;min-width:0!important}
   .bk-staff svg line{stroke:#7a6a58!important}
   .bk-staff svg text{fill:#3c3229!important}
-  .bk-staff :not(svg):not(svg *){color:#3c3229!important}     /* заголовок и легенда стана были под тёмный фон */
-  .bk-plays{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-  .bk-pl,.bk-nav{font:650 13px var(--sans);cursor:pointer;padding:9px 13px;border-radius:10px;border:1px solid #d5c7ab;background:#fff8ea;color:#2b2620;transition:.15s}
+  .bk-staff :not(svg):not(svg *){color:#3c3229!important}
+  .bk-plays{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .bk-pl,.bk-nav{font:650 12.5px var(--sans);cursor:pointer;padding:7px 11px;border-radius:9px;border:1px solid #d3c5a8;background:#fbf5e6;color:#2b2620;transition:.15s;
+    box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 1px 2px rgba(0,0,0,.08)}
   .bk-pl:hover,.bk-nav:hover:not(:disabled){border-color:#1f4e9c;color:#1f4e9c;transform:translateY(-1px)}
-  .bk-task{display:flex;gap:10px;align-items:flex-start;margin-top:16px;padding:11px 14px;border-radius:10px;
-    border-left:3px solid #c9a24d;background:#f9f1de;font:500 14px/1.5 var(--sans);color:#4a3f33}
+  .bk-task{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:10px 13px;border-radius:8px;
+    border-left:3px solid #c9a24d;background:rgba(255,246,222,.85);font:500 13.5px/1.5 var(--sans);color:#4a3f33}
   .bk-task i{font-style:normal;font-size:16px;line-height:1.3}
-  .bk-task.ok{border-left-color:#2e9e6b;background:#e6f4ea;color:#1f5c3d}
-  .bk-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:20px;padding-top:12px;border-top:1px dashed #d5c7ab}
-  .bk-num{font:600 12px var(--mono);color:#8a7a66}
+  .bk-task.ok{border-left-color:#2e9e6b;background:rgba(226,244,232,.9);color:#1f5c3d}
+  .bk-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:auto;padding-top:14px}
   .bk-nav:disabled{opacity:.4;cursor:default}
   .bk-nav.next.go{background:#2e9e6b;border-color:#2e9e6b;color:#fff}
-  .bk-hint{font:500 12px var(--sans);color:var(--mut);text-align:center;margin:14px 0 0}
-  .bk-leaf{position:absolute;inset:0;transform-origin:left center;transform-style:preserve-3d;z-index:3;pointer-events:none;
-    border-radius:4px 16px 16px 4px;transition:transform .8s cubic-bezier(.3,.15,.25,1)}   /* середина поворота не проскакивает — лист видно */
+  .bk-pn{position:absolute;bottom:10px;font:600 11px var(--mono);color:#93826c}
+  .bk-page.l .bk-pn{left:18px} .bk-page.r .bk-pn{right:18px}
+  .bk-ribbon{position:absolute;top:-6px;right:18px;width:13px;height:58px;z-index:6;background:linear-gradient(to right,#8f2a25,#c0433c 45%,#8f2a25);
+    clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);box-shadow:2px 3px 4px rgba(0,0,0,.25)}
+  /* загнутый уголок — подсказка, что страницу можно перевернуть; клик по нему листает */
+  .bk-curl{position:absolute;bottom:0;width:38px;height:38px;z-index:6;cursor:pointer;transition:width .2s,height .2s;border:0;padding:0}
+  .bk-curl.r{right:0;background:linear-gradient(225deg,transparent 50%,#cdbfa2 50%,#f7f0df 78%,#e6dbc3);box-shadow:-3px -3px 7px -2px rgba(0,0,0,.28);border-radius:0 0 3px 0}
+  .bk-curl.l{left:0;background:linear-gradient(135deg,transparent 50%,#cdbfa2 50%,#f7f0df 78%,#e6dbc3);box-shadow:3px -3px 7px -2px rgba(0,0,0,.28);border-radius:0 0 0 3px}
+  .bk-curl:hover{width:52px;height:52px}
+  .bk-curl[hidden]{display:none}
+  .bk.single .bk-curl.l{display:none}
+  /* титульный лист */
+  .bk-title{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;flex:1;padding:10px 6px}
+  .bk-orn{font-size:26px;color:#b3342e;margin-bottom:10px}
+  .bk-title h1{font:700 calc(34px * var(--ts)) Georgia,"Times New Roman",serif;margin:0 0 10px;color:#221d18;line-height:1.1}
+  .bk-sub{font:italic calc(14px * var(--ts)) Georgia,serif;color:#6b5d4b;margin:0 0 22px;line-height:1.5}
+  .bk-how{font:calc(14px * var(--ts))/1.55 Georgia,serif;color:#4a3f33;margin:0;max-width:30ch}
+  .bk-hint{font:500 12px var(--sans);color:var(--mut);text-align:center;margin:16px 0 0}
+  /* ---- лист ----
+     Две стороны: лицо — страница, которая уходит, изнанка — она же в роли левой.
+     Вперёд лист лежит на правой странице и крутится вокруг корешка влево; назад —
+     на левой и крутится вправо. Кривая: медленно оторвать от бумаги, быстро через
+     вертикаль, мягко лечь. */
+  .bk-leaf{position:absolute;top:0;bottom:0;left:50%;width:50%;z-index:5;pointer-events:none;transform-style:preserve-3d;
+    transform-origin:left center;transition:transform 1.15s cubic-bezier(.58,.02,.28,1)}
+  .bk-leaf.bwd{left:0;transform-origin:right center}
+  .bk-leaf.go{will-change:transform}
   .bk-leaf.snap{transition:none}
   .bk-leaf.off{display:none}
-  .bk-leaf.turn{transform:rotateY(-180deg)}
-  .bk-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:inherit;overflow:hidden;
-    background:radial-gradient(120% 90% at 25% 15%,#f6eedd,#eadfc7 85%)}
-  .bk-face.front::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0),rgba(0,0,0,.3));opacity:0;transition:opacity .8s}
-  .bk-leaf.turn .bk-face.front::after{opacity:1}
-  /* Обратной стороны у листа нет нарочно: перевалив за 90°, он исчезает. Иначе
-     пустое полотно шириной со страницу ложилось на оглавление слева от корешка. */
-  @media (prefers-reduced-motion:reduce){ .bk-leaf{display:none!important} .bk-page.in{animation:none} }
+  .bk-leaf.fwd.turn{transform:rotateY(-180deg)}
+  .bk-leaf.bwd.turn{transform:rotateY(180deg)}
+  .bk-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+  .bk-face>.bk-page{height:100%}
+  .bk-face.b{transform:rotateY(180deg)}
+  /* блик — полоса света бежит по листу, пока он в воздухе */
+  .bk-face::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;
+    background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.34) 46%,rgba(255,255,255,.08) 52%,rgba(0,0,0,.06) 60%,transparent 70%)}
+  .bk-leaf.go .bk-face::before{animation:bkSheen 1.15s cubic-bezier(.58,.02,.28,1)}
+  @keyframes bkSheen{0%{opacity:0;transform:translateX(-70%)}30%{opacity:1}65%{opacity:.7;transform:translateX(55%)}100%{opacity:0;transform:translateX(95%)}}
+  /* сгиб у корешка темнеет, пока лист поднят */
+  .bk-face.f::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;
+    background:linear-gradient(to right,rgba(0,0,0,.42),rgba(0,0,0,.08) 28%,transparent 45%)}
+  .bk-leaf.bwd .bk-face.f::after{background:linear-gradient(to left,rgba(0,0,0,.42),rgba(0,0,0,.08) 28%,transparent 45%)}
+  .bk-leaf.go .bk-face.f::after{animation:bkCrease 1.15s ease-in-out}
+  @keyframes bkCrease{0%{opacity:0}25%{opacity:1}55%{opacity:.9}100%{opacity:0}}
+  /* тень листа на страницах под ним: сначала на той, с которой он уходит, потом на той, куда ложится */
+  .bk-cast{position:absolute;top:0;bottom:0;width:50%;z-index:4;pointer-events:none;opacity:0}
+  .bk-cast.l{left:0;background:linear-gradient(to left,rgba(0,0,0,.55),rgba(0,0,0,.12) 45%,transparent 80%)}
+  .bk-cast.r{left:50%;background:linear-gradient(to right,rgba(0,0,0,.55),rgba(0,0,0,.12) 45%,transparent 80%)}
+  .bk-cast.from{animation:bkCastFrom 1.15s ease-in-out}
+  .bk-cast.to{animation:bkCastTo 1.15s ease-in-out}
+  @keyframes bkCastFrom{0%{opacity:0}22%{opacity:.5}55%{opacity:.25}100%{opacity:0}}
+  @keyframes bkCastTo{0%{opacity:0}45%{opacity:0}72%{opacity:.5}100%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){ .bk-leaf,.bk-cast{display:none!important} .bk-page.in{animation:none} }
+  /* телефон: одна страница, как в читалке */
+  .bk.single .bk-spread{grid-template-columns:1fr;aspect-ratio:1/1.6}
+  .bk.single .bk-spread::before,#bkRoot.single #bkL,.bk.single .bk-cast,.bk.single .bk-stack.l,.bk.single .bk-face.b{display:none}
+  .bk.single .bk-page.r{padding:20px 20px 22px 24px}
+  .bk.single .bk-page.r::after{width:10%}
+  .bk.single .bk-leaf,.bk.single .bk-leaf.bwd{left:0;width:100%;transform-origin:left center}
+  .bk.single .bk-leaf.bwd.turn{transform:rotateY(-180deg)}
+  .bk.single .bk-ribbon{right:14px;height:44px}
   @media(max-width:760px){
     .bk{grid-template-columns:1fr;gap:12px}
-    .bk-toc{position:static;flex-direction:row;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+    .bk-toc{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
     .bk-toc::-webkit-scrollbar{display:none}
     .bk-ch{flex:none;grid-template-columns:auto auto auto;padding:7px 10px}
     .bk-ch b{font-size:12px}
-    .bk-scene{padding-left:12px;perspective:1200px}
-    .bk-book::before{left:-12px;width:14px}
-    .bk-page,.bk-face{padding:18px 18px 16px 24px}
+    .bk-book{padding:12px 12px 14px}
+    .bk-page h2{font-size:calc(21px * var(--ts))}
+    .bk-text{font-size:calc(15.5px * var(--ts))}
   }
   .mus-verd .ok{color:#46d6a0}.mus-verd .bad{color:#ff7a85}
   .mus-score{margin-top:12px;font:600 12.5px var(--sans);color:var(--mut)}
@@ -13540,10 +13619,10 @@ function musInsUI(){
 }
 /* ═══ Книга: курс с нуля страницами ═══
    Шпоры и лайфхаки отвечают на «где посмотреть», книга — на «с чего начать и
-   что дальше». Одна страница — одна мысль и одно действие на клавишах. Лист
-   переворачивается вокруг корешка настоящим 3D; при prefers-reduced-motion не
-   крутится вовсе. Задания проверяет сама клавиатура через MUS_TAP_HOOK.
-   Данные — music-book.js, window.MUSBOOK. */
+   что дальше». Разворот: слева уже прочитанная страница, справа — текущая, к ней
+   привязаны клавиши и задание. Лист переворачивается вокруг корешка настоящим 3D
+   с двумя сторонами; при prefers-reduced-motion не крутится вовсе. Задания
+   проверяет клавиатура через MUS_TAP_HOOK. Данные — music-book.js, MUSBOOK. */
 const BK={ch:0,pg:0,busy:false,el:null,taps:[]};
 const BK_KEY="jdMusBook", BK_DONE="jdMusBookDone";
 function bkDone(id,v){
@@ -13552,6 +13631,8 @@ function bkDone(id,v){
   return s;
 }
 function bkChapters(){ return (window.MUSBOOK&&window.MUSBOOK.chapters)||[]; }
+function bkFlat(){ const out=[]; bkChapters().forEach((c,ch)=>c.pages.forEach((p,pg)=>out.push({ch,pg,c,p}))); return out; }
+function bkIndex(ch,pg){ return bkChapters().slice(0,ch).reduce((a,x)=>a+x.pages.length,0)+pg; }
 function bkPage(){ const c=bkChapters()[BK.ch]; return c&&c.pages[BK.pg]; }
 function bkId(ch,pg){ const c=bkChapters()[ch]; return c?c.id+"#"+pg:""; }
 function bkMark(t){ return esc(t).replace(/\*([^*]+)\*/g,"<b>$1</b>"); }
@@ -13562,23 +13643,46 @@ function bkLightOf(l){
   return out;
 }
 function bkReduced(){ return !!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches); }
+function bkSingle(){ return !!(window.matchMedia&&matchMedia("(max-width: 760px)").matches); }
 function bkSave(){ try{ localStorage.setItem(BK_KEY,JSON.stringify({ch:BK.ch,pg:BK.pg})); }catch(e){} }
 
-function bkHtml(ch,pg){
-  const C=bkChapters(), c=C[ch], p=c.pages[pg], done=bkDone(), id=bkId(ch,pg);
-  const total=C.reduce((a,x)=>a+x.pages.length,0);
-  const abs=C.slice(0,ch).reduce((a,x)=>a+x.pages.length,0)+pg+1;
-  const last=ch===C.length-1&&pg===c.pages.length-1;
-  let h='<header class="bk-head"><span>'+c.ico+" "+esc(c.title)+'</span><span>стр. '+abs+" из "+total+"</span></header>"
+/* Клавиатура на странице — рисунок под текст, чтобы книга была самодостаточной:
+   живые клавиши сверху уезжают за экран на телефоне, а рисунок остаётся. */
+function bkKeysSvg(midis,root){
+  const W=20, whites=[]; for(let m=KB_LO;m<=KB_HI;m++) if(KB_BLACK[((m%12)+12)%12]===undefined)whites.push(m);
+  const w=whites.length*W, h=64, lit=m=>midis.indexOf(m)>=0;
+  let o='<svg viewBox="0 0 '+w+' '+h+'" aria-hidden="true">';
+  whites.forEach((m,i)=>{ const x=i*W;
+    o+='<rect x="'+x+'" y="0" width="'+(W-1)+'" height="'+h+'" rx="2" fill="'+(lit(m)?(m===root?"#f0a24a":"#5b8fe6"):"#fffaf0")+'" stroke="#b9ab8e" stroke-width=".8"/>';
+    if(m%12===0)o+='<text x="'+(x+W/2)+'" y="'+(h-6)+'" font-size="7" text-anchor="middle" fill="'+(lit(m)?"#fff":"#93826c")+'" font-family="Inter,sans-serif">до</text>'; });
+  for(let m=KB_LO;m<=KB_HI;m++){ const off=KB_BLACK[((m%12)+12)%12]; if(off===undefined)continue;
+    let idx=whites.findIndex(x=>x>m); if(idx<0)idx=whites.length;
+    const cx=(idx+off)*W;
+    o+='<rect x="'+(cx-W*.31)+'" y="0" width="'+(W*.62)+'" height="'+(h*.6)+'" rx="1.5" fill="'+(lit(m)?(m===root?"#f0a24a":"#5b8fe6"):"#2a2420")+'"/>'; }
+  return o+"</svg>";
+}
+
+/* Страница по сквозному номеру: -1 — титульный лист. side: "l" прочитанная, "r" текущая.
+   Идентификаторы (#bkTask, #bkNext) только у правой: она одна живая. */
+function bkPageHtml(abs,side){
+  const F=bkFlat(), total=F.length;
+  if(abs<0)return '<div class="bk-page l"><div class="bk-title"><div class="bk-orn">❦</div><h1>Музыка<br>с нуля</h1>'
+    +'<p class="bk-sub">семь глав · '+total+' страниц<br>одна мысль на страницу</p>'
+    +'<p class="bk-how">Клавиши сверху живые: подсвечиваются под текст, звучат и проверяют задания. Листай стрелками или свайпом — закладка запомнится.</p></div></div>';
+  const {c,p,ch,pg}=F[abs], done=bkDone(), id=bkId(ch,pg), R=side==="r";
+  const last=abs===total-1;
+  let h='<div class="bk-page '+side+'">'
+    +'<div class="bk-run"><span>'+c.ico+" "+esc(c.title)+'</span><span>'+(pg+1)+" / "+c.pages.length+"</span></div>"
     +"<h2>"+esc(p.t)+"</h2>"
     +'<div class="bk-text">'+bkMark(p.p)+"</div>";
   if(p.staff&&typeof musStaffSvg==="function")h+='<div class="bk-staff">'+musStaffSvg(p.staff)+"</div>";
-  if(p.plays&&p.plays.length)h+='<div class="bk-plays">'+p.plays.map((x,i)=>'<button class="bk-pl" data-i="'+i+'">🔊 '+esc(x.l)+"</button>").join("")+"</div>";
-  if(p.task)h+='<div class="bk-task'+(done[id]?" ok":"")+'" id="bkTask"><i>'+(done[id]?"✓":"🎹")+"</i><span>"+esc(done[id]?p.task.ok:p.task.hint)+"</span></div>";
-  h+='<footer class="bk-foot"><button class="bk-nav" id="bkPrev"'+(ch===0&&pg===0?" disabled":"")+'>← назад</button>'
-    +'<span class="bk-num">'+(pg+1)+" / "+c.pages.length+"</span>"
+  else if(p.light){ const l=bkLightOf(p.light); h+='<div class="bk-fig">'+bkKeysSvg(l,Array.isArray(p.light)?Math.min.apply(null,l):null)+"</div>"; }
+  if(R&&p.plays&&p.plays.length)h+='<div class="bk-plays">'+p.plays.map((x,i)=>'<button class="bk-pl" data-i="'+i+'">🔊 '+esc(x.l)+"</button>").join("")+"</div>";
+  if(p.task)h+='<div class="bk-task'+(done[id]?" ok":"")+'"'+(R?' id="bkTask"':"")+'><i>'+(done[id]?"✓":"🎹")+"</i><span>"+esc(done[id]?p.task.ok:p.task.hint)+"</span></div>";
+  if(R)h+='<footer class="bk-foot"><button class="bk-nav" id="bkPrev"'+(abs===0?" disabled":"")+'>← назад</button>'
     +'<button class="bk-nav next'+(done[id]&&p.task?" go":"")+'" id="bkNext"'+(last?" disabled":"")+">"+(last?"конец книги":"дальше →")+"</button></footer>";
-  return h;
+  h+='<span class="bk-pn">'+(abs+1)+"</span>";
+  return h+"</div>";
 }
 function bkTocItems(){
   const done=bkDone();
@@ -13588,17 +13692,26 @@ function bkTocItems(){
   }).join("");
 }
 function bkTocRefresh(){ const t=$("#bkToc"); if(t)t.innerHTML=bkTocItems(); }
+function bkStacks(){                                   /* обрез: прочитанное слева, оставшееся справа */
+  const b=$("#bkBook"); if(!b)return;
+  const total=bkFlat().length, abs=bkIndex(BK.ch,BK.pg);
+  b.style.setProperty("--rd",Math.round(2+12*abs/Math.max(1,total-1))+"px");
+  b.style.setProperty("--lt",Math.round(2+12*(1-abs/Math.max(1,total-1)))+"px");
+}
 
 function musBook(b){
   const C=bkChapters();
   if(!C.length){ b.innerHTML='<div class="mus-card"><p class="mus-p">Книга не загрузилась — нужен файл music-book.js рядом.</p></div>'; return; }
   let bm={}; try{ bm=JSON.parse(localStorage.getItem(BK_KEY)||"{}"); }catch(e){}
   BK.ch=Math.min(C.length-1,Math.max(0,bm.ch|0)); BK.pg=Math.min(C[BK.ch].pages.length-1,Math.max(0,bm.pg|0)); BK.busy=false; BK.el=b;
-  b.innerHTML='<div class="bk"><nav class="bk-toc" id="bkToc">'+bkTocItems()+"</nav>"
-    +'<div class="bk-scene"><div class="bk-book" id="bkBook">'
-    +'<article class="bk-page" id="bkPage"></article>'
-    +'<div class="bk-leaf off" id="bkLeaf"><div class="bk-face front" id="bkFront"></div></div>'
-    +'</div><p class="bk-hint">← → на клавиатуре · свайп на телефоне · закладка запоминается</p></div></div>';
+  b.innerHTML='<div class="bk'+(bkSingle()?" single":"")+'" id="bkRoot"><nav class="bk-toc" id="bkToc">'+bkTocItems()+"</nav>"
+    +'<div class="bk-scene"><div class="bk-book" id="bkBook"><div class="bk-spread" id="bkSpread">'
+    +'<div class="bk-stack l"></div><div class="bk-stack r"></div>'
+    +'<div id="bkL"></div><div id="bkR"></div>'
+    +'<div class="bk-cast l" id="bkCastL"></div><div class="bk-cast r" id="bkCastR"></div>'
+    +'<div class="bk-leaf off" id="bkLeaf"><div class="bk-face f" id="bkF"></div><div class="bk-face b" id="bkB"></div></div>'
+    +'<i class="bk-ribbon"></i><button class="bk-curl l" id="bkCurlL" title="назад" aria-label="назад"></button><button class="bk-curl r" id="bkCurlR" title="дальше" aria-label="дальше"></button>'
+    +'</div></div><p class="bk-hint">← → на клавиатуре · свайп на телефоне · закладка запоминается</p></div></div>';
   bkShow();
   $("#bkToc").onclick=e=>{
     const t=e.target.closest(".bk-ch"); if(!t)return;
@@ -13612,20 +13725,32 @@ function musBook(b){
     if(x0==null)return; const dx=e.changedTouches[0].clientX-x0; x0=null;
     if(Math.abs(dx)>50)(dx<0?bkNext:bkPrev)();
   },{passive:true});
+  if(window.matchMedia){ const mq=matchMedia("(max-width: 760px)");
+    const sw=()=>{ const r=$("#bkRoot"); if(r)r.classList.toggle("single",mq.matches); };
+    if(mq.addEventListener)mq.addEventListener("change",sw); else if(mq.addListener)mq.addListener(sw); }
 }
 function bkBind(){
   const p=bkPage(); if(!p||!BK.el)return;
-  [...BK.el.querySelectorAll(".bk-pl")].forEach(el=>el.onclick=()=>{
+  [...BK.el.querySelectorAll("#bkR .bk-pl")].forEach(el=>el.onclick=()=>{
     const x=p.plays[+el.dataset.i]; if(!x)return;
     musLight(x.s.map(v=>MUS_BASE+v)); musPlay(x.s,!!x.t); musKbCap(x.l);
   });
   const pr=$("#bkPrev"), nx=$("#bkNext");
   if(pr)pr.onclick=bkPrev; if(nx)nx.onclick=bkNext;
+  const abs=bkIndex(BK.ch,BK.pg), cl=$("#bkCurlL"), cr=$("#bkCurlR");
+  if(cl){ cl.onclick=bkPrev; cl.hidden=abs===0; }
+  if(cr){ cr.onclick=bkNext; cr.hidden=abs===bkFlat().length-1; }
 }
-function bkShow(){                                     /* страница встаёт на место без поворота */
-  const page=$("#bkPage"); if(!page)return;
-  page.innerHTML=bkHtml(BK.ch,BK.pg); bkBind(); bkEnter(); bkSave(); bkTocRefresh();
-  page.classList.remove("in"); void page.offsetWidth; page.classList.add("in");
+function bkRenderSpread(){
+  const abs=bkIndex(BK.ch,BK.pg);
+  $("#bkL").innerHTML=bkPageHtml(abs-1,"l");
+  $("#bkR").innerHTML=bkPageHtml(abs,"r");
+  bkBind();
+}
+function bkShow(){                                     /* разворот встаёт на место без поворота */
+  if(!$("#bkR"))return;
+  bkRenderSpread(); bkEnter(); bkSave(); bkTocRefresh(); bkStacks();
+  [...document.querySelectorAll("#bkL .bk-page,#bkR .bk-page")].forEach(pg=>{ pg.classList.remove("in"); void pg.offsetWidth; pg.classList.add("in"); });
 }
 /* Что происходит, когда страница стала текущей: подсветка под текст или задание.
    На странице с заданием подсветки нет — в этой клавиатуре подсветка и есть набор
@@ -13662,35 +13787,59 @@ function bkEnter(){
   };
   MUS_MIDI_HOOK=m=>{ if(T.m==="seq")BK.taps.push(m); setTimeout(check,0); return false; };
 }
+/* Переворот. Вперёд: лист — правая страница, лицо — она сама, изнанка — она же
+   как левая; под ним справа уже новая. Назад: лист — левая, крутится вправо,
+   изнанка — страница назначения; под ним слева уже предыдущая. На телефоне
+   страница одна, лист без изнанки крутится за левый край. */
 function bkGo(ch,pg,dir){
   if(BK.busy)return;
   const C=bkChapters(); if(!C[ch]||!C[ch].pages[pg])return;
   if(ch===BK.ch&&pg===BK.pg)return;
-  if(dir==null)dir=(ch>BK.ch||(ch===BK.ch&&pg>BK.pg))?1:-1;
+  const from=bkIndex(BK.ch,BK.pg), to=bkIndex(ch,pg);
+  if(dir==null)dir=to>from?1:-1;
   const cur=bkPage(); if(dir>0&&cur&&!cur.task)bkDone(bkId(BK.ch,BK.pg),true);   /* ушёл вперёд — прочитал */
-  const from=BK.ch, fromPg=BK.pg;
   BK.ch=ch; BK.pg=pg;
-  const page=$("#bkPage"), leaf=$("#bkLeaf"), front=$("#bkFront");
-  if(!page||!leaf||bkReduced()){ bkShow(); return; }
-  BK.busy=true; MUS_TAP_HOOK=null; MUS_MIDI_HOOK=null;
+  const leaf=$("#bkLeaf"), F=$("#bkF"), B=$("#bkB"), L=$("#bkL"), R=$("#bkR");
+  if(!leaf||!L||!R||bkReduced()){ bkShow(); return; }
+  BK.busy=true; MUS_TAP_HOOK=null; MUS_MIDI_HOOK=null; bkSwish();
+  const single=bkSingle(), castL=$("#bkCastL"), castR=$("#bkCastR");
+  castL.className="bk-cast l"; castR.className="bk-cast r"; void castL.offsetWidth;
   let finish;
-  if(dir>0){                                           /* лист с текущей страницей уходит влево, под ним уже новая */
-    front.innerHTML=bkHtml(from,fromPg);
-    page.innerHTML=bkHtml(ch,pg); bkBind();
-    leaf.classList.add("snap"); leaf.classList.remove("turn","off"); void leaf.offsetWidth;
-    leaf.classList.remove("snap"); leaf.classList.add("turn");
-    finish=()=>{ leaf.classList.add("off"); leaf.classList.remove("turn"); };
-  }else{                                               /* лист с новой страницей приходит слева и ложится сверху */
-    front.innerHTML=bkHtml(ch,pg);
-    leaf.classList.add("snap","turn"); leaf.classList.remove("off"); void leaf.offsetWidth;
-    leaf.classList.remove("snap"); leaf.classList.remove("turn");
-    finish=()=>{ page.innerHTML=bkHtml(ch,pg); bkBind(); leaf.classList.add("off"); };
+  if(dir>0){
+    F.innerHTML=bkPageHtml(from,"r"); B.innerHTML=bkPageHtml(to-1,"l");
+    R.innerHTML=bkPageHtml(to,"r"); bkBind();
+    leaf.className="bk-leaf fwd snap"; void leaf.offsetWidth;
+    leaf.className="bk-leaf fwd go turn";
+    castR.classList.add("from"); castL.classList.add("to");
+    finish=()=>{ L.innerHTML=bkPageHtml(to-1,"l"); };
+  }else{
+    F.innerHTML=single?bkPageHtml(to,"r"):bkPageHtml(from-1,"l"); B.innerHTML=bkPageHtml(to,"r");
+    L.innerHTML=bkPageHtml(to-1,"l");
+    leaf.className="bk-leaf bwd snap turn"; void leaf.offsetWidth;
+    leaf.className="bk-leaf bwd go";
+    castL.classList.add("from"); castR.classList.add("to");
+    finish=()=>{ R.innerHTML=bkPageHtml(to,"r"); bkBind(); };
   }
   let done=false;
   const end=()=>{ if(done)return; done=true; leaf.removeEventListener("transitionend",end);
-    finish(); BK.busy=false; bkEnter(); bkSave(); bkTocRefresh(); };
+    finish(); leaf.className="bk-leaf off"; castL.className="bk-cast l"; castR.className="bk-cast r";
+    BK.busy=false; bkEnter(); bkSave(); bkTocRefresh(); bkStacks(); };
   leaf.addEventListener("transitionend",end);
-  setTimeout(end,1100);                                /* страховка: transitionend может не прийти; дольше самого поворота */
+  setTimeout(end,1500);                                /* страховка: transitionend может не прийти; дольше самого поворота */
+}
+/* Шелест: 160 мс белого шума через полосовой фильтр с плавной огибающей.
+   Тише клавиш вдвое, чтобы был фоном, а не событием. */
+function bkSwish(){
+  try{
+    const ac=sgAudio(); if(!ac)return; if(ac.state==="suspended")ac.resume();
+    const n=Math.floor(ac.sampleRate*.16), buf=ac.createBuffer(1,n,ac.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);
+    const src=ac.createBufferSource(); src.buffer=buf;
+    const f=ac.createBiquadFilter(); f.type="bandpass"; f.frequency.value=1400; f.Q.value=.8;
+    const g=ac.createGain(); const t=ac.currentTime;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.09,t+.03); g.gain.exponentialRampToValueAtTime(.001,t+.16);
+    src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t); src.stop(t+.17);
+  }catch(e){}
 }
 function bkNext(){ const C=bkChapters(), c=C[BK.ch]; if(!c)return;
   if(BK.pg<c.pages.length-1)bkGo(BK.ch,BK.pg+1,1); else if(C[BK.ch+1])bkGo(BK.ch+1,0,1); }
