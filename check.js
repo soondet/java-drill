@@ -553,15 +553,23 @@ const check = (name, ok, detail) => {
     Object.defineProperty(document,"hidden",{get:function(){return true},configurable:true});
     Object.defineProperty(document,"visibilityState",{get:function(){return "hidden"},configurable:true});
     document.dispatchEvent(new Event("visibilitychange"));
+    return new Promise(function(готово){
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
     var идутСкрытыми=фоновые().filter(function(x){return x.playState==="running"}).length;
+    var живые=document.getAnimations().filter(function(x){
+      return x.playState==="running" && !!x.animationName; });
+    var всеСкрытые=живые.length;
+    var кто=живые.slice(0,4).map(function(x){ var el=x.effect&&x.effect.target;
+      return x.animationName+"@"+(el?(el.className||el.tagName).toString().slice(0,14):"?"); }).join(", ");
     Object.defineProperty(document,"hidden",{get:function(){return false},configurable:true});
     Object.defineProperty(document,"visibilityState",{get:function(){return "visible"},configurable:true});
     document.dispatchEvent(new Event("visibilitychange"));
     var идутВидимыми=фоновые().filter(function(x){return x.playState==="running"}).length;
-    return JSON.stringify({скейл:скейл, радиус:радиус, скрыто:идутСкрытыми, видно:идутВидимыми});
+    готово(JSON.stringify({скейл:скейл, радиус:радиус, скрыто:идутСкрытыми, скрытоВсе:всеСкрытые, кто:кто, видно:идутВидимыми}));
+    }); }); });
   })()`));
-  check("фон замирает, когда вкладку не видно", bg.скрыто === 0 && bg.видно > 0,
-    "скрытой идёт " + bg.скрыто + " · видимой " + bg.видно);
+  check("движение замирает, когда вкладку не видно", bg.скрытоВсе === 0 && bg.видно > 0,
+    "скрытой идёт " + bg.скрытоВсе + " анимаций (" + (bg.кто||"") + ") · видимой " + bg.видно + " фоновых");
   check("фон не растеризуется каждый кадр", !bg.скейл && bg.радиус <= 40,
     (bg.скейл ? "в кадрах вернулся scale · " : "") + "радиус размытия " + bg.радиус + "px (потолок 40)");
 

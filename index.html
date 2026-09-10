@@ -37,9 +37,11 @@
 
   /* анимированный фон */
   .bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:#05060c}
-  /* Вкладка ушла из виду — движение останавливаем: браузер продолжает
-     растеризовать анимированные слои даже у невидимой страницы. */
-  html.bg-still .bg::before,html.bg-still .bg::after,html.bg-still .bg i{animation-play-state:paused}
+  /* Вкладка ушла из виду — останавливаем ВСЁ движение, не только фон: браузер
+     продолжает растеризовать анимированные слои и у невидимой страницы, а схем
+     с пульсацией на «Принципе» разом крутится под два десятка. Пауза замораживает
+     кадр, возврат продолжает с того же места; переходов (transition) это не касается. */
+  html.bg-still *,html.bg-still *::before,html.bg-still *::after{animation-play-state:paused!important}
   /* Кому движение мешает — не показываем его вовсе. */
   @media (prefers-reduced-motion:reduce){ .bg::before,.bg::after,.bg i{animation:none} }
   .bg::before,.bg::after{content:"";position:absolute;width:62vmax;height:62vmax;border-radius:50%;filter:blur(24px);opacity:.45;will-change:transform;animation:drift 28s ease-in-out infinite}
