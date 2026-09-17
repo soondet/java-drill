@@ -939,6 +939,35 @@
   .eng-ph.ok .eng-ph-b b{color:var(--mut)}
   .eng-ph.ok .eng-kn{color:var(--good);border-color:rgba(70,214,160,.4)}
   .eng-ph[hidden],.eng-g[hidden]{display:none}
+  .eng-lv{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 8px}
+  .eng-lvc{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:64px;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);cursor:pointer;transition:.15s}
+  .eng-lvc b{font:800 15px var(--mono);color:var(--txt)} .eng-lvc span{font:600 11px var(--mono);color:var(--mut)}
+  .eng-lvc:hover{border-color:var(--acc)} .eng-lvc.on{background:var(--grad);border-color:transparent} .eng-lvc.on b,.eng-lvc.on span{color:#0a0b12}
+  .eng-lvc.mine:not(.on){border-color:var(--good)}
+  .eng-lvnote{font-size:13px;color:var(--mut);margin:0 0 12px} .eng-lvnote b{color:var(--good)}
+  .eng-tp{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;cursor:pointer;padding:11px 12px;border-radius:11px;border:1px solid var(--line-2);background:transparent;margin-top:6px;transition:.15s}
+  .eng-tp:hover{border-color:var(--acc);background:rgba(110,168,254,.06)}
+  .eng-tp i{font-style:normal;color:var(--mut)} .eng-tp.ok i{color:var(--good)}
+  .eng-tp b{font:600 14px var(--sans);color:var(--txt)} .eng-tp span{font:600 11px var(--mono);color:var(--mut)}
+  .eng-crumb{display:flex;align-items:center;gap:12px;margin:2px 0 12px;font:600 12px var(--mono);color:var(--mut)}
+  .eng-topic h4{font:700 11px var(--sans);letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin:18px 0 8px}
+  .eng-topic h4 span{color:var(--acc);margin-left:6px}
+  .eng-rule{font-size:calc(15px * var(--ts));line-height:1.6;color:var(--read)} .eng-rule b{color:var(--acc)}
+  .eng-exm{display:flex;gap:10px;align-items:flex-start;padding:7px 0}
+  .eng-exm b{display:block;font:600 calc(14.5px * var(--ts))/1.45 var(--sans);color:var(--txt)}
+  .eng-exm span{display:block;font-size:calc(12.5px * var(--ts));color:var(--mut);margin-top:2px;line-height:1.45}
+  .eng-traps{margin:0;padding-left:18px;font-size:calc(13.5px * var(--ts));line-height:1.55;color:var(--read)}
+  .eng-traps li{margin-bottom:4px} .eng-traps b{color:var(--warn)}
+  .eng-ex{padding:12px 0 4px;border-top:1px solid var(--line-2);margin-top:8px}
+  .eng-ex-h{display:flex;gap:8px;align-items:center;font:600 11px var(--mono);color:var(--mut);margin-bottom:6px}
+  .eng-ex-h span{color:var(--acc)} .eng-ex-h em{font-style:normal}
+  .eng-ex-q{font:600 calc(15.5px * var(--ts))/1.5 var(--sans);color:var(--txt);margin:0 0 10px}
+  .eng-ex-q.fix{padding:8px 12px;border-left:3px solid var(--bad);background:rgba(255,122,133,.07);border-radius:8px}
+  .eng-ex .mus-o{text-align:left;font-weight:600;line-height:1.35}
+  .eng-ex.fixq .mus-opts{grid-template-columns:1fr}
+  .eng-why{margin-top:10px;font-size:calc(13.5px * var(--ts));line-height:1.5;color:var(--read)}
+  .eng-why b.yes{color:var(--good)} .eng-why b.no{color:var(--bad)}
+  .eng-done{margin-top:16px;padding:12px 14px;border-radius:10px;background:rgba(70,214,160,.12);border-left:3px solid var(--good);font:600 14px var(--sans);color:var(--good)}
   @media(max-width:560px){ .eng-card{padding:16px 14px} .eng-ph{gap:8px} .eng-term{font-size:calc(22px * var(--ts))} }
   /* ---- Книга: курс страницами ----
      Настоящий разворот: обложка, корешок посередине, две страницы, обрез
@@ -2548,6 +2577,7 @@
 <script src="music-ref.js"></script>
 <script src="music-book.js"></script>
 <script src="english.js"></script>
+<script src="english-grammar.js"></script>
 <script src="guitar.js"></script>
 <script src="more-term-new.js"></script>
 <script src="cards-new.js"></script>
@@ -13666,7 +13696,7 @@ function musInsUI(){
    Прогресс терминов идёт по той же лестнице BOX_DAYS, что и дрилл. */
 const ENG={mode:"terms",cur:null,queue:[],timer:null,seen:null};
 const ENG_PROG="jdEngProg", ENG_KNOWN="jdEngKnown", ENG_SEEN="jdEngSeen";
-const ENG_TABS=[["terms","📖 Объясни термин"],["answer","🎙 Ответь по-английски"],["phrases","💬 Фразы собеса"]];
+const ENG_TABS=[["rules","📐 Правила"],["terms","📖 Объясни термин"],["answer","🎙 Ответь по-английски"],["phrases","💬 Фразы собеса"]];
 let engProg=null;
 function engLoad(k){ try{ return JSON.parse(localStorage.getItem(k)||"{}"); }catch(e){ return {}; } }
 function engSave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
@@ -13710,6 +13740,7 @@ function engUI(){
   }
   b.onclick=e=>{ const sb=e.target.closest("[data-say]"); if(!sb)return;
     if(!engSay(sb.dataset.say)){ sb.textContent="🔇"; sb.title=tr("озвучка недоступна"); } };
+  if(ENG.mode==="rules")return engRules(b);
   if(ENG.mode==="answer")return engAnswer(b);
   if(ENG.mode==="phrases")return engPhrases(b);
   return engTerms(b);
@@ -13821,6 +13852,116 @@ function engPhrases(b){
     if(now)known[id]=1; else delete known[id]; engSave(ENG_KNOWN,known);
     $("#engKnCnt").textContent=cnt()+" "+tr("из")+" "+all+" "+tr("знаю"); $("#engKnBar").style.width=(all?cnt()/all*100:0)+"%";
     apply();
+  });
+}
+
+/* ---- Правила: уровни A2–C1, темы, упражнения с проверкой, тест уровня ----
+   Данные — english-grammar.js. Варианты перемешиваются при показе, так что
+   позиция верного ничего не выдаёт. Упражнение засчитано, если верный выбран
+   с первого раза; проваленное остаётся открытым до следующего визита. */
+const ENG_RULES="jdEngRules", ENG_LEVEL="jdEngLevel";
+function engLevels(){ return (window.ENGGRAMMAR&&window.ENGGRAMMAR.levels)||[]; }
+function engMark(t){ return esc(t).replace(/\*([^*]+)\*/g,"<b>$1</b>"); }
+function engTopicDone(t,passed){ return t.ex.every((_,i)=>passed[t.id+"#"+i]); }
+function engRules(b){
+  if(ENG.rtest)return engTest(b);
+  const L=engLevels();
+  if(!L.length){ b.innerHTML='<div class="mus-card"><p class="mus-p">'+tr("Правила не загрузились — нужен файл english-grammar.js рядом.")+"</p></div>"; return; }
+  if(ENG.rtopic){ for(const lv of L){ const t=lv.topics.find(x=>x.id===ENG.rtopic); if(t)return engTopic(b,lv,t); } ENG.rtopic=null; }
+  const passed=engLoad(ENG_RULES); let stored=null; try{ stored=localStorage.getItem(ENG_LEVEL); }catch(e){}
+  if(!ENG.rlevel)ENG.rlevel=(stored&&L.some(l=>l.id===stored))?stored:L[0].id;
+  const lv=L.find(l=>l.id===ENG.rlevel)||L[0];
+  const doneAll=L.reduce((k,l)=>k+l.topics.filter(t=>engTopicDone(t,passed)).length,0), total=L.reduce((k,l)=>k+l.topics.length,0);
+  b.innerHTML='<div class="hk-top"><div class="hk-bar"><i style="width:'+(total?doneAll/total*100:0)+'%"></i></div>'
+    +"<span>"+tr("закрыто тем")+" "+doneAll+" "+tr("из")+" "+total+"</span>"
+    +'<button class="hk-f" id="engTestBtn">🎯 '+tr("Определи уровень")+"</button></div>"
+    +'<div class="eng-lv">'+L.map(l=>{ const d=l.topics.filter(t=>engTopicDone(t,passed)).length;
+        return '<button class="eng-lvc'+(l.id===lv.id?" on":"")+(stored===l.id?" mine":"")+'" data-lv="'+esc(l.id)+'"><b>'+esc(l.id)+"</b><span>"+d+"/"+l.topics.length+"</span></button>"; }).join("")+"</div>"
+    +'<p class="eng-lvnote">'+(stored?tr("По тесту твой уровень")+" — <b>"+esc(stored)+"</b>":tr("Выбери уровень или пройди тест — он подскажет, с чего начать."))+"</p>"
+    +'<div class="mus-card"><h3>'+esc(lv.name)+'</h3><p class="mus-p">'+esc(lv.about)+"</p>"
+    +lv.topics.map(t=>{ const p=t.ex.filter((_,i)=>passed[t.id+"#"+i]).length, ok=p===t.ex.length;
+        return '<button class="eng-tp'+(ok?" ok":"")+'" data-t="'+esc(t.id)+'"><i>'+(ok?"✓":"○")+"</i><b>"+esc(t.title)+"</b><span>"+p+"/"+t.ex.length+"</span></button>"; }).join("")
+    +"</div>";
+  $("#engTestBtn").onclick=()=>{ engTestStart(); engUI(); };
+  [...b.querySelectorAll(".eng-lvc")].forEach(el=>el.onclick=()=>{ ENG.rlevel=el.dataset.lv; engUI(); });
+  [...b.querySelectorAll(".eng-tp")].forEach(el=>el.onclick=()=>{ ENG.rtopic=el.dataset.t; engUI(); });
+}
+function engExHtml(x,idx,order,idAttr){
+  return '<div class="eng-ex'+(x.t==="fix"?" fixq":"")+'" data-i="'+idx+'"'+(idAttr?' id="'+idAttr+'"':"")+'>'
+    +'<div class="eng-ex-h"><span>'+(idx+1)+"</span><em>"+tr(x.t==="gap"?"вставь пропуск":"найди ошибку")+"</em></div>"
+    +'<p class="eng-ex-q'+(x.t==="fix"?" fix":"")+'">'+esc(x.q)+"</p>"
+    +'<div class="mus-opts">'+order.map(k=>'<button class="mus-o" data-k="'+k+'">'+esc(x.o[k])+"</button>").join("")+"</div>"
+    +'<div class="eng-why" hidden></div></div>';
+}
+/* Ответ на упражнение: раскрасить, показать разбор, вернуть, верно ли. */
+function engExAnswer(card,x,o){
+  if(card.classList.contains("done"))return null; card.classList.add("done");
+  const k=+o.dataset.k, ok=k===x.a;
+  [...card.querySelectorAll(".mus-o")].forEach(z=>{ z.classList.add("done"); if(+z.dataset.k===x.a)z.classList.add("ok"); });
+  if(!ok)o.classList.add("bad");
+  const w=card.querySelector(".eng-why"); w.hidden=false;
+  w.innerHTML='<b class="'+(ok?"yes":"no")+'">'+(ok?tr("верно"):tr("неверно — верный подсвечен"))+"</b> "+esc(x.why);
+  return ok;
+}
+function engTopic(b,lv,t){
+  const passed=engLoad(ENG_RULES), L=engLevels();
+  const orders=t.ex.map(()=>shuffle([0,1,2]));
+  const flat=[]; L.forEach(l=>l.topics.forEach(x=>flat.push(x)));
+  const nextT=flat[flat.findIndex(x=>x.id===t.id)+1];
+  b.innerHTML='<div class="eng-crumb"><button class="eng-tog" id="engBack">← '+tr("к темам")+"</button><span>"+esc(lv.id)+"</span></div>"
+    +'<div class="mus-card eng-topic"><h3>'+esc(t.title)+'</h3><div class="eng-rule">'+engMark(t.rule)+"</div>"
+    +"<h4>"+tr("Примеры")+"</h4>"
+    +t.examples.map(e=>'<div class="eng-exm"><button class="eng-say" data-say="'+engA(e.en)+'" title="'+tr("озвучить")+'">🔊</button><div><b>'+esc(e.en)+"</b><span>"+esc(e.ru)+"</span></div></div>").join("")
+    +(t.traps&&t.traps.length?"<h4>"+tr("Ловушки для русскоговорящих")+'</h4><ul class="eng-traps">'+t.traps.map(x=>"<li>"+engMark(x)+"</li>").join("")+"</ul>":"")
+    +"<h4>"+tr("Упражнения")+' <span id="engExCnt">'+t.ex.filter((_,i)=>passed[t.id+"#"+i]).length+" / "+t.ex.length+"</span></h4>"
+    +t.ex.map((x,i)=>engExHtml(x,i,orders[i])).join("")
+    +'<div class="eng-done" id="engDone"'+(engTopicDone(t,passed)?"":" hidden")+">✓ "+tr("тема закрыта")
+    +(nextT?' · <button class="eng-tog" id="engNext">→ '+esc(nextT.title)+"</button>":"")+"</div>"
+    +"</div>";
+  $("#engBack").onclick=()=>{ ENG.rtopic=null; engUI(); };
+  const nx=$("#engNext"); if(nx)nx.onclick=()=>{ ENG.rtopic=nextT.id; ENG.rlevel=L.find(l=>l.topics.includes(nextT)).id; engUI(); };
+  [...b.querySelectorAll(".eng-ex")].forEach(card=>{
+    const i=+card.dataset.i, x=t.ex[i];
+    [...card.querySelectorAll(".mus-o")].forEach(o=>o.onclick=()=>{
+      const ok=engExAnswer(card,x,o); if(ok===null)return;
+      if(ok){ passed[t.id+"#"+i]=1; engSave(ENG_RULES,passed); }
+      const cnt=$("#engExCnt"); if(cnt)cnt.textContent=t.ex.filter((_,j)=>passed[t.id+"#"+j]).length+" / "+t.ex.length;
+      if(engTopicDone(t,passed)){ const d=$("#engDone"); if(d)d.hidden=false; }
+    });
+  });
+}
+/* Тест уровня: по три случайных упражнения с каждого уровня. Уровень зачтён при
+   двух из трёх; итог — последний зачтённый по порядку, ниже A2 не бывает. */
+function engTestStart(){
+  const qs=[];
+  engLevels().forEach(l=>{ const pool=[]; l.topics.forEach(t=>t.ex.forEach(x=>pool.push({lv:l.id,x})));
+    shuffle(pool).slice(0,3).forEach(q=>qs.push(q)); });
+  ENG.rtest={qs,i:0,score:{}};
+}
+function engTest(b){
+  const T=ENG.rtest, L=engLevels();
+  if(T.i>=T.qs.length){
+    let lvl=L[0].id; for(const l of L){ if((T.score[l.id]||0)>=2)lvl=l.id; else break; }
+    try{ localStorage.setItem(ENG_LEVEL,lvl); }catch(e){}
+    const lv=L.find(l=>l.id===lvl), passed=engLoad(ENG_RULES), start=lv.topics.find(t=>!engTopicDone(t,passed))||lv.topics[0];
+    b.innerHTML='<div class="mus-card eng-card"><div class="eng-top"><span class="eng-topic">'+tr("Результат")+"</span><span>"
+      +L.map(l=>esc(l.id)+" "+(T.score[l.id]||0)+"/3").join(" · ")+"</span></div>"
+      +'<h3 class="eng-term">'+esc(lvl)+'</h3><p class="mus-p">'+esc(lv.about)+"</p>"
+      +'<div class="mus-play"><button class="btn primary" id="engStart">'+tr("Начать с")+": "+esc(start.title)+'</button><button class="btn" id="engAgain">'+tr("Пройти ещё раз")+"</button></div></div>";
+    $("#engStart").onclick=()=>{ ENG.rtest=null; ENG.rlevel=lvl; ENG.rtopic=start.id; engUI(); };
+    $("#engAgain").onclick=()=>{ engTestStart(); engUI(); };
+    return;
+  }
+  const q=T.qs[T.i];
+  b.innerHTML='<div class="eng-crumb"><button class="eng-tog" id="engBack">✕ '+tr("прервать")+"</button><span>"+tr("вопрос")+" "+(T.i+1)+" "+tr("из")+" "+T.qs.length+" · "+esc(q.lv)+"</span></div>"
+    +'<div class="mus-card eng-topic">'+engExHtml(q.x,T.i,shuffle([0,1,2]),"engTestQ")+"</div>";
+  $("#engBack").onclick=()=>{ ENG.rtest=null; engUI(); };
+  const card=$("#engTestQ");
+  [...card.querySelectorAll(".mus-o")].forEach(o=>o.onclick=()=>{
+    const ok=engExAnswer(card,q.x,o); if(ok===null)return;
+    if(ok)T.score[q.lv]=(T.score[q.lv]||0)+1;
+    card.querySelector(".eng-why").insertAdjacentHTML("beforeend",' <button class="eng-tog" id="engTestNext">'+tr("дальше →")+"</button>");
+    $("#engTestNext").onclick=()=>{ T.i++; engUI(); };
   });
 }
 

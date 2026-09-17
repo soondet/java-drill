@@ -446,6 +446,82 @@ const check = (name, ok, detail) => {
     await A.ev(`document.getElementById("tabDrill").click()`); await sleep(200);
   }
 
+  /* ---- правила английского ----
+     Упражнения — данные с индексом верного ответа: съехавший индекс или два
+     варианта вместо трёх делают упражнение непроходимым молча. Проверяем данные
+     статически, проверку ответа — кликом, тест уровня — двумя прогонами:
+     всё верно → C1, всё неверно → A2. */
+  {
+    await A.ev(`["jdEngRules","jdEngLevel"].forEach(function(k){localStorage.removeItem(k)}); ENG.rtest=null; ENG.rtopic=null; ENG.rlevel=null; document.getElementById("tabEng").click()`);
+    for (let i = 0; i < 60; i++) { if (await A.ev(`enLoaded===true`)) break; await sleep(250); }
+    await A.ev(`ENG.mode="rules"; engUI();`); await sleep(400);
+    const g0 = JSON.parse(await A.ev(`(function(){
+      var L=engLevels(), плохие=[], тем=0, упр=0, ids={};
+      L.forEach(function(l){ if(!l.id||!l.name||!l.about) плохие.push(l.id+": шапка"); if(l.topics.length<4) плохие.push(l.id+": тем меньше 4");
+        l.topics.forEach(function(x){ тем++; if(ids[x.id]) плохие.push(x.id+": дубль id"); ids[x.id]=1;
+          if(!x.rule||!x.title) плохие.push(x.id+": нет правила"); if(!x.examples||x.examples.length<2) плохие.push(x.id+": примеров меньше 2");
+          (x.examples||[]).forEach(function(e,i){ if(!e.en||!e.ru||/[А-Яа-яЁё]/.test(e.en)) плохие.push(x.id+" пример "+i); });
+          if(!x.ex||x.ex.length<3) плохие.push(x.id+": упражнений меньше 3");
+          (x.ex||[]).forEach(function(q,i){ упр++; var id=x.id+"#"+i;
+            if(q.t!=="gap"&&q.t!=="fix") плохие.push(id+": тип"); if(!Array.isArray(q.o)||q.o.length!==3) плохие.push(id+": не три варианта");
+            if(!(q.a>=0&&q.a<3)) плохие.push(id+": индекс верного"); if(!q.why) плохие.push(id+": нет разбора");
+            if(q.t==="gap"&&q.q.indexOf("___")<0) плохие.push(id+": нет пропуска");
+            if(/[А-Яа-яЁё]/.test(q.q)||(q.o||[]).some(function(o){return /[А-Яа-яЁё]/.test(o)})) плохие.push(id+": кириллица в задании");
+            if(new Set(q.o).size!==3) плохие.push(id+": варианты повторяются"); }); }); });
+      return JSON.stringify({уровней:L.length, тем:тем, упр:упр, плохие:плохие, экран:!!document.querySelector(".eng-lvc")&&document.querySelectorAll(".eng-tp").length});
+    })()`));
+    check("правила английского: данные целы", g0.уровней === 4 && g0.тем >= 20 && g0.упр >= 90 && g0.плохие.length === 0 && g0.экран > 0,
+      g0.уровней + " уровня · " + g0.тем + " тем · " + g0.упр + " упражнений · на экране тем " + g0.экран + (g0.плохие.length ? " · плохие: " + g0.плохие.slice(0, 4).join(", ") : ""));
+    /* тема: варианты перемешаны, верный засчитан и сохранён, неверный — нет */
+    await A.ev(`document.querySelector(".eng-tp").click()`); await sleep(400);
+    const g1 = JSON.parse(await A.ev(`(function(){
+      var L=engLevels(), t=L[0].topics[0], cards=[].slice.call(document.querySelectorAll(".eng-ex"));
+      var позиции={}; cards.forEach(function(c){ var i=+c.dataset.i; var os=[].slice.call(c.querySelectorAll(".mus-o")); var p=os.findIndex(function(o){return +o.dataset.k===t.ex[i].a}); позиции[p]=1; });
+      var c0=cards[0], x0=t.ex[0]; var ok0=[].slice.call(c0.querySelectorAll(".mus-o")).find(function(o){return +o.dataset.k===x0.a}); ok0.click();
+      var c1=cards[1], x1=t.ex[1]; var bad1=[].slice.call(c1.querySelectorAll(".mus-o")).find(function(o){return +o.dataset.k!==x1.a}); bad1.click();
+      var st=JSON.parse(localStorage.getItem("jdEngRules")||"{}");
+      return JSON.stringify({тема:t.id, разныхПозиций:Object.keys(позиции).length, упр:cards.length,
+        верно:c0.classList.contains("done")&&ok0.classList.contains("ok")&&!c0.querySelector(".eng-why").hidden&&!!st[t.id+"#0"],
+        неверно:c1.classList.contains("done")&&bad1.classList.contains("bad")&&!!c1.querySelector(".mus-o.ok")&&!st[t.id+"#1"],
+        повтор:(function(){ ok0.click(); return c0.querySelectorAll(".mus-o.bad").length===0; })()});
+    })()`));
+    check("упражнение: перемешано, верный засчитан, неверный нет", g1.разныхПозиций >= 2 && g1.верно && g1.неверно && g1.повтор,
+      g1.тема + ": верный позиций " + g1.разныхПозиций + " из " + g1.упр + " · верный засчитан " + g1.верно + " · неверный не засчитан " + g1.неверно + " · повторный клик игнорируется " + g1.повтор);
+    /* тест уровня: всё верно → C1, всё неверно → A2 */
+    const прогон = async (верно) => {
+      await A.ev(`ENG.rtopic=null; engTestStart(); engUI();`); await sleep(300);
+      for (let i = 0; i < 12; i++) {
+        const r = await A.ev(`(function(){ var T=ENG.rtest; if(!T||T.i>=T.qs.length) return "end"; var q=T.qs[T.i], c=document.getElementById("engTestQ");
+          var o=[].slice.call(c.querySelectorAll(".mus-o")).find(function(b){ return (+b.dataset.k===q.x.a)===${верно}; }); o.click();
+          var nx=document.getElementById("engTestNext"); if(!nx) return "нет кнопки дальше"; nx.click(); return "ok"; })()`);
+        if (r !== "ok") return r; await sleep(150);
+      }
+      return await A.ev(`(function(){ var h=document.querySelector(".eng-term"); return JSON.stringify({итог:h?h.textContent.trim():"—", сохранён:localStorage.getItem("jdEngLevel"), кнопка:!!document.getElementById("engStart")}); })()`);
+    };
+    const вверх = JSON.parse(await прогон(true)), вниз = JSON.parse(await прогон(false));
+    check("тест уровня считает", вверх.итог === "C1" && вверх.сохранён === "C1" && вверх.кнопка && вниз.итог === "A2" && вниз.сохранён === "A2",
+      "всё верно → " + вверх.итог + " (сохранён " + вверх.сохранён + ") · всё неверно → " + вниз.итог);
+    /* подписи режима переведены — обзор и страница темы */
+    const язык0 = await A.ev(`LANG`);
+    await A.ev(`try{ if(LANG!=="en") setLang("en"); }catch(e){}`);
+    for (let i = 0; i < 40; i++) { if (await A.ev(`LANG==="en"`)) break; await sleep(300); }
+    const кир = [];
+    for (const шаг of ["ENG.rtest=null; ENG.rtopic=null; ENG.mode=\"rules\"; engUI();", "ENG.rtopic=engLevels()[0].topics[0].id; engUI();"]) {
+      await A.ev(`document.getElementById("tabEng").click(); ${шаг}`); await sleep(400);
+      const r = JSON.parse(await A.ev(`(function(){
+        var ел=[].slice.call(document.querySelectorAll("#engBody .hk-top span, #engBody .hk-f, #engBody .eng-lvnote, #engBody .eng-crumb .eng-tog, #engBody .eng-topic h4, #engBody .eng-ex-h em, #engBody .eng-why b"));
+        var тексты=ел.map(function(e){return e.textContent});
+        /* у «тема закрыта» внутри кнопка с названием следующей темы — оно русское по замыслу, берём только свою подпись */
+        var d=document.getElementById("engDone"); if(d&&d.firstChild) тексты.push(d.firstChild.textContent);
+        return JSON.stringify(тексты.filter(function(s){return /[А-Яа-яЁё]/.test(s)}).map(function(s){return s.trim().slice(0,30)}));
+      })()`));
+      кир.push(...r);
+    }
+    check("подписи правил переведены", кир.length === 0, кир.length ? "русские остались: " + кир.slice(0, 4).join(" | ") : "обзор и страница темы — по-английски");
+    await A.ev(`try{ setLang(${JSON.stringify(язык0)}) }catch(e){}`); await sleep(500);
+    await A.ev(`ENG.rtopic=null; ENG.mode="terms"; document.getElementById("tabDrill").click()`); await sleep(200);
+  }
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);
