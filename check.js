@@ -378,6 +378,74 @@ const check = (name, ok, detail) => {
     await A.raw("Emulation.clearDeviceMetricsOverride"); await sleep(300);
   }
 
+  /* ---- английский · бонус ----
+     Три режима на чужих данных: термины и карточки берут пару из EN-пакета,
+     рекордер — из «Поведенческого», озвучка — из браузера. Ломается тихо:
+     пара пропала — режим показывает пустоту; таймер пережил уход — тикает в
+     фоне; подпись не переведена — в EN-режиме русский вперемешку. Вход —
+     кликом по вкладке: пакет грузится по требованию, и до него секции нет. */
+  {
+    await A.ev(`["jdEngProg","jdEngKnown","jdEngSeen"].forEach(function(k){localStorage.removeItem(k)}); document.getElementById("tabEng").click()`);
+    for (let i = 0; i < 60; i++) { if (await A.ev(`enLoaded===true && !!document.querySelector(".eng-term")`)) break; await sleep(250); }
+    await sleep(300);
+    const e0 = JSON.parse(await A.ev(`(function(){
+      var безТ=TERMS.filter(function(t){return !engEnTerm(t)}).length, безК=CARDS.filter(function(c){return !engEnCard(c)}).length;
+      var G=window.ENGPHRASES||[], фраз=0, плохих=[];
+      G.forEach(function(g){ g.items.forEach(function(it,i){ фраз++;
+        if(!it.en||!it.ru||/[А-Яа-яЁё]/.test(it.en)||!/[А-Яа-яЁё]/.test(it.ru)) плохих.push(g.id+"#"+i); }); });
+      return JSON.stringify({видна:!document.getElementById("viewEng").hidden, режим:ENG.mode, термин:!!document.querySelector(".eng-term"),
+        безТ:безТ, безК:безК, терминов:TERMS.length, карточек:CARDS.length, групп:G.length, фраз:фраз, плохих:плохих});
+    })()`));
+    check("английский открывается на терминах", e0.видна && e0.режим === "terms" && e0.термин,
+      "видна " + e0.видна + " · режим " + e0.режим + " · термин на экране " + e0.термин);
+    check("у терминов и карточек есть английская пара", e0.безТ === 0 && e0.безК === 0,
+      e0.безТ + " терминов и " + e0.безК + " карточек без пары (из " + e0.терминов + " и " + e0.карточек + ")");
+    check("фразы собеса целы", e0.групп >= 8 && e0.фраз >= 80 && e0.плохих.length === 0,
+      e0.групп + " групп · " + e0.фраз + " фраз" + (e0.плохих.length ? " · плохие: " + e0.плохих.slice(0, 4).join(", ") : ""));
+    /* оценка двигает ступень и очередь */
+    const id0 = await A.ev(`engTermId(ENG.queue[0])`);
+    await A.ev(`document.getElementById("engShow").click(); document.querySelector('#engGrade [data-g="2"]').click()`); await sleep(200);
+    const id1 = await A.ev(`engTermId(ENG.queue[0])`);
+    await A.ev(`document.getElementById("engShow").click(); document.querySelector('#engGrade [data-g="0"]').click()`); await sleep(200);
+    const e1 = JSON.parse(await A.ev(`(function(){var p=JSON.parse(localStorage.getItem("jdEngProg")||"{}");
+      var a=p[${JSON.stringify(id0)}]||{}, b=p[${JSON.stringify(id1)}]||{};
+      return JSON.stringify({вверх:a.box===2&&a.due>today(), вниз:b.box===1&&b.due===today(), хвост:engTermId(ENG.queue[ENG.queue.length-1])===${JSON.stringify(id1)}});})()`));
+    check("оценка термина двигает ступень и очередь", e1.вверх && e1.вниз && e1.хвост,
+      "«объяснил» → ступень 2 и срок вперёд: " + e1.вверх + " · «не смог» → ступень 1, сегодня: " + e1.вниз + " · вернулся в хвост: " + e1.хвост);
+    /* ответ: вопрос по-английски, таймер, рекордер; уход всё гасит */
+    await A.ev(`document.querySelector('#engTabs [data-m="answer"]').click()`); await sleep(300);
+    const e2 = JSON.parse(await A.ev(`(function(){var q=document.querySelector(".eng-q");
+      return JSON.stringify({вопрос:!!q&&!/[А-Яа-яЁё]/.test(q.textContent), рек:!!document.getElementById("engRec"), таймер:!!document.getElementById("engTimerBtn")});})()`));
+    await A.ev(`document.getElementById("engTimerBtn").click()`); await sleep(1200);
+    const тикает = await A.ev(`ENG.timer!==null && document.getElementById("engTimer").textContent!=="1:30"`);
+    await A.ev(`document.getElementById("tabDrill").click()`); await sleep(200);
+    const e3 = JSON.parse(await A.ev(`JSON.stringify({скрыт:document.getElementById("viewEng").hidden, таймер:ENG.timer===null, запись:!(typeof BEHREC!=="undefined"&&BEHREC), речь:!(("speechSynthesis" in window)&&speechSynthesis.speaking)})`));
+    check("ответ по-английски: вопрос без кириллицы, таймер и запись на месте", e2.вопрос && e2.рек && e2.таймер && тикает,
+      "вопрос по-английски " + e2.вопрос + " · рекордер " + e2.рек + " · таймер " + e2.таймер + " · тикает " + тикает);
+    check("уход из английского гасит таймер, запись и озвучку", e3.скрыт && e3.таймер && e3.запись && e3.речь,
+      "скрыт " + e3.скрыт + " · таймер снят " + e3.таймер + " · запись снята " + e3.запись + " · речь молчит " + e3.речь);
+    /* подписи секции переведены */
+    const язык0 = await A.ev(`LANG`);
+    await A.ev(`try{ if(LANG!=="en") setLang("en"); }catch(e){}`);
+    for (let i = 0; i < 40; i++) { if (await A.ev(`LANG==="en"`)) break; await sleep(300); }
+    await A.ev(`document.getElementById("tabEng").click()`); await sleep(400);
+    /* Подписи у каждого режима свои — обходим все три, иначе снятый перевод в
+       одном режиме проскочит, пока сторож смотрит на другой. */
+    const e4 = { всего: 0, кир: [] };
+    for (const m of ["terms", "answer", "phrases"]) {
+      await A.ev(`ENG.mode=${JSON.stringify(m)}; engUI();`); await sleep(350);
+      const r = JSON.parse(await A.ev(`(function(){
+        var ел=[].slice.call(document.querySelectorAll("#engTabs .mus-tab, #engBody .btn, #engBody .eng-ask, #engBody .eng-tog, #engBody .hk-top span, #engBody .hk-f, #engBody .eng-en-h b, #viewEng .bas-intro"));
+        var кир=[]; ел.forEach(function(e){ if(/[А-Яа-яЁё]/.test(e.textContent)) кир.push(${JSON.stringify(m)}+": "+e.textContent.trim().slice(0,30)); });
+        return JSON.stringify({всего:ел.length, кир:кир});})()`));
+      e4.всего += r.всего; e4.кир.push(...r.кир);
+    }
+    check("подписи английской секции переведены", e4.кир.length === 0,
+      e4.кир.length ? "русские остались: " + e4.кир.slice(0, 4).join(" | ") : e4.всего + " подписей, все по-английски");
+    await A.ev(`try{ setLang(${JSON.stringify(язык0)}) }catch(e){}`); await sleep(500);
+    await A.ev(`document.getElementById("tabDrill").click()`); await sleep(200);
+  }
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);
@@ -591,7 +659,7 @@ const check = (name, ok, detail) => {
      и вниз, но прокрутка достаёт только низ. Теряло 934px в играх и 190px в
      «На пальцах». Лечится словом safe, а этот сторож не даёт вернуться. */
   const unreachable = [];
-  for (const m of ["drill","terms","fp","prin","prog","sand","basics","zero","beh","money","path","game","mus"]) {
+  for (const m of ["drill","terms","fp","prin","prog","sand","basics","zero","beh","money","path","game","mus","eng"]) {
     await A.ev(`try{setMode(${JSON.stringify(m)})}catch(e){}`); await sleep(400);
     const r = await A.ev(`(function(){
       var out=[];

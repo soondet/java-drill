@@ -910,6 +910,36 @@
     background:rgba(70,214,160,.09);border:1px solid rgba(70,214,160,.3);
     font:600 12px var(--sans);color:#8fe6c4}
   .mus-verd{min-height:24px;margin-top:12px;font:600 14px var(--sans);text-align:center}
+  /* ---- Английский · бонус ---- */
+  #viewEng .terms-wrap{max-width:900px}
+  .eng-card{padding:22px 24px}
+  .eng-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;font:600 11px var(--sans);letter-spacing:.7px;text-transform:uppercase;color:var(--mut)}
+  .eng-topic{color:var(--acc)}
+  .eng-term{font:800 calc(28px * var(--ts)) var(--mono);color:var(--txt);margin:0 0 6px;letter-spacing:-.3px;word-break:break-word}
+  .eng-q{font:700 calc(21px * var(--ts))/1.35 var(--sans);color:var(--txt);margin:0 0 8px}
+  .eng-tog,.eng-say,.eng-kn{font:600 12px var(--sans);cursor:pointer;border:1px solid var(--line);background:var(--panel-2);color:var(--mut);padding:5px 10px;border-radius:9px;transition:.15s;flex:none}
+  .eng-tog:hover,.eng-say:hover,.eng-kn:hover{color:var(--txt);border-color:var(--acc)}
+  .eng-hint{font-size:calc(14px * var(--ts));color:var(--mut);margin:8px 0 0;line-height:1.5}
+  .eng-ask{margin:14px 0;padding:11px 14px;border-radius:10px;border-left:3px solid var(--warn);background:rgba(255,207,110,.08);font:500 14px/1.5 var(--sans);color:var(--txt)}
+  .eng-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0 6px}
+  .eng-timer{font:700 16px var(--mono);color:var(--warn);min-width:48px}
+  .eng-en{margin:14px 0 4px;padding:14px 16px;border-radius:12px;border-left:3px solid var(--good);background:rgba(70,214,160,.08)}
+  .eng-en-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+  .eng-en-h b{font:800 calc(17px * var(--ts)) var(--sans);color:var(--good)}
+  .eng-en p{margin:0;font-size:calc(15px * var(--ts));line-height:1.6;color:var(--read)}
+  .eng-en .eng-more{margin-top:8px;color:var(--mut);font-size:calc(13.5px * var(--ts))}
+  .eng-grade{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .eng-grade .btn{flex:1}
+  .eng-g h3{margin-bottom:4px}
+  .eng-ph{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:11px 0;border-top:1px solid var(--line-2)}
+  .eng-ph:first-of-type{border-top:0}
+  .eng-ph-b b{display:block;font:600 calc(15px * var(--ts))/1.45 var(--sans);color:var(--txt)}
+  .eng-ph-b span{display:block;font-size:calc(13px * var(--ts));color:var(--mut);margin-top:3px;line-height:1.5}
+  .eng-ph-b em{display:block;font:italic 12.5px/1.5 var(--sans);color:#c9a24d;margin-top:5px}
+  .eng-ph.ok .eng-ph-b b{color:var(--mut)}
+  .eng-ph.ok .eng-kn{color:var(--good);border-color:rgba(70,214,160,.4)}
+  .eng-ph[hidden],.eng-g[hidden]{display:none}
+  @media(max-width:560px){ .eng-card{padding:16px 14px} .eng-ph{gap:8px} .eng-term{font-size:calc(22px * var(--ts))} }
   /* ---- Книга: курс страницами ----
      Настоящий разворот: обложка, корешок посередине, две страницы, обрез
      из страниц по бокам, который сдвигается по мере чтения. Бумага с зерном —
@@ -2283,6 +2313,7 @@
         <button id="tabMoney" role="tab" aria-selected="false">💰 Деньги</button>
         <button id="tabBasics" role="tab" aria-selected="false">🍼 Для чайника</button>
         <button id="tabMus" role="tab" aria-selected="false">🎵 Музыка · бонус</button>
+        <button id="tabEng" role="tab" aria-selected="false">🇬🇧 Английский · бонус</button>
         <button id="tabPrin" role="tab" aria-selected="false">⚙️ Принцип</button>
         <button id="tabSand" role="tab" aria-selected="false">🏗 Песочница</button>
         <button id="tabProg" role="tab" aria-selected="false">📊 Прогресс</button>
@@ -2423,6 +2454,13 @@
   </div>
 </section>
 
+<section id="viewEng" class="view" hidden>
+  <div class="terms-wrap">
+    <div class="bas-intro">🇬🇧 <b>Английский — бонус.</b> <span>Не английский вообще, а собес по-английски: объяснить термин, ответить на вопрос вслух, сказать нужную фразу в нужный момент. Записи живут только в памяти вкладки.</span></div>
+    <div class="mus-tabs" id="engTabs"></div>
+    <div id="engBody"></div>
+  </div>
+</section>
 <section id="viewMus" class="view" hidden>
   <div class="terms-wrap">
     <div class="bas-intro">🎵 <b>Музыка — бонус.</b> <span>К собесам отношения не имеет. Шпоры звучат: жми на любую строку и слушай.</span></div>
@@ -2509,6 +2547,7 @@
 <script src="hacks.js"></script>
 <script src="music-ref.js"></script>
 <script src="music-book.js"></script>
+<script src="english.js"></script>
 <script src="guitar.js"></script>
 <script src="more-term-new.js"></script>
 <script src="cards-new.js"></script>
@@ -3226,6 +3265,7 @@ function refreshView(){
   else if(mode==="prin"){buildPrinNav($("#prinSearch").value);renderPrin();}
   else if(mode==="prog"){buildProg();}
   else if(mode==="sand"){buildSand();}
+  else if(mode==="eng"){engUI();}
   else if(mode==="game"){gameMenu();}
   else if(mode==="basics"){buildBasics($("#basSearch").value);}
   else if(mode==="zero"){buildZero();}
@@ -3546,8 +3586,8 @@ function setMode(m){mode=m;
     if(typeof SI!=="undefined"&&SI)siStop();
   }
   if(m!=="beh" && typeof behRecStop==="function") behRecStop();   /* не держим микрофон открытым на других вкладках */
-  ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh","mus","money"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":x==="mus"?"Mus":x==="money"?"Money":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
-  $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh","mus","money"].includes(m));
+  ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh","mus","money","eng"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":x==="mus"?"Mus":x==="money"?"Money":x==="eng"?"Eng":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
+  $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh","mus","money","eng"].includes(m));
   $("#moreMenu").hidden=true;
   $("#viewDrill").hidden=(m!=="drill");
   $("#viewFp").hidden=(m!=="fp");
@@ -3563,6 +3603,8 @@ function setMode(m){mode=m;
   $("#viewPath").hidden=(m!=="path");
   $("#viewViz").hidden=(m!=="viz");
   $("#viewMus").hidden=(m!=="mus");
+  $("#viewEng").hidden=(m!=="eng");
+  if(m!=="eng"&&typeof engLeave==="function")engLeave();   /* озвучка, таймер, запись — не должны пережить уход */
   if(m!=="mus"){ musMicStop(); sgStopMelody(); if(typeof gtStopRhy==="function")gtStopRhy(); }
   stopFp(); clearInterval(gTimer); stopArcade(); if(behTimer){clearInterval(behTimer);behTimer=null;}
   if(m!=="game")presStop();
@@ -13617,6 +13659,171 @@ function musInsUI(){
   if(fb)fb.hidden=MUS_INS!=="guitar";
   [...document.querySelectorAll("#musIns .ins-tab")].forEach(el=>el.classList.toggle("on",el.dataset.i===MUS_INS));
 }
+/* ═══ Английский · бонус ═══
+   Не английский вообще, а собес по-английски. Три режима на настоящих данных:
+   термины и карточки уже переведены (I18N.terms / I18N.cards), рекордер — из
+   «Поведенческого», озвучка — speechSynthesis, встроенная и офлайновая.
+   Прогресс терминов идёт по той же лестнице BOX_DAYS, что и дрилл. */
+const ENG={mode:"terms",cur:null,queue:[],timer:null,seen:null};
+const ENG_PROG="jdEngProg", ENG_KNOWN="jdEngKnown", ENG_SEEN="jdEngSeen";
+const ENG_TABS=[["terms","📖 Объясни термин"],["answer","🎙 Ответь по-английски"],["phrases","💬 Фразы собеса"]];
+let engProg=null;
+function engLoad(k){ try{ return JSON.parse(localStorage.getItem(k)||"{}"); }catch(e){ return {}; } }
+function engSave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function engA(t){ return esc(t).replace(/"/g,"&quot;"); }              /* esc() кавычки не трогает — для атрибутов мало */
+function engTermId(t){ return t.t+"|"+t.term; }
+function engEnTerm(t){ const e=I18N.terms&&I18N.terms[engTermId(t)]; return e&&e.term&&e.def?e:null; }
+function engEnCard(c){ const e=I18N.cards&&I18N.cards[c.id]; return e&&e.q&&e.a?e:null; }
+/* Озвучка. Голос — системный английский; без голосов возвращаем false, кнопка
+   гаснет. Каждый вызов гасит предыдущий: две фразы разом — каша. */
+function engSay(text){
+  try{
+    if(!("speechSynthesis" in window)||typeof SpeechSynthesisUtterance==="undefined")return false;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=.92;
+    const vs=speechSynthesis.getVoices().filter(v=>/^en([-_]|$)/i.test(v.lang));
+    const pref=vs.find(v=>/Samantha|Daniel|Karen|Moira|Google US English|Aria|Zira/i.test(v.name))||vs[0];
+    if(pref)u.voice=pref;
+    speechSynthesis.speak(u); return true;
+  }catch(e){ return false; }
+}
+function engLeave(){
+  if(ENG.timer){ clearInterval(ENG.timer); ENG.timer=null; }
+  try{ if("speechSynthesis" in window)speechSynthesis.cancel(); }catch(e){}
+  if(typeof BEHREC!=="undefined"&&BEHREC&&BEHREC.key==="eng")behRecStop();
+  const o=$("#bpeng"); if(o&&o.dataset.url){ try{URL.revokeObjectURL(o.dataset.url)}catch(e){} delete o.dataset.url; }
+}
+function engUI(){
+  const b=$("#engBody"); if(!b)return;
+  engLeave();
+  const tabs=$("#engTabs");
+  if(tabs){
+    tabs.innerHTML=ENG_TABS.map(([k,t])=>'<button class="mus-tab'+(k===ENG.mode?" on":"")+'" data-m="'+k+'">'+tr(t)+"</button>").join("");
+    [...tabs.children].forEach(el=>el.onclick=()=>{ ENG.mode=el.dataset.m; engUI(); });
+  }
+  if(!enLoaded){                                       /* пакет грузится по требованию — как при переключении EN */
+    b.innerHTML='<div class="mus-card"><p class="mus-p">'+tr("Загружаю английский пакет…")+'</p></div>';
+    loadEN(ok=>{ if(mode!=="eng")return;
+      if(!ok){ b.innerHTML='<div class="mus-card"><p class="mus-p">'+tr("EN-пакет не найден — нужен файл i18n-en.js рядом.")+'</p></div>'; return; }
+      engUI(); });
+    return;
+  }
+  b.onclick=e=>{ const sb=e.target.closest("[data-say]"); if(!sb)return;
+    if(!engSay(sb.dataset.say)){ sb.textContent="🔇"; sb.title=tr("озвучка недоступна"); } };
+  if(ENG.mode==="answer")return engAnswer(b);
+  if(ENG.mode==="phrases")return engPhrases(b);
+  return engTerms(b);
+}
+/* ---- Объясни термин: вопрос «what is X?», ответ вслух, эталон из словаря ---- */
+function engQueue(){
+  engProg=engLoad(ENG_PROG); const t=today(), due=[], fresh=[];
+  TERMS.forEach(x=>{ if(!engEnTerm(x))return; const p=engProg[engTermId(x)];
+    if(!p)fresh.push(x); else if(p.due<=t)due.push(x); });
+  return shuffle(due).concat(shuffle(fresh).slice(0,15));
+}
+function engStats(){
+  const total=TERMS.filter(engEnTerm).length, vals=Object.values(engProg||{});
+  const learned=vals.filter(p=>p.box>=5).length;
+  return '<div class="hk-top"><div class="hk-bar"><i style="width:'+(total?learned/total*100:0)+'%"></i></div>'
+    +'<span>'+tr("освоено")+" "+learned+" · "+tr("начато")+" "+vals.length+" "+tr("из")+" "+total+"</span></div>";
+}
+function engTerms(b){
+  if(!engProg)engProg=engLoad(ENG_PROG);
+  if(!ENG.queue.length)ENG.queue=engQueue();
+  if(!ENG.queue.length){
+    b.innerHTML=engStats()+'<div class="mus-card"><h3>'+tr("На сегодня всё")+'</h3><p class="mus-p">'+tr("Повторы придут по расписанию — как в дрилле.")+"</p></div>"; return; }
+  const x=ENG.queue[0], en=engEnTerm(x), id=engTermId(x), st=engProg[id]||{box:1};
+  b.innerHTML=engStats()
+    +'<div class="mus-card eng-card">'
+    +'<div class="eng-top"><span class="eng-topic">'+esc(x.t)+"</span><span>"+tr("ступень")+" "+st.box+"/"+BOX_MAX+" · "+tr("в очереди")+" "+ENG.queue.length+"</span></div>"
+    +'<h3 class="eng-term">'+esc(x.term)+"</h3>"
+    +'<div class="eng-ask">'+tr("What is it? Объясни вслух по-английски: что это и зачем — одно-два предложения.")+"</div>"
+    +'<button class="eng-tog" id="engHint">'+tr("подсказка по-русски")+'</button><p class="eng-hint" id="engHintP" hidden>'+esc(x.def)+"</p>"
+    +'<div class="eng-en" id="engEn" hidden><div class="eng-en-h"><b>'+esc(en.term)+'</b><button class="eng-say" data-say="'+engA(en.term+". "+en.def)+'" title="'+tr("озвучить")+'">🔊</button></div>'
+    +"<p>"+esc(en.def)+"</p>"+(en.hook?'<p class="eng-more">'+esc(en.hook)+"</p>":"")+"</div>"
+    +'<div class="mus-play" id="engBtns"><button class="btn primary" id="engShow">'+tr("показать по-английски")+"</button></div>"
+    +'<div class="eng-grade" id="engGrade" hidden><button class="btn" data-g="0">'+tr("не смог")+'</button><button class="btn" data-g="1">'+tr("с трудом")+'</button><button class="btn primary" data-g="2">'+tr("объяснил")+"</button></div>"
+    +"</div>";
+  $("#engHint").onclick=()=>{ const h=$("#engHintP"); h.hidden=!h.hidden; };
+  $("#engShow").onclick=()=>{ $("#engEn").hidden=false; $("#engBtns").hidden=true; $("#engGrade").hidden=false; };
+  [...b.querySelectorAll("#engGrade [data-g]")].forEach(el=>el.onclick=()=>engGrade(x,+el.dataset.g));
+}
+function engGrade(x,g){
+  const id=engTermId(x), s=engProg[id]||(engProg[id]={box:1,due:0});
+  if(g===2){ s.box=Math.min(s.box+1,BOX_MAX); s.due=today()+BOX_DAYS[s.box]; }
+  else if(g===1){ s.due=today()+Math.max(1,Math.round(BOX_DAYS[s.box]/2)); }     /* «с трудом» — та же ступень, короче интервал */
+  else { s.box=Math.max(1,s.box-2); s.due=today(); s.lapses=(s.lapses||0)+1; }
+  engSave(ENG_PROG,engProg);
+  ENG.queue.shift(); if(g===0)ENG.queue.push(x);                                /* не смог — вернётся в этой же сессии */
+  engUI();
+}
+/* ---- Ответь по-английски: вопрос дрилла, 90 секунд, запись, эталон ---- */
+function engPick(){
+  if(!ENG.seen)ENG.seen=engLoad(ENG_SEEN);
+  let pool=CARDS.filter(c=>engEnCard(c)&&!ENG.seen[c.id]);
+  if(!pool.length){ ENG.seen={}; engSave(ENG_SEEN,ENG.seen); pool=CARDS.filter(engEnCard); }
+  return pool[Math.floor(Math.random()*pool.length)]||null;
+}
+function engAnswer(b){
+  if(!ENG.cur)ENG.cur=engPick();
+  const c=ENG.cur, en=c&&engEnCard(c);
+  if(!en){ b.innerHTML='<div class="mus-card"><p class="mus-p">'+tr("Карточки без перевода — нечего спрашивать.")+"</p></div>"; return; }
+  const total=CARDS.filter(engEnCard).length, seen=Object.keys(ENG.seen||{}).length;
+  b.innerHTML='<div class="mus-card eng-card">'
+    +'<div class="eng-top"><span class="eng-topic">'+esc(c.t)+(c.s?" · "+esc(c.s):"")+"</span><span>"+tr("отвечено")+" "+seen+" "+tr("из")+" "+total+"</span></div>"
+    +'<h3 class="eng-q">'+esc(en.q)+"</h3>"
+    +'<button class="eng-tog" id="engRuTog">'+tr("по-русски")+'</button><p class="eng-hint" id="engRuQ" hidden>'+esc(c.q)+"</p>"
+    +'<div class="eng-ask">'+tr("Ответь вслух, как на собеседовании. Сначала суть, потом детали. Таймер — чтобы не растекаться.")+"</div>"
+    +'<div class="eng-tools"><button class="btn" id="engTimerBtn">⏱ '+tr("90 секунд")+'</button><span class="eng-timer" id="engTimer"></span>'
+    +'<button class="btn beh-rec" data-r="eng" id="engRec">🎙 '+tr("записать ответ")+"</button></div>"
+    +'<div class="beh-play" id="bpeng" hidden></div>'
+    +'<div class="eng-en" id="engEn" hidden><div class="eng-en-h"><b>'+tr("Эталон")+'</b><button class="eng-say" data-say="'+engA(en.a)+'" title="'+tr("озвучить")+'">🔊</button></div>'
+    +"<p>"+esc(en.a)+"</p>"+(en.d?'<p class="eng-more">'+esc(en.d)+"</p>":"")+"</div>"
+    +'<div class="mus-play" id="engBtns"><button class="btn primary" id="engShow">'+tr("показать эталон")+'</button><button class="btn" id="engSkip">'+tr("другой вопрос")+"</button></div>"
+    +'<div class="eng-grade" id="engGrade" hidden><button class="btn" data-g="0">'+tr("вернуть позже")+'</button><button class="btn primary" data-g="2">'+tr("следующий вопрос")+"</button></div>"
+    +"</div>";
+  $("#engRuTog").onclick=()=>{ const h=$("#engRuQ"); h.hidden=!h.hidden; };
+  $("#engTimerBtn").onclick=()=>{
+    if(ENG.timer)clearInterval(ENG.timer);
+    let left=90; const el=$("#engTimer"); el.textContent="1:30";
+    ENG.timer=setInterval(()=>{ left--; if(el)el.textContent=Math.floor(left/60)+":"+String(left%60).padStart(2,"0");
+      if(left<=0){ clearInterval(ENG.timer); ENG.timer=null; if(el)el.textContent=tr("время"); } },1000);
+  };
+  const rb=$("#engRec"); rb.onclick=()=>behRecToggle(rb);
+  $("#engShow").onclick=()=>{ $("#engEn").hidden=false; $("#engBtns").hidden=true; $("#engGrade").hidden=false; };
+  const next=(keep)=>{ if(!keep){ ENG.seen[c.id]=1; engSave(ENG_SEEN,ENG.seen); } ENG.cur=null; engUI(); };
+  $("#engSkip").onclick=()=>next(true);
+  [...b.querySelectorAll("#engGrade [data-g]")].forEach(el=>el.onclick=()=>next(+el.dataset.g===0));
+}
+/* ---- Фразы собеса: группы по ситуациям, озвучка, отметка «знаю» ---- */
+function engPhrases(b){
+  const G=window.ENGPHRASES||[];
+  if(!G.length){ b.innerHTML='<div class="mus-card"><p class="mus-p">'+tr("Фразы не загрузились — нужен файл english.js рядом.")+"</p></div>"; return; }
+  const known=engLoad(ENG_KNOWN), all=G.reduce((n,g)=>n+g.items.length,0);
+  const cnt=()=>Object.keys(known).length;
+  b.innerHTML='<div class="hk-top"><div class="hk-bar"><i id="engKnBar" style="width:'+(all?cnt()/all*100:0)+'%"></i></div>'
+    +'<span id="engKnCnt">'+cnt()+" "+tr("из")+" "+all+" "+tr("знаю")+"</span>"
+    +'<button class="hk-f hide" id="engHide">✓ '+tr("скрыть знакомые")+"</button></div>"
+    +G.map(g=>'<div class="mus-card eng-g"><h3>'+g.ico+" "+esc(g.group)+'</h3><p class="mus-p">'+esc(g.when)+"</p>"
+      +g.items.map((it,ii)=>{ const id=g.id+"#"+ii;
+        return '<div class="eng-ph'+(known[id]?" ok":"")+'" data-id="'+id+'">'
+          +'<button class="eng-say" data-say="'+engA(it.en)+'" title="'+tr("озвучить")+'">🔊</button>'
+          +'<div class="eng-ph-b"><b>'+esc(it.en)+"</b><span>"+esc(it.ru)+"</span>"+(it.note?"<em>"+esc(it.note)+"</em>":"")+"</div>"
+          +'<button class="eng-kn" title="'+tr("знаю")+'">'+(known[id]?"✓":"○")+"</button></div>"; }).join("")
+      +"</div>").join("");
+  let hide=false;
+  const apply=()=>{ [...b.querySelectorAll(".eng-ph")].forEach(r=>{ r.hidden=hide&&r.classList.contains("ok"); });
+    [...b.querySelectorAll(".eng-g")].forEach(g=>{ g.hidden=![...g.querySelectorAll(".eng-ph")].some(r=>!r.hidden); }); };
+  $("#engHide").onclick=e=>{ hide=!hide; e.target.classList.toggle("on",hide); apply(); };
+  [...b.querySelectorAll(".eng-kn")].forEach(k=>k.onclick=()=>{
+    const row=k.closest(".eng-ph"), id=row.dataset.id, now=!row.classList.contains("ok");
+    row.classList.toggle("ok",now); k.textContent=now?"✓":"○";
+    if(now)known[id]=1; else delete known[id]; engSave(ENG_KNOWN,known);
+    $("#engKnCnt").textContent=cnt()+" "+tr("из")+" "+all+" "+tr("знаю"); $("#engKnBar").style.width=(all?cnt()/all*100:0)+"%";
+    apply();
+  });
+}
+
 /* ═══ Книга: курс с нуля страницами ═══
    Шпоры и лайфхаки отвечают на «где посмотреть», книга — на «с чего начать и
    что дальше». Разворот: слева уже прочитанная страница, справа — текущая, к ней
@@ -14381,6 +14588,7 @@ function musVoice(b){
 }
 (function(){
   const t=$("#tabMus"); if(t)t.onclick=()=>{ setMode("mus"); musInsUI(); musUI(); };
+  const te=$("#tabEng"); if(te)te.onclick=()=>{ setMode("eng"); engUI(); };
   [...document.querySelectorAll("#musIns .ins-tab")].forEach(el=>el.onclick=()=>{
     if(MUS_INS===el.dataset.i)return;
     MUS_INS=el.dataset.i;
