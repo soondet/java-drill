@@ -472,6 +472,36 @@ const check = (name, ok, detail) => {
     })()`));
     check("правила английского: данные целы", g0.уровней === 4 && g0.тем >= 20 && g0.упр >= 90 && g0.плохие.length === 0 && g0.экран > 0,
       g0.уровней + " уровня · " + g0.тем + " тем · " + g0.упр + " упражнений · на экране тем " + g0.экран + (g0.плохие.length ? " · плохие: " + g0.плохие.slice(0, 4).join(", ") : ""));
+    /* Длина варианта не должна выдавать ответ. У викторин гейт давно ловит «тыкай
+       самый длинный»; в правилах я наступил на зеркальное: правильный английский
+       лаконичен, неверные варианты делались добавлением мусора, и верный оказался
+       единственным самым коротким в 45% упражнений, а на C1 в «найди ошибку» — в
+       78%. Тест уровня это наследовал: тыкая короткое, получаешь завышенный
+       уровень. Перемешивание тут не спасает — оно прячет позицию, а не длину.
+       Обе тактики должны давать около трети; срезы мелкие — им потолок мягче. */
+    const дл = JSON.parse(await A.ev(`(function(){
+      var все=[]; engLevels().forEach(function(l){ l.topics.forEach(function(x){ x.ex.forEach(function(q){ все.push({lv:l.id,t:q.t,o:q.o,a:q.a}); }); }); });
+      var доля=function(set,край){ if(!set.length) return 0; var k=0; set.forEach(function(q){ var len=q.o.map(function(o){return o.length}), c=len[q.a];
+          var m=край==="min"?Math.min.apply(null,len):Math.max.apply(null,len); if(c===m && len.filter(function(v){return v===m}).length===1) k++; });
+        return Math.round(k/set.length*100); };
+      var срезы=[["все",все]], типы=["gap","fix"];
+      типы.forEach(function(tp){ срезы.push([tp,все.filter(function(q){return q.t===tp})]); });
+      engLevels().forEach(function(l){ типы.forEach(function(tp){ срезы.push([l.id+"·"+tp,все.filter(function(q){return q.lv===l.id&&q.t===tp})]); }); });
+      var средний=function(set){ if(!set.length) return 0; var k=0; set.forEach(function(q){ var len=q.o.map(function(o){return o.length}), c=len[q.a];
+          var s=len.slice().sort(function(x,y){return x-y}); if(s[0]!==s[1]&&s[1]!==s[2]&&c===s[1]) k++; }); return Math.round(k/set.length*100); };
+      return JSON.stringify(срезы.map(function(s){ return {имя:s[0], n:s[1].length, кор:доля(s[1],"min"), дл:доля(s[1],"max"), ср:средний(s[1])}; }));
+    })()`));
+    {
+      /* Первая версия потолка для мелких срезов была 56% — и я тут же ею воспользовался:
+         C1·fix качнулся из «короткий 78%» в «длинный 56%» и прошёл. Срез в 9–11
+         упражнений — это 3/3/3 с допуском в одно: 45%. */
+      const потолок = s => s.n >= 30 ? 40 : 45;
+      const плохие = дл.filter(s => s.n > 0 && (s.кор > потолок(s) || s.дл > потолок(s) || s.ср > потолок(s)));
+      const общий = дл.find(s => s.имя === "все");
+      check("правила не пройти, выбирая вариант по длине", плохие.length === 0,
+        плохие.length ? плохие.map(s => s.имя + ": короткий " + s.кор + "% · средний " + s.ср + "% · длинный " + s.дл + "% (n=" + s.n + ")").slice(0, 4).join(" | ")
+                      : "верный — самый короткий в " + общий.кор + "%, средний в " + общий.ср + "%, самый длинный в " + общий.дл + "% (случайно 33%) · " + дл.length + " срезов в норме");
+    }
     /* тема: варианты перемешаны, верный засчитан и сохранён, неверный — нет */
     await A.ev(`document.querySelector(".eng-tp").click()`); await sleep(400);
     const g1 = JSON.parse(await A.ev(`(function(){

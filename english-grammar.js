@@ -30,7 +30,7 @@ window.ENGGRAMMAR = { levels: [
       { t:"gap", q:"___ version we deployed yesterday has a memory leak.", o:["The","A","—"], a:0, why:"Уже известно, какая версия — вчерашняя. Конкретная — the." },
       { t:"gap", q:"___ microservices are harder to debug than a monolith.", o:["—","The","A"], a:0, why:"Микросервисы вообще, множественное число — без артикля." },
       { t:"fix", q:"I wrote a code for the payment module.", o:["I wrote the code for the payment module.","I wrote a code for payment module.","I wrote codes for the payment module."], a:0, why:"code — неисчисляемое: the code / some code, но не «a code» (это был бы шифр)." },
-      { t:"fix", q:"We use the Kafka for events.", o:["We use Kafka for events.","We use a Kafka for events.","We use Kafka for the events."], a:0, why:"Названия технологий — без артикля. «The events» тоже лишнее: события вообще." }
+      { t:"fix", q:"We use the Kafka for events.", o:["We use Kafka for events.","We use a Kafka for events.","We use Kafka for event."], a:0, why:"Названия технологий — без артикля, ни the, ни a. А «for event» не живёт: исчисляемое в единственном требует артикля." }
     ]},
 
   { id:"a2-present", title:"Present Simple и Continuous",
@@ -64,8 +64,8 @@ window.ENGGRAMMAR = { levels: [
     ex:[
       { t:"gap", q:"The build ___ because of a missing dependency.", o:["failed","was fail","fail"], a:0, why:"Законченное действие — Past Simple: failed." },
       { t:"gap", q:"We ___ the service in Kotlin two years ago.", o:["wrote","writed","have written"], a:0, why:"write — неправильный: wrote. «Two years ago» — законченное время, не Perfect." },
-      { t:"fix", q:"I didn't found the bug in the logs.", o:["I didn't find the bug in the logs.","I didn't founded the bug in the logs.","I not found the bug in the logs."], a:0, why:"После didn't — начальная форма: find." },
-      { t:"fix", q:"The tests was green before the merge.", o:["The tests were green before the merge.","The tests was greens before the merge.","The test were green before the merge."], a:0, why:"tests — множественное число: were." }
+      { t:"fix", q:"I didn't found the bug in the logs.", o:["I didn't find the bug in the logs.","I didn't founded the bug in the logs.","I did not found the bug in the logs."], a:0, why:"После didn't и did not — начальная форма: find. Found — это уже прошедшее, дважды его не ставят." },
+      { t:"fix", q:"The tests was green before the merge.", o:["The tests were green before the merge.","The tests be green before the merge.","The test were green before the merge."], a:0, why:"tests — множественное число: were. «Be» без формы и «the test were» — оба не согласованы с подлежащим." }
     ]},
 
   { id:"a2-questions", title:"Порядок слов в вопросе",
@@ -79,7 +79,7 @@ window.ENGGRAMMAR = { levels: [
            "«You have tested it?» — с интонацией сойдёт в разговоре, но на собесе звучит небрежно: Have you tested it?",
            "«Why the build failed?» — Why did the build fail?"],
     ex:[
-      { t:"fix", q:"What the method returns?", o:["What does the method return?","What the method does return?","What returns the method?"], a:0, why:"Вспомогательный does — сразу после вопросительного слова, глагол в начальной форме." },
+      { t:"fix", q:"What the method returns?", o:["What does the method return?","What does method return?","What returns the method?"], a:0, why:"Вспомогательный does — сразу после вопросительного слова, глагол в начальной форме. И method здесь конкретный — с артиклем." },
       { t:"fix", q:"Why the tests failed on CI?", o:["Why did the tests fail on CI?","Why the tests did fail on CI?","Why did the tests failed on CI?"], a:0, why:"Why did + начальная форма fail." },
       { t:"gap", q:"___ the service support retries?", o:["Does","Do","Is"], a:0, why:"the service — третье лицо: Does." },
       { t:"gap", q:"How long ___ the migration take?", o:["did","does it","was"], a:0, why:"Про прошлое: How long did … take?" }
@@ -119,7 +119,7 @@ window.ENGGRAMMAR = { levels: [
            "После «when?» — всегда Past Simple: When did you join? Не «when have you joined»."],
     ex:[
       { t:"fix", q:"I work at this company since 2021.", o:["I've worked at this company since 2021.","I worked at this company since 2021.","I am working at this company since 2021."], a:0, why:"Начал в прошлом, продолжаю — Present Perfect + since." },
-      { t:"fix", q:"We have released the fix last Friday.", o:["We released the fix last Friday.","We have released the fix in last Friday.","We had released the fix last Friday."], a:0, why:"Названо время — Past Simple." },
+      { t:"fix", q:"We have released the fix last Friday.", o:["We released the fix last Friday.","We release the fix last Friday.","We released fix last Friday."], a:0, why:"Названо время — Past Simple: released. «Release» — не то время, «released fix» — потерян артикль." },
       { t:"gap", q:"I ___ Kafka on two projects, so I know its failure modes.", o:["have used","used","am using"], a:0, why:"Опыт, важный сейчас, без конкретного времени — Present Perfect." },
       { t:"gap", q:"When ___ the team ___ to Kubernetes?", o:["did … move","has … moved","was … move"], a:0, why:"После when — Past Simple: When did the team move?" },
       { t:"gap", q:"The migration ___ — you can switch traffic now.", o:["has finished","finished","is finished since"], a:0, why:"Результат сейчас: has finished. Past Simple тоже грамматичен, но «you can switch now» тянет к Perfect." }
@@ -137,8 +137,8 @@ window.ENGGRAMMAR = { levels: [
            "«during three hours» — during с событием, длительность — for: for three hours."],
     ex:[
       { t:"gap", q:"I've been a team lead ___ last spring.", o:["since","for","ago"], a:0, why:"Точка во времени — since." },
-      { t:"gap", q:"We've run this in production ___ eighteen months.", o:["for","since","during"], a:0, why:"Длительность — for." },
-      { t:"fix", q:"I joined the company before four years.", o:["I joined the company four years ago.","I joined the company since four years.","I have joined the company four years ago."], a:0, why:"«Назад» — ago, и с ним Past Simple." },
+      { t:"gap", q:"We've run this in production ___ eighteen months.", o:["for","in","during"], a:0, why:"Длительность — for. «In eighteen months» значило бы «через полтора года»; during — с событием, а не со сроком." },
+      { t:"fix", q:"I joined the company before four years.", o:["I joined the company four years ago.","I joined the company four years.","I joined company since four years."], a:0, why:"«Назад» — ago, и с ним Past Simple. Без ago фраза не закончена; since — только с точкой во времени." },
       { t:"gap", q:"The database was locked ___ the backup.", o:["during","for","while"], a:0, why:"Во время события — during. While — с целым предложением: while the backup was running." }
     ]},
 
@@ -172,7 +172,7 @@ window.ENGGRAMMAR = { levels: [
            "«I can to do» — I can do."],
     ex:[
       { t:"fix", q:"We must to restart the pod after the config change.", o:["We must restart the pod after the config change.","We must to restarting the pod after the config change.","We have restart the pod after the config change."], a:0, why:"must + начальная форма без to." },
-      { t:"gap", q:"You ___ commit secrets to the repo — that's a policy.", o:["mustn't","don't have to","shouldn't to"], a:0, why:"Запрет — mustn't. «Don't have to» значило бы «не обязательно»." },
+      { t:"gap", q:"You ___ commit secrets to the repo — that's a policy.", o:["mustn't","must","don't have to"], a:0, why:"Запрет — mustn't. «Must» — наоборот, обязанность; «don't have to» — «не обязательно», а это политика." },
       { t:"gap", q:"We ___ upgrade Java — the old version goes out of support in June.", o:["have to","must to","can"], a:0, why:"Внешнее требование, срок — have to." },
       { t:"gap", q:"It ___ be a network issue rather than a bug.", o:["could","can to","should to"], a:0, why:"Предположение — could." }
     ]},
@@ -209,7 +209,7 @@ window.ENGGRAMMAR = { levels: [
     ex:[
       { t:"fix", q:"Latency depends from the region.", o:["Latency depends on the region.","Latency depends of the region.","Latency depends by the region."], a:0, why:"depend on." },
       { t:"fix", q:"We discussed about the migration for an hour.", o:["We discussed the migration for an hour.","We discussed on the migration for an hour.","We were discussing about the migration for an hour."], a:0, why:"discuss — без предлога." },
-      { t:"gap", q:"Who is responsible ___ the payment gateway?", o:["for","of","on"], a:0, why:"responsible for." },
+      { t:"gap", q:"Who is responsible ___ the payment gateway?", o:["for","of","about"], a:0, why:"responsible for. «Of» и «about» — кальки с русского «ответственный о, про»." },
       { t:"fix", q:"Can you explain me how the retry works?", o:["Can you explain to me how the retry works?","Can you explain me how does the retry work?","Can you explain for me how the retry works?"], a:0, why:"explain to someone. Вариант с «how does» ещё и ломает порядок слов в косвенном вопросе." }
     ]}
   ]},
@@ -228,7 +228,7 @@ window.ENGGRAMMAR = { levels: [
            "«If we would use» — would только в главной части: if we used…, we would….",
            "«If we would have used» — if we had used."],
     ex:[
-      { t:"fix", q:"If we will add caching, the latency will drop.", o:["If we add caching, the latency will drop.","If we would add caching, the latency will drop.","If we add caching, the latency drops will."], a:0, why:"В if-части — Present Simple." },
+      { t:"fix", q:"If we will add caching, the latency will drop.", o:["If we add caching, the latency will drop.","If we add caching, the latency drop.","If we adds caching, latency will drop."], a:0, why:"В if-части — Present Simple, в главной — will + глагол. «The latency drop» — потерян will, «we adds» — не то лицо." },
       { t:"gap", q:"If we ___ Kafka instead of RabbitMQ, we could replay events.", o:["used","would use","will use"], a:0, why:"Гипотеза о настоящем — Past Simple в if-части, could/would в главной." },
       { t:"gap", q:"If the alert ___ on absence of events, we would have caught it in an hour.", o:["had fired","fired","would fire"], a:0, why:"Про прошлое — had + done в if-части." },
       { t:"fix", q:"If I would be you, I would start with the outbox.", o:["If I were you, I would start with the outbox.","If I was be you, I would start with the outbox.","If I would you, I start with the outbox."], a:0, why:"Устойчивое if I were you. Would — только в главной части." }
@@ -263,7 +263,7 @@ window.ENGGRAMMAR = { levels: [
            "«It seems to be like» — it seems like / it seems to be."],
     ex:[
       { t:"gap", q:"I ___ that a single database is enough here.", o:["'d argue","argue strongly","am arguing"], a:0, why:"Мягкое утверждение — I'd argue." },
-      { t:"gap", q:"Sharding at this stage ___ premature.", o:["seems","is seeming","seems to"], a:0, why:"seems + прилагательное. Seem — глагол состояния, без Continuous." },
+      { t:"gap", q:"Sharding at this stage ___ premature.", o:["seems","seem","is seeming"], a:0, why:"seems + прилагательное; sharding — единственное число, нужен -s. Seem — глагол состояния, без Continuous." },
       { t:"fix", q:"May be it's a connection pool problem.", o:["Maybe it's a connection pool problem.","May be it is a connection pool problem.","It may be maybe a connection pool problem."], a:0, why:"Наречие «возможно» — maybe одним словом." },
       { t:"gap", q:"Hot keys ___ to concentrate on a single shard.", o:["tend","are tending","tends"], a:0, why:"Обычно так бывает — tend to; keys — множественное, без -s." }
     ]},
@@ -280,7 +280,7 @@ window.ENGGRAMMAR = { levels: [
            "«The place where we store it in» — where уже включает «в»: where we store it."],
     ex:[
       { t:"fix", q:"The consumer which it reads from the topic is slow.", o:["The consumer that reads from the topic is slow.","The consumer which it is reading the topic is slow.","The consumer who reads from the topic is slow."], a:0, why:"Местоимение it лишнее. Who — только про людей." },
-      { t:"gap", q:"The colleague ___ reviewed my PR suggested a simpler approach.", o:["who","which","whose"], a:0, why:"Про человека — who." },
+      { t:"gap", q:"The colleague ___ reviewed my PR suggested a simpler approach.", o:["who","he","which"], a:0, why:"Про человека — who. Местоимение he связку не заменяет, а which — только про вещи." },
       { t:"gap", q:"This is the bucket ___ we keep the raw exports.", o:["where","which","that"], a:0, why:"Место — where; иначе нужно «in which»." },
       { t:"fix", q:"The team who's code we inherited had no tests.", o:["The team whose code we inherited had no tests.","The team which code we inherited had no tests.","The team who code we inherited had no tests."], a:0, why:"Чей — whose. Who's = who is." }
     ]},
@@ -298,7 +298,7 @@ window.ENGGRAMMAR = { levels: [
            "«for to» — in order to / to."],
     ex:[
       { t:"fix", q:"Despite of the retries, some messages were lost.", o:["Despite the retries, some messages were lost.","Despite of retries, some message were lost.","In spite the retries, some messages were lost."], a:0, why:"despite без of; in spite of — с of." },
-      { t:"gap", q:"Postgres gives us transactions, ___ Cassandra gives us write throughput.", o:["whereas","although","therefore"], a:0, why:"Противопоставление двух — whereas." },
+      { t:"gap", q:"Postgres gives us transactions, ___ Cassandra gives us write throughput.", o:["whereas","so","as"], a:0, why:"Противопоставление двух — whereas. «So» — вывод, «as» — причина: логика фразы ломается." },
       { t:"gap", q:"We added the outbox ___ events are never lost.", o:["so that","for that","in order"], a:0, why:"Цель с целым предложением — so that." },
       { t:"fix", q:"The cache is fast, however, it can serve stale data.", o:["The cache is fast; however, it can serve stale data.","The cache is fast however it can serve stale data.","The cache is fast, however it can serve stale data."], a:0, why:"however — не союз; между предложениями нужна точка или точка с запятой." }
     ]},
@@ -316,7 +316,7 @@ window.ENGGRAMMAR = { levels: [
     ex:[
       { t:"fix", q:"Could you tell me how does the retry work?", o:["Could you tell me how the retry works?","Could you tell me how the retry does work?","Could you tell me how works the retry?"], a:0, why:"Косвенный вопрос — прямой порядок: how the retry works." },
       { t:"gap", q:"I'm not sure ___ the cache is invalidated on write.", o:["whether","does","if does"], a:0, why:"Косвенный да/нет-вопрос — whether (или if), дальше прямой порядок." },
-      { t:"fix", q:"Do you know what time is the deploy?", o:["Do you know what time the deploy is?","Do you know what time is it the deploy?","Do you know what is the time of deploy?"], a:0, why:"what time the deploy is — без инверсии." }
+      { t:"fix", q:"Do you know what time is the deploy?", o:["Do you know what time the deploy is?","Do you know what time the deploy?","Do you know when is the deploy?"], a:0, why:"Косвенный вопрос — прямой порядок: what time the deploy is. Глагол нельзя ни терять, ни переставлять вперёд." }
     ]}
   ]},
 
@@ -335,11 +335,11 @@ window.ENGGRAMMAR = { levels: [
            "«pretend» — притворяться, не «претендовать» (apply for, claim).",
            "«sympathetic» — сочувствующий, не «симпатичный» (nice, likeable)."],
     ex:[
-      { t:"fix", q:"Is this the actual version of the API?", o:["Is this the current version of the API?","Is this the actually version of the API?","Is this the actual now version of the API?"], a:0, why:"«Актуальная» — current. Actual — фактическая, в противоположность заявленной." },
-      { t:"fix", q:"I need to control the config before the deploy.", o:["I need to check the config before the deploy.","I need to be control the config before the deploy.","I need control of the config before the deploy."], a:0, why:"«Проверить» — check. Control — управлять." },
+      { t:"fix", q:"Is this the actual version of the API?", o:["Is this the current version of the API?","Is this current version of the API?","Is this the actual version of API?"], a:0, why:"«Актуальная» — current; actual значит «фактическая». И артикли на месте: the current version of the API." },
+      { t:"fix", q:"I need to control the config before the deploy.", o:["I need to check the config before the deploy.","I need check the config before the deploy.","I need to make a control of the config before the deploy."], a:0, why:"«Проверить» — check; control значит «управлять», и «make a control» этого не спасает. После need — to." },
       { t:"gap", q:"After three retries the request ___ succeeded.", o:["eventually","possibly","actually"], a:0, why:"В конце концов — eventually. Не «возможно»." },
       { t:"fix", q:"The system has been stable for a decade — since 2016.", o:["The system has been stable for ten years — since 2016.","The system has been stable for a decade — since 2022.","The system has been stable for decade — since 2016."], a:0, why:"Decade — десять лет, и цифры должны сходиться. Ловушка на внимательность: первый вариант просто говорит то же честно." },
-      { t:"gap", q:"Be ___ with the numbers — the estimate feeds into the budget.", o:["accurate","accurately","careful and neat"], a:0, why:"Точный — accurate. «Аккуратный» здесь не подходит по смыслу." }
+      { t:"gap", q:"Be ___ with the numbers — the estimate feeds into the budget.", o:["accurate","neat","tidy"], a:0, why:"Точный — accurate. «Neat» и «tidy» — опрятный: это про внешний вид, а не про цифры." }
     ]},
 
   { id:"c1-emphasis", title:"Ударение на главном: what matters is…, not only…, it's X that…",
@@ -356,7 +356,7 @@ window.ENGGRAMMAR = { levels: [
       { t:"fix", q:"Not only it costs more, but it's also slower.", o:["Not only does it cost more, but it's also slower.","Not only it does cost more, but it's also slower.","Not only costs it more, but also it's slower."], a:0, why:"Инверсия: not only does it cost." },
       { t:"gap", q:"___ matters is whether the consumer is idempotent.", o:["What","That","Which"], a:0, why:"Cleft-предложение — what matters is…" },
       { t:"gap", q:"It's the retry storm ___ took the database down, not the traffic.", o:["that","what","which it"], a:0, why:"It's X that… — контраст." },
-      { t:"gap", q:"Only after the incident ___ we add alerting on missing events.", o:["did","we did","have"], a:0, why:"После only + обстоятельство — инверсия: did we add." }
+      { t:"gap", q:"Only after the incident ___ we add alerting on missing events.", o:["did","was","we did"], a:0, why:"После only + обстоятельство — инверсия: did we add. «Was» — не тот вспомогательный, «we did» — без инверсии." }
     ]},
 
   { id:"c1-concise", title:"Сильные глаголы вместо «make a decision»",
@@ -389,10 +389,10 @@ window.ENGGRAMMAR = { levels: [
            "«To be honest» перед каждой фразой — намекает, что остальное было нечестно.",
            "«Actually» как слово-паразит в начале — раздражает, если не противопоставление."],
     ex:[
-      { t:"gap", q:"___, the second-level cache is doing more harm than good here.", o:["Arguably","Definitely and certainly","I am sure that clearly"], a:0, why:"Спорное мнение, готов обсуждать — arguably." },
+      { t:"gap", q:"___, the second-level cache is doing more harm than good here.", o:["Arguably","Argue","Definitely and certainly"], a:0, why:"Спорное мнение, готов обсуждать — arguably. «Argue» — глагол, вводным словом не работает; «definitely and certainly» — противоположный регистр." },
       { t:"gap", q:"The fix works, ___ I've only tested it on staging.", o:["that said","however that","but also"], a:0, why:"Оговорка после утверждения — that said." },
       { t:"gap", q:"It's ___ whether the broker or the consumer dropped the message.", o:["not entirely clear","not clear entirely","clearly unclear"], a:0, why:"Честное «не знаю точно» — it's not entirely clear." },
-      { t:"fix", q:"To be honest, I think that to be honest it's a race condition.", o:["I suspect it's a race condition.","To be honest, I'm thinking it's a race condition.","Honestly to be honest, it is a race condition."], a:0, why:"Одна форма неуверенности: I suspect. Повторы вычищены." }
+      { t:"fix", q:"To be honest, I think that to be honest it's a race condition.", o:["I suspect it's a race condition.","I suspect its a race condition.","I am suspect a race condition."], a:0, why:"Одна форма неуверенности: I suspect. «Its» без апострофа — притяжательное, а «I am suspect» значило бы «я под подозрением»." }
     ]},
 
   { id:"c1-phrasal", title:"Фразовые глаголы инженера",
@@ -409,7 +409,7 @@ window.ENGGRAMMAR = { levels: [
       { t:"gap", q:"Rather than a bigger box, let's ___ — add two more nodes.", o:["scale out","scale up","spin down"], a:0, why:"Больше узлов — scale out." },
       { t:"gap", q:"The client should ___ exponentially between retries.", o:["back off","fall back","roll back"], a:0, why:"Задержка между попытками — back off." },
       { t:"gap", q:"We ___ the network as a cause — the packets all arrive.", o:["ruled out","figured out","narrowed down"], a:0, why:"Исключить причину — rule out." },
-      { t:"fix", q:"We found a work around for the driver bug.", o:["We found a workaround for the driver bug.","We found a working around for the driver bug.","We found a work-around-it for the driver bug."], a:0, why:"Существительное — слитно: a workaround." },
+      { t:"fix", q:"We found a work around for the driver bug.", o:["We found a workaround for the driver bug.","We found workaround for the driver bug.","We found a working around for the driver bug."], a:0, why:"Существительное — слитно и с артиклем: a workaround. Формы «a working around» не существует." },
       { t:"gap", q:"Can you ___ a test environment for the demo?", o:["spin up","roll out","tear down"], a:0, why:"Поднять окружение — spin up." }
     ]}
   ]}
