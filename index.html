@@ -74,6 +74,7 @@
   .onb{position:fixed;left:calc(12px + env(safe-area-inset-left));right:calc(12px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(20,23,32,.97);backdrop-filter:blur(16px);border:1px solid var(--acc);border-radius:14px;box-shadow:var(--shadow);font-size:13.5px;line-height:1.5;max-width:560px;margin:0 auto}
   .onb button{flex:none;border:0;background:var(--panel-2);color:var(--mut);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px}
   .onb button:hover{color:var(--txt)}
+  .onb{pointer-events:none} .onb button{pointer-events:auto}   /* клики проходят сквозь плашку к кнопкам под ней */
   /* ─── 🗺 Роадмап ─── */
   .err-toast{position:fixed;left:50%;transform:translateX(-50%);
     bottom:calc(16px + env(safe-area-inset-bottom));z-index:200;max-width:min(560px,92vw);
@@ -1681,6 +1682,8 @@
   .wbar,.cbar{flex:1;height:9px;border-radius:6px;background:var(--panel);overflow:hidden;display:flex}
   .wbar>span{height:100%;background:linear-gradient(90deg,var(--bad),var(--warn));border-radius:6px}
   .cbar .cm{height:100%;background:var(--good)} .cbar .cl{height:100%;background:var(--acc);opacity:.55}
+  .clrow.wide .cname{width:200px}                       /* «Английский · термины» в 120px не влезает */
+  @media(max-width:560px){ .clrow.wide .cname{width:148px} }
   .wpct{flex:none;width:38px;text-align:right;font:700 12px var(--mono);color:var(--warn)}
   .wgo{flex:none;font:600 11px var(--sans);color:var(--acc)}
   .cnum{flex:none;width:54px;text-align:right;font:600 12px var(--mono);color:var(--mut)}
@@ -4347,9 +4350,23 @@ function gsScrollTo(sel,opt,tries){
   }
   if((tries||0)<20) setTimeout(()=>gsScrollTo(sel,opt,(tries||0)+1),60);
 }
+/* Переходы из поиска и из «Прогресса» в бонусные разделы. У английского пакет
+   переводов грузится по требованию: режим выставляем заранее, engUI сам дорисует
+   его после загрузки, а цель прокрутки ждём отдельно — gsScrollTo терпит 1.2 с,
+   пакету на медленном диске нужно больше. */
+function gsEng(setup,sel){
+  setup(); setMode("eng"); engUI();
+  if(!sel)return;
+  let k=0; const wait=()=>{ if(enLoaded)return gsScrollTo(sel); if(++k<100)setTimeout(wait,100); }; wait();
+}
+function gsMus(ins,m,before,sel){
+  if(before)before();
+  MUS_INS=ins; MUS_MODE=m; setMode("mus"); musInsUI(); musUI();
+  if(sel)gsScrollTo(sel,{open:true});
+}
 function gsRun(q){
   q=(q||"").trim().toLowerCase();
-  if(q.length<2){ gsResults.innerHTML=`<div class="gs-empty">${tr("Печатай запрос — ищу по темам, карточкам, терминам, «на пальцах», «С нуля», «Деньгам», диагностике, вопросам собеса и играм.")}</div>`; gsFlat=[]; return; }
+  if(q.length<2){ gsResults.innerHTML=`<div class="gs-empty">${tr("Печатай запрос — ищу по темам, карточкам, терминам, «на пальцах», «С нуля», «Деньгам», диагностике, вопросам собеса, играм, английскому и музыке.")}</div>`; gsFlat=[]; return; }
   /* Запрос из нескольких слов — это И, а не точная подстрока: «оконные функции»
      раньше не находило карточку со словами «оконная функция». */
   /* Сравниваем по основе слова, отрезая окончание: иначе «оконные функции» не находит
@@ -4419,6 +4436,19 @@ function gsRun(q){
     setTimeout(()=>{ startDiag("all");
       if(typeof DG!=="undefined"&&DG){ const k=DG.deck.findIndex(x=>x.id===d.id); if(k>0)DG.deck.unshift(DG.deck.splice(k,1)[0]); dgRound(); }
     },0); }}));
+
+  /* ── бонусные разделы: английский и музыка. Раньше поиск их не видел вовсе:
+        «артикли», «Present Perfect», «трезвучие», «баррэ» давали «ничего не найдено». ── */
+  const gRules=[]; ((window.ENGGRAMMAR||{}).levels||[]).forEach(l=>l.topics.forEach(t=>{
+    if(inc(t.title,t.rule,(t.traps||[]).join(" "),(t.examples||[]).map(e=>e.en+" "+e.ru).join(" "),(t.ex||[]).map(x=>x.q).join(" "))) gRules.push({l,t}); }));
+  push(tr("Английский · правила"),gRules,x=>({ico:"📐",txt:x.t.title,tag:x.l.id,act:()=>gsEng(()=>{ ENG.mode="rules"; ENG.rtest=null; ENG.rlevel=x.l.id; ENG.rtopic=x.t.id; })}));
+  const gPh=[]; (window.ENGPHRASES||[]).forEach(g=>g.items.forEach((it,i)=>{ if(inc(it.en,it.ru,it.note,g.group)) gPh.push({g,it,id:g.id+"#"+i}); }));
+  push(tr("Английский · фразы"),gPh,x=>({ico:x.g.ico,txt:x.it.en,tag:x.g.group,act:()=>gsEng(()=>{ ENG.mode="phrases"; },'.eng-ph[data-id="'+x.id+'"]')}));
+  const gBk=[]; ((window.MUSBOOK||{}).chapters||[]).forEach((c,ci)=>c.pages.forEach((pg,pi)=>{ if(inc(pg.t,pg.p,c.title)) gBk.push({c,pg,ci,pi}); }));
+  push(tr("Музыка · книга"),gBk,x=>({ico:x.c.ico,txt:x.pg.t,tag:x.c.title,act:()=>gsMus("piano","book",()=>{ try{ localStorage.setItem("jdMusBook",JSON.stringify({ch:x.ci,pg:x.pi})); }catch(e){} })}));
+  const gHk=[]; [["piano","hack",window.MUSHACK],["guitar","ghack",window.GTHACK]].forEach(([ins,m,H])=>(H||[]).forEach((g,gi)=>g.hacks.forEach((h,hi)=>{
+    if(inc(h.title,h.idea,h.how,h.why,h.mistake,g.group)) gHk.push({ins,m,g,h,id:"h"+gi+"_"+hi}); })));
+  push(tr("Музыка · приёмы"),gHk,x=>({ico:x.ins==="guitar"?"🎸":"🎹",txt:x.h.title,tag:x.g.group,act:()=>gsMus(x.ins,x.m,null,'.hk[data-id="'+x.id+'"]')}));
 
   /* ── поведенческие и ситуативные вопросы ── */
   const bh=(typeof BEHAV!=="undefined"?BEHAV:[]).filter(b=>inc(b.q,b.w,b.h,b.bad,b.g));
@@ -4740,6 +4770,45 @@ function examBlock(){
     </div>
   </div>`;
 }
+/* Прогресс того, что живёт вне дрилла: задачи на суждение и бонусные разделы.
+   У каждого свой счётчик внутри, общей картины не было. Зелёное — закрыто,
+   синее — начато или слабое. Клик ведёт в раздел. */
+function progExtraRows(){
+  const rows=[];
+  const scen=(name,ico,ids,go)=>{ if(!ids.length)return; const st=scenStats(ids);
+    rows.push({ico,name,m:st.seen-st.weak,l:st.weak,total:st.total,go}); };
+  scen(tr("Спроектируй"),"🏛",(window.DESIGN||[]).flatMap(t=>t.steps.map((_,k)=>t.id+"#"+k)),"design");
+  scen(tr("Ревью"),"👀",(window.REVIEW||[]).map(x=>x.id),"review");
+  scen(tr("Что дальше?"),"🔍",(window.DIAG||[]).map(x=>x.id),"diag");
+  const ld=k=>{ try{ return JSON.parse(localStorage.getItem(k)||"{}")||{}; }catch(e){ return {}; } };
+  const ep=Object.values(ld("jdEngProg")), learned=ep.filter(x=>x&&x.box>=5).length;
+  rows.push({ico:"📖",name:tr("Английский · термины"),m:learned,l:ep.length-learned,total:TERMS.length,go:"eng-terms"});
+  const rp=ld("jdEngRules"); let td=0, ts=0, tt=0;
+  (((window.ENGGRAMMAR||{}).levels)||[]).forEach(l=>l.topics.forEach(t=>{ tt++;
+    const k=t.ex.filter((_,i)=>rp[t.id+"#"+i]).length; if(k===t.ex.length)td++; else if(k>0)ts++; }));
+  if(tt)rows.push({ico:"📐",name:tr("Английский · правила"),m:td,l:ts,total:tt,go:"eng-rules"});
+  const ph=(window.ENGPHRASES||[]).reduce((k,g)=>k+g.items.length,0);
+  if(ph)rows.push({ico:"💬",name:tr("Английский · фразы"),m:Object.keys(ld("jdEngKnown")).length,l:0,total:ph,go:"eng-phrases"});
+  const bk=((window.MUSBOOK||{}).chapters||[]).reduce((k,c)=>k+c.pages.length,0);
+  if(bk)rows.push({ico:"📕",name:tr("Музыка · книга"),m:Object.keys(ld("jdMusBookDone")).length,l:0,total:bk,go:"mus-book"});
+  return rows;
+}
+function progExtraHtml(){
+  const rows=progExtraRows(); if(!rows.length)return "";
+  return `<h3 class="prog-sub">${tr("Суждение и бонусы")}</h3><div class="clmap">`+rows.map(r=>{
+    const m=Math.min(r.m,r.total), l=Math.max(0,Math.min(r.l,r.total-m));
+    return `<button class="clrow wide" data-go="${r.go}"><span class="cname">${r.ico} ${esc(r.name)}</span><div class="cbar"><span class="cm" style="width:${r.total?Math.round(m/r.total*100):0}%"></span><span class="cl" style="width:${r.total?Math.round(l/r.total*100):0}%"></span></div><span class="cnum">${m}/${r.total}</span></button>`;
+  }).join("")+"</div>";
+}
+function progExtraGo(k){
+  if(k==="design"){ setMode("game"); return setTimeout(()=>startDesign(),0); }
+  if(k==="review"){ setMode("game"); return setTimeout(()=>startReview("all"),0); }
+  if(k==="diag"){ setMode("game"); return setTimeout(()=>startDiag("all"),0); }
+  if(k==="eng-terms")return gsEng(()=>{ ENG.mode="terms"; });
+  if(k==="eng-rules")return gsEng(()=>{ ENG.mode="rules"; ENG.rtest=null; ENG.rtopic=null; });
+  if(k==="eng-phrases")return gsEng(()=>{ ENG.mode="phrases"; });
+  if(k==="mus-book")return gsMus("piano","book");
+}
 function buildProg(){
   const stg=$("#progStage"); const total=CARDS.length;
   let mastered=0,learning=0,fresh=0,due=0; const byCl={};
@@ -4793,6 +4862,7 @@ function buildProg(){
     <div class="hist">${days.map(v=>`<div class="hcol" title="${v}"><div class="hbar${v?"":" z"}" style="height:${v?Math.max(8,Math.round(v/maxd*100)):0}%"></div></div>`).join("")}</div>
     ${weak.length?`<h3 class="prog-sub">${tr("Слабые места — что повторить")}</h3>
     <div class="weak-list">${weak.map(c=>`<button class="weak-row" data-cl="${esc(c.t)}"><span class="wname">${esc(clName(c.t))}</span><div class="wbar"><span style="width:${c.pct}%"></span></div><span class="wpct">${c.pct}%</span><span class="wgo">${tr("учить →")}</span></button>`).join("")}</div>`:""}
+    ${progExtraHtml()}
     <h3 class="prog-sub">${tr("Карта по темам")}</h3>
     <div class="clmap">${clusters.map(c=>`<button class="clrow" data-cl="${esc(c.t)}"><span class="cname">${esc(clName(c.t))}</span><div class="cbar"><span class="cm" style="width:${Math.round(c.m/c.total*100)}%"></span><span class="cl" style="width:${Math.round(c.l/c.total*100)}%"></span></div><span class="cnum">${c.m}/${c.total}</span></button>`).join("")}</div>
     <button class="btn primary" id="drillWeak" style="flex:none;margin:18px auto 0;display:block">🩹 ${tr("Прокачать слабые места")}</button>
@@ -4803,6 +4873,7 @@ function buildProg(){
     <div class="prog-foot">🏆 ${tr("рекорд Блиц:")} <b>${gameBest}</b></div>
   </div>`;
   stg.querySelectorAll("[data-cl]").forEach(b=>b.onclick=()=>{ rmExpand=false; setDrill("t:"+b.dataset.cl); cramEl.checked=true; setMode("drill"); });
+  stg.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>progExtraGo(b.dataset.go));
   const dw=$("#drillWeak"); if(dw)dw.onclick=()=>{ rmExpand=false; setDrill(null,true); cramEl.checked=false; feynEl.checked=false; setMode("drill"); };
   stg.querySelectorAll(".hid-back").forEach(b=>b.onclick=()=>{ toggleHidden(b.dataset.id); buildProg(); });
   /* обвязка блока подготовки к собесу */
@@ -12387,12 +12458,37 @@ if(LANG==="en"){ LANG="ru"; applyChrome(); loadEN(ok=>{ if(ok){ enLoaded=true; s
 buildDrillCats();buildFilter();
 updateKpis();
 rebuild();
-if(!localStorage.getItem("jdSeen")){
+/* Плашка приветствия раньше висела, пока не нажмёшь крестик, — поверх нижних кнопок:
+   на «Ответь по-английски» она закрывала «показать эталон». Теперь клики проходят
+   сквозь неё (pointer-events в CSS), а первое же действие в приложении её убирает:
+   человек начал пользоваться — подсказка своё отработала. */
+function onbShow(){
+  if(document.querySelector(".onb"))return;
   const ob=document.createElement("div"); ob.className="onb";
   ob.innerHTML=`<span>👋 ${tr("Начни с 🎴 Дрил (Space — ответ, 1/2/3 — оценка). 🔍 или «/» — поиск по всему. В ⋯ Ещё: 🧊 3D-мир (прогулка по концепциям), 🗺 Путь в сеньоры, 🍼 Для чайника, ⚙️ Принцип, 📊 Прогресс.")}</span><button id="onbX" aria-label="close">✕</button>`;
   document.body.appendChild(ob);
-  $("#onbX").onclick=()=>{ ob.remove(); localStorage.setItem("jdSeen","1"); };
+  const bye=()=>{ ob.remove(); try{ localStorage.setItem("jdSeen","1"); }catch(e){} document.removeEventListener("click",first,true); };
+  const first=e=>{ if(!ob.contains(e.target))bye(); };
+  document.addEventListener("click",first,true);
+  $("#onbX").onclick=bye;
 }
+if(!localStorage.getItem("jdSeen"))onbShow();
+
+/* Английский пакет (4+ МБ) не лежит в предзагрузке service worker: он оседал в кэше
+   только после первого захода в EN онлайн. С разделом «Английский» это значило:
+   поставил приложение дома, открыл раздел в самолёте — «пакет не найден». Греем в
+   простое: запрос идёт через worker, тот при промахе кладёт ответ в кэш, а при
+   попадании в сеть не ходит вовсе. Не на file:// (worker'а нет), не офлайн и не
+   при экономии трафика. */
+function enWarmWanted(env){ return !!(env.sw&&env.online&&!env.saveData&&!env.loaded); }
+function enWarm(){
+  const c=navigator.connection||{}, sw=navigator.serviceWorker;
+  if(!enWarmWanted({sw:!!(sw&&sw.controller),online:navigator.onLine!==false,saveData:!!c.saveData,loaded:enLoaded}))return false;
+  fetch("i18n-en.js").catch(()=>{}); return true;
+}
+(window.requestIdleCallback||(f=>setTimeout(f,8000)))(()=>{ try{ enWarm(); }catch(e){} },{timeout:15000});
+/* первый визит: страница ещё не под управлением worker'а — греем, когда он её захватит */
+if(navigator.serviceWorker)navigator.serviceWorker.addEventListener("controllerchange",()=>{ try{ enWarm(); }catch(e){} });
 </script>
 <script>
 /* ---------- 🎂 секретная комната ----------

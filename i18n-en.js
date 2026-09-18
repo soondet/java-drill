@@ -8353,7 +8353,14 @@ window.I18N = {
   "Результат": "Result",
   "Начать с": "Start with",
   "Пройти ещё раз": "Take it again",
-  "дальше →": "next →"
+  "дальше →": "next →",
+  "Печатай запрос — ищу по темам, карточкам, терминам, «на пальцах», «С нуля», «Деньгам», диагностике, вопросам собеса, играм, английскому и музыке.": "Type a query — I search topics, cards, terms, Visual, From zero, Money, diagnostics, interview questions, games, English and music.",
+  "Английский · правила": "English · grammar",
+  "Английский · фразы": "English · phrases",
+  "Английский · термины": "English · terms",
+  "Музыка · книга": "Music · the book",
+  "Музыка · приёмы": "Music · techniques",
+  "Суждение и бонусы": "Judgment and bonuses"
  },
  "cards": {
   "jc-eqhash": {

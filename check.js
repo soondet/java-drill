@@ -522,6 +522,73 @@ const check = (name, ok, detail) => {
     await A.ev(`ENG.rtopic=null; ENG.mode="terms"; document.getElementById("tabDrill").click()`); await sleep(200);
   }
 
+  /* ---- швы между старым приложением и новыми разделами ----
+     Английский, книга и правила появились позже поиска, прогресса и плашки
+     приветствия — и те про них не знали. Поиск отвечал «ничего не найдено» на
+     «артикли» и «трезвучие», прогресс молчал, плашка закрывала кнопки, а
+     английский офлайн работал только после первого захода онлайн. */
+  {
+    /* поиск: находит… */
+    const запросы = [["артикли", "Английский · правила"], ["Present Perfect", "Английский · правила"], ["push back", "Английский · фразы"], ["трезвучие", "Музыка · книга"], ["баррэ", "Музыка · приёмы"]];
+    const найдено = JSON.parse(await A.ev(`(function(){ var r={};
+      ${JSON.stringify(запросы.map(x => x[0]))}.forEach(function(q){ gsRun(q); r[q]=gsResults.innerText.replace(/\\s+/g," ").slice(0,600); });
+      return JSON.stringify(r); })()`));
+    const мимо = запросы.filter(([q, g]) => (найдено[q] || "").indexOf(g) < 0).map(([q, g]) => "«" + q + "» без «" + g + "»");
+    check("поиск видит английский и музыку", мимо.length === 0,
+      мимо.length ? мимо.join(" · ") : запросы.map(x => x[0]).join(" · ") + " — все находятся");
+    /* …и доводит до места: кликаем по настоящему результату, как пользователь */
+    const цель = async (q, узор, ждать) => {
+      const ok = await A.ev(`(function(){ gsRun(${JSON.stringify(q)}); var re=new RegExp(${JSON.stringify(узор)},"i");
+        var it=[].slice.call(gsResults.querySelectorAll(".gs-item")).find(function(e){ return re.test(e.textContent); });
+        if(!it) return "нет результата"; it.click(); return "ok"; })()`);
+      if (ok !== "ok") return ok;
+      for (let i = 0; i < 40; i++) { if (await A.ev(ждать)) return "ok"; await sleep(250); }
+      return "не дошёл";
+    };
+    const п1 = await цель("артикли", "Артикли", `mode==="eng" && ENG.mode==="rules" && !!document.querySelector(".eng-topic h3") && /Артикли/.test(document.querySelector(".eng-topic h3").textContent)`);
+    const п2 = await цель("push back", "push back[\\s\\S]*согласиться", `mode==="eng" && ENG.mode==="phrases" && document.querySelectorAll(".eng-ph").length>50`);
+    const п3 = await цель("трезвучие", "Трезвучие — через одну", `mode==="mus" && MUS_MODE==="book" && !!document.querySelector("#bkR h2") && /Трезвучие/.test(document.querySelector("#bkR h2").textContent)`);
+    const п4 = await цель("баррэ", "барр", `mode==="mus" && MUS_INS==="guitar" && !!document.querySelector(".hk.open")`);
+    check("результат поиска доводит до места", п1 === "ok" && п2 === "ok" && п3 === "ok" && п4 === "ok",
+      "правило: " + п1 + " · фраза: " + п2 + " · страница книги: " + п3 + " · гитарный приём: " + п4);
+    await A.ev(`MUS_INS="piano"; MUS_MODE="book"; ENG.mode="terms"; ENG.rtopic=null; document.getElementById("tabDrill").click()`); await sleep(200);
+
+    /* прогресс: строки есть, числа берутся из хранилища, клик ведёт в раздел */
+    await A.ev(`localStorage.setItem("jdEngKnown",JSON.stringify({"intro#0":1,"intro#1":1})); localStorage.setItem("jdMusBookDone",JSON.stringify({"kb#0":1,"kb#1":1,"kb#2":1})); setMode("prog"); buildProg();`);
+    await sleep(300);
+    const пр = JSON.parse(await A.ev(`(function(){ var rows=[].slice.call(document.querySelectorAll("#progStage [data-go]"));
+      var txt=function(k){ var r=rows.find(function(x){return x.dataset.go===k}); return r?r.querySelector(".cnum").textContent:"—"; };
+      var обрезано=rows.filter(function(r){ var c=r.querySelector(".cname"); return c.scrollWidth>c.clientWidth+1; }).length;
+      return JSON.stringify({строк:rows.length, фразы:txt("eng-phrases"), книга:txt("mus-book"), спроектируй:txt("design"), обрезано:обрезано}); })()`));
+    await A.ev(`(function(){ var b=document.querySelector('#progStage [data-go="mus-book"]'); if(b)b.click(); })()`); await sleep(500);
+    const ушёл = await A.ev(`mode==="mus" && MUS_MODE==="book" && !!document.getElementById("bkR")`);
+    check("прогресс знает про суждение и бонусы", пр.строк >= 7 && /^2\//.test(пр.фразы) && /^3\//.test(пр.книга) && /\/60$/.test(пр.спроектируй) && пр.обрезано === 0 && ушёл === true,
+      пр.строк + " строк · фразы " + пр.фразы + " · книга " + пр.книга + " · спроектируй " + пр.спроектируй + " · обрезанных подписей " + пр.обрезано + " · клик ведёт в книгу: " + ушёл);
+    await A.ev(`["jdEngKnown","jdMusBookDone","jdMusBook"].forEach(function(k){localStorage.removeItem(k)}); document.getElementById("tabDrill").click()`); await sleep(200);
+
+    /* плашка приветствия: клики проходят сквозь, первое действие её убирает */
+    const пл = JSON.parse(await A.ev(`(function(){ document.querySelectorAll(".onb").forEach(function(e){e.remove()}); localStorage.removeItem("jdSeen"); onbShow();
+      var o=document.querySelector(".onb"); if(!o) return JSON.stringify({есть:false});
+      var pe=getComputedStyle(o).pointerEvents, x=getComputedStyle(o.querySelector("button")).pointerEvents;
+      document.getElementById("tabTerms").click();
+      return JSON.stringify({есть:true, сквозь:pe==="none", крестик:x==="auto", ушла:!document.querySelector(".onb"), отмечено:localStorage.getItem("jdSeen")==="1"}); })()`));
+    check("плашка приветствия не мешает и уходит сама", пл.есть && пл.сквозь && пл.крестик && пл.ушла && пл.отмечено,
+      "появилась " + пл.есть + " · клики сквозь " + пл.сквозь + " · крестик жив " + пл.крестик + " · ушла после первого клика " + пл.ушла + " · отмечена " + пл.отмечено);
+    await A.ev(`document.getElementById("tabDrill").click()`); await sleep(200);
+
+    /* прогрев английского: решение — чистая функция, на file:// не стреляет */
+    const гр = JSON.parse(await A.ev(`JSON.stringify({
+      да:enWarmWanted({sw:true,online:true,saveData:false,loaded:false}),
+      безSW:enWarmWanted({sw:false,online:true,saveData:false,loaded:false}),
+      офлайн:enWarmWanted({sw:true,online:false,saveData:false,loaded:false}),
+      экономия:enWarmWanted({sw:true,online:true,saveData:true,loaded:false}),
+      ужеЕсть:enWarmWanted({sw:true,online:true,saveData:false,loaded:true}),
+      тут:enWarm() })`));
+    check("английский пакет греется в простое — и только когда уместно",
+      гр.да === true && гр.безSW === false && гр.офлайн === false && гр.экономия === false && гр.ужеЕсть === false && гр.тут === false,
+      "под worker'ом онлайн: " + гр.да + " · без worker'а " + гр.безSW + " · офлайн " + гр.офлайн + " · экономия трафика " + гр.экономия + " · уже загружен " + гр.ужеЕсть + " · здесь, на file:// " + гр.тут);
+  }
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);
