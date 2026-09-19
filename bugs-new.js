@@ -7,7 +7,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "code": "@Entity\nclass Trade {\n    @Column(name = \"executed_at\")   // в БД timestamp WITHOUT time zone\n    LocalDateTime executedAt;\n}\n\n@Transactional\npublic void execute(Trade t) {\n    t.setExecutedAt(LocalDateTime.now());   // <-- ?\n    repo.save(t);\n}\n// прод: инстанс №1 в Asia/Almaty, инстанс №2 в UTC",
   "options": [
    "Всё нормально: LocalDateTime внутри всегда хранит UTC",
-   "LocalDateTime.now() берёт TZ конкретной JVM и пишет метку без смещения — два инстанса запишут одно событие с разницей в 5 часов; нужен Instant/OffsetDateTime + timestamptz",
+   "LocalDateTime.now() берёт зону JVM: два инстанса запишут разное время",
    "Не хватает @Temporal(TemporalType.TIMESTAMP) — Hibernate сохранит только дату",
    "Проблема лишь в производительности: LocalDateTime дороже сериализуется, чем Date"
   ],
@@ -21,7 +21,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "options": [
    "Будет 09:00 — для суток Duration.ofDays(1) и plusDays(1) эквивалентны",
    "Бросит DateTimeException: Duration нельзя прибавлять к ZonedDateTime",
-   "Будет 10:00: Duration — ровно 24 часа физического времени, а в ночь на 29 марта Берлин перешёл на летнее время; календарные сутки даёт plusDays(1)",
+   "Будет 10:00: Duration — это 24 часа, а ночью был перевод часов",
    "Будет 08:00 — при переходе часы всегда сдвигаются назад"
   ],
   "why": "Duration — машинное время: ZonedDateTime прибавляет его к моменту, игнорируя смену смещения, и 2026-03-28T09:00+01:00 превращается в 2026-03-29T10:00+02:00. plusDays/Period работают по календарю и дают 09:00. Смещение ловится только в дни перехода: в марте напоминания уезжают на час вперёд, в октябре — назад."
@@ -61,7 +61,7 @@ window.BUGS=(window.BUGS||[]).concat([
    "Ничего страшного: цикл всё равно выйдет, когда running станет false",
    "sleep(200) в цикле — busy-wait, других проблем тут нет",
    "InterruptedException не покрывает прерывание пула, надо ловить Exception",
-   "Проглочен сигнал остановки: sleep сбрасывает флаг прерывания, поток крутится дальше и shutdownNow()/graceful shutdown не работает; нужен Thread.currentThread().interrupt() или выход из цикла"
+   "Проглочен сигнал остановки: sleep сбросил флаг прерывания"
   ],
   "why": "Бросая InterruptedException, sleep/wait/take снимают флаг прерывания (после catch isInterrupted() == false), поэтому проглоченный catch стирает единственный признак того, что поток просили остановиться. При деплое awaitTermination висит до таймаута, и контейнер добивают SIGKILL с недообработанными задачами."
  },
@@ -85,7 +85,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "code": "@Transactional\npublic void createOrder(OrderDto dto) {\n    Order o = repo.save(Order.from(dto));\n    kafka.send(\"spo-pf-orders\", o.getId().toString());   // <-- ?\n    limits.reserve(o);   // иногда бросает LimitExceededException\n}",
   "options": [
    "Kafka-продьюсер участвует в транзакции Spring, поэтому send откатится вместе с БД",
-   "Дуальная запись: сообщение уходит вне транзакции БД — при откате на limits.reserve консьюмер получит событие о заказе, которого в БД нет; нужен outbox или публикация в AFTER_COMMIT",
+   "Дуальная запись: сообщение ушло, а транзакция БД ещё может откатиться",
    "Ошибка в том, что id ещё null: save() не проставляет идентификатор до flush",
    "Нужен REQUIRES_NEW, иначе send заблокирует соединение с БД"
   ],
@@ -123,7 +123,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "correct": 0,
   "code": "BigDecimal paid     = new BigDecimal(\"100.00\");\nBigDecimal expected = invoice.getAmount();   // из NUMERIC(19,4) -> 100.0000\n\nif (paid.equals(expected)) {                 // <-- ?\n    invoice.markPaid();\n}\n// оплата прошла, счёт остался в статусе UNPAID",
   "options": [
-   "equals у BigDecimal сравнивает и значение, и scale: 100.00 != 100.0000, счёт молча не закроется; нужно compareTo(...) == 0",
+   "equals у BigDecimal сравнивает и scale: 100.00 ≠ 100.0000; нужен compareTo",
    "equals работает, но сравнивать надо через ==, иначе будет NPE",
    "Всё верно: scale на equals не влияет, значения численно равны",
    "Из БД приходит Double, поэтому equals всегда false из-за несовпадения типов"
@@ -137,7 +137,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "code": "public BigDecimal perShare(BigDecimal total, int shares) {\n    return total.divide(BigDecimal.valueOf(shares));   // <-- ?\n}\n\n// perShare(new BigDecimal(\"100.00\"), 4) -> 25.00, тесты зелёные\n// perShare(new BigDecimal(\"100.00\"), 3) -> ?",
   "options": [
    "Вернёт 33.33 — divide по умолчанию округляет до scale делимого",
-   "ArithmeticException: Non-terminating decimal expansion — без scale и RoundingMode BigDecimal отказывается округлять; на «круглых» тестовых данных баг не виден",
+   "ArithmeticException: без scale и RoundingMode BigDecimal не станет округлять 100/3",
    "Вернёт 33 — целочисленное деление, потому что shares это int",
    "Потеря точности: получится 33.333333333333336, так как valueOf внутри использует double"
   ],
@@ -189,7 +189,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "code": "@Transactional\npublic void rename(Long id, String name) {\n    cache.evict(id);                              // <-- ?\n    Client c = repo.findById(id).orElseThrow();\n    c.setName(name);\n    audit.log(id);                                // ещё ~300 мс\n}   // коммит здесь",
   "options": [
    "Порядок верный: evict до чтения — код корректен",
-   "Инвалидация до коммита: параллельный запрос между evict и коммитом прочитает из БД СТАРОЕ значение и снова положит его в кэш — после коммита там навсегда устаревшие данные; вытеснять надо в AFTER_COMMIT",
+   "Инвалидация до коммита: читатель вернёт в кэш старое значение",
    "cache.evict внутри активной транзакции бросит IllegalStateException",
    "Нужен @CacheEvict вместо ручного вызова, только тогда ключ попадёт в нужный регион"
   ],
@@ -203,7 +203,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "options": [
    "Надо просто использовать equalsIgnoreCase — ошибки по сути нет",
    "Возможен NPE, если type == null; других проблем нет",
-   "toUpperCase() без Locale берёт Locale.getDefault(): в турецкой локали «i» превращается в «İ», и сравнение с «ID» перестаёт совпадать; для протокольных строк нужен Locale.ROOT",
+   "toUpperCase() без Locale: в турецкой локали «i» станет «İ»",
    "Кириллицу и латиницу нельзя привести к верхнему регистру без ICU4J"
   ],
   "why": "Регистр в Java зависит от локали: \"id\".toUpperCase(tr) даёт «İD» с точкой над I, а \"I\".toLowerCase(tr) — «ı» без точки. Локаль подтягивается из окружения JVM, поэтому на dev-машине всё зелёное, а после смены базового образа или LANG эндпоинт молча перестаёт распознавать тип документа. Для машинных строк всегда toUpperCase(Locale.ROOT)."

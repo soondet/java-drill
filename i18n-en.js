@@ -27412,7 +27412,7 @@ window.I18N = {
   "bug2-lock-ordering-deadlock": {
    "options": [
     "Acquiring two monitors from a single thread always leads to a deadlock — you cannot hold two synchronized blocks at the same time.",
-    "Two threads doing transfer(A,B) and transfer(B,A) at the same time will acquire the locks in opposite order and deadlock; you need to order lock acquisition by a stable key (for example, by account id).",
+    "transfer(A,B) and transfer(B,A) running together take the locks in opposite order — a deadlock; one fixed lock order is needed",
     "Everything is correct: nested synchronized blocks guarantee the atomicity of the transfer and a deadlock is impossible here.",
     "The problem is that from.debit and to.credit are called inside the two locks — this causes a livelock due to reentering the monitor."
    ],
@@ -27421,7 +27421,7 @@ window.I18N = {
   "bug2-lost-update": {
    "options": [
     "find() should be replaced with getReference(), otherwise the whole entity is loaded which is slow",
-    "Read-modify-write without locking: both read 150, both pass the check and debit — the balance goes negative (lost update). A @Lock(PESSIMISTIC_WRITE) or @Version is needed",
+    "A lost update: both read 150, both pass the check and both withdraw",
     "You cannot compare BigDecimal via compareTo, you must use equals — otherwise the balance check is wrong",
     "Everything is correct: @Transactional under READ_COMMITTED guarantees that the second call will see the already debited balance"
    ],
@@ -27431,14 +27431,14 @@ window.I18N = {
    "options": [
     "nativeQuery is incompatible with :param placeholders, you need ?1 — that is why the index is ignored",
     "LOWER(:email) on the parameter is not evaluated in advance, which is why the planner cannot use the index",
-    "LOWER(email) is a function over the column, so the ordinary index on email does not apply; you need a functional index on LOWER(email) or to store email already in lowercase",
+    "LOWER(email) is a function over the column: a plain index on email does not apply",
     "SELECT * prevents using the index — you must list the columns, then an index-only scan will work"
    ],
    "why": "The index is built on email, while the condition filters by LOWER(email) — that is a different expression, the B-tree index does not fit and a seq scan is used. You need an index on LOWER(email) (functional index) or to normalize email on write."
   },
   "bug2-offset-pagination": {
    "options": [
-    "OFFSET pagination over a frequently changing set: when rows are inserted/deleted between pages, some orders are duplicated or skipped. Keyset pagination is needed (WHERE created_at < :lastSeen)",
+    "OFFSET over a changing set: rows get duplicated or skipped between pages; keyset pagination is needed",
     "LIMIT must come after OFFSET in SQL — the keyword order is violated, the query will fail",
     "The loop is infinite: the exit condition break on empty is unreachable, because batch always contains at least one row",
     "ORDER BY created_at is not unique — without this the results will come back in random order and process() will handle garbage"
@@ -27449,14 +27449,14 @@ window.I18N = {
    "options": [
     "LAZY on @ManyToOne does not work without bytecode enhancement, so client is always null and there will be an NPE",
     "getClient().getName() outside a transaction throws LazyInitializationException — that is the only problem",
-    "N+1: for each order in the loop a separate SELECT of the client is executed. A JOIN FETCH or @EntityGraph is needed to load the clients in a single query",
+    "N+1: a separate SELECT of the client for every order in the loop; use JOIN FETCH or @EntityGraph",
     "Everything is correct: Hibernate automatically batches lazy loads by default, there will be no extra queries"
    ],
    "why": "The query loads only the orders, while accessing the lazy client in the loop triggers one SELECT per order — N+1. Fixed with JOIN FETCH o.client or @EntityGraph/@BatchSize."
   },
   "bug2-phantom-isolation": {
    "options": [
-    "READ_COMMITTED does not protect against phantoms: two threads simultaneously read count < CAPACITY and both insert — more seats get sold than allowed. You need SERIALIZABLE/SELECT FOR UPDATE on the parent row or a unique constraint",
+    "READ_COMMITTED does not protect from phantoms: both threads see count < CAPACITY and both insert",
     "count(*) is slow on large tables, so the check sometimes lags behind and lets the insert through",
     "save() must be called in a separate transaction with REQUIRES_NEW, otherwise the INSERT is not visible to the next call",
     "Everything is correct: @Transactional serializes access to the method, so two threads cannot pass the check at the same time"
@@ -27484,7 +27484,7 @@ window.I18N = {
   "bug2-retry-post": {
    "options": [
     "@Retryable does not work on public methods — it needs protected",
-    "POST is non-idempotent: on a response timeout the payment may already have been created on the server, and the retry creates another one (double charge). You need an Idempotency-Key in the header so the server deduplicates",
+    "POST is not idempotent: the payment may already exist, and the retry creates a second one",
     "maxAttempts=3 is too few, you need exponential backoff — otherwise you DDoS the server",
     "Everything is correct: the retry only fires on IOException, business errors (4xx/5xx) are not retried"
    ],
@@ -27511,7 +27511,7 @@ window.I18N = {
   "bug2-threadlocal-pool": {
    "options": [
     "The ThreadLocal must be non-static, otherwise all threads share a single UserContext object and see each other's context",
-    "In a thread pool (Tomcat) the thread is reused, and CTX is never cleared via remove() — this is a memory leak and a leak of another user's context into the next request",
+    "A pooled thread is reused and CTX is never cleared with remove() — someone else's context leaks into the next request",
     "ThreadLocal is not thread-safe, you need to wrap set/get in synchronized",
     "The code is correct: ThreadLocal cleans itself up when the thread is returned to the pool"
    ],
@@ -27521,7 +27521,7 @@ window.I18N = {
    "options": [
     "finalize() must be public, otherwise the GC cannot call it and the native memory is never freed",
     "You must call super.finalize() at the start of the method, not at the end, otherwise the resource leaks",
-    "Releasing via finalize() is unreliable: the call is not guaranteed, it delays object collection by an extra GC cycle, and under load leads to native-memory OOM — you need Cleaner/AutoCloseable",
+    "finalize() is unreliable: the call is not guaranteed, and under load native memory runs out — use a Cleaner",
     "The code is correct: finalize() will reliably free the native handle during garbage collection"
    ],
    "why": "finalize() is deprecated and unreliable: the timing and even the fact of the call are not guaranteed, finalizable objects survive an extra GC cycle and pile up in the finalization queue, which under load leads to native-memory OOM. The replacement is java.lang.ref.Cleaner or implementing AutoCloseable with try-with-resources."
@@ -27529,7 +27529,7 @@ window.I18N = {
   "bug2-unbounded-cache": {
    "options": [
     "computeIfAbsent is not atomic in ConcurrentHashMap — two threads can load the price twice",
-    "The cache is unbounded and nothing is ever evicted from it: with a large number of unique isins (or user-supplied keys) the Map grows without limit, up to OOM — you need a size limit/TTL (Caffeine)",
+    "The cache has no limit and evicts nothing: with a stream of keys it grows until OOM",
     "BigDecimal cannot be used as a value in ConcurrentHashMap because of its mutable state",
     "The code is correct: GC will itself remove rarely used entries from a plain HashMap"
    ],
@@ -27547,7 +27547,7 @@ window.I18N = {
   "bug2-equals-no-hashcode": {
    "options": [
     "equals is written incorrectly: you should compare via getClass(), and instanceof breaks the contract",
-    "equals is overridden, but hashCode is not — two equal Money objects have different hashes, and contains in a HashSet returns false",
+    "equals is overridden without hashCode: equal Money objects hash differently, contains returns false",
     "Everything is correct: HashSet uses equals for lookup, contains returns true",
     "cents should be a Long (object), otherwise == compares values incorrectly for large numbers"
    ],
@@ -27557,7 +27557,7 @@ window.I18N = {
    "options": [
     "An ArrayList cannot be used as a HashMap key — this will throw a ClassCastException on put",
     "get returns 1, because it is the same reference to the key object",
-    "After mutating the key, the list's hashCode changed, the bucket no longer matches — get returns null (the entry has become unreachable)",
+    "After the key is mutated its hashCode changes, the bucket no longer matches — get returns null",
     "v will be 1, because HashMap caches the original hashCode on put"
    ],
    "why": "A List used as a HashMap key is mutable: after key.add(\"c\") its hashCode changes, and the entry ends up in the \"wrong\" bucket — get returns null. Keys in a HashMap must be immutable."
@@ -27575,7 +27575,7 @@ window.I18N = {
    "options": [
     "intValue() on a Long loses precision, so sameId always returns false",
     "Autoboxing int→Integer does not happen, primitives are compared — everything is correct",
-    "== compares Integer references: for values in the cache (-128..127) it works, but for 200 it gives false even for equal values — you need equals/intValue",
+    "== compares Integer references: inside the cache (-128..127) it works, but for 200 it gives false",
     "r1 and r2 both return true, because the compiler optimizes autoboxing of identical values"
    ],
    "why": "Integer parameters are compared via == by reference. For values from the Integer cache (-128..127) the references match, but for 200 different objects are created and == gives false. You need equals or to compare as int."
@@ -27583,7 +27583,7 @@ window.I18N = {
   "bug2-cme-iterator": {
    "options": [
     "remove(o) removes the wrong element, because List.remove(Object) treats Order as an index",
-    "Modifying the list during a for-each through the list itself breaks modCount and throws a ConcurrentModificationException on the next iteration",
+    "Removing through the list itself inside a for-each breaks modCount — ConcurrentModificationException",
     "Everything is correct for a single thread: for-each safely removes elements from an ArrayList",
     "There will be a memory leak, because removed Order objects remain in the iterator"
    ],
@@ -27593,7 +27593,7 @@ window.I18N = {
    "options": [
     "ResultSet cannot be declared in try-with-resources — it does not implement AutoCloseable",
     "st.executeQuery is called before the Statement is opened, which gives a NullPointerException",
-    "Connection is not declared in try-with-resources and is not closed — every call leaks a connection from the pool",
+    "Connection is not in the try-with-resources and is never closed — a leak from the pool",
     "Everything is correct: closing the Statement cascades to close the Connection too"
    ],
    "why": "Only Statement and ResultSet are declared in try-with-resources, while Connection is obtained outside and is never closed — the connection is not returned to the pool (a leak). Connection must also be included in the try-with-resources."
@@ -27610,7 +27610,7 @@ window.I18N = {
   "bug2-transactional-self": {
    "options": [
     "REQUIRES_NEW cannot be applied to a void method — the transaction won't commit without an explicit flush",
-    "The internal call to saveOne() bypasses the CDI proxy (self-invocation), so @Transactional is ignored and each persist runs without its own transaction",
+    "The internal call to saveOne() bypasses the CDI proxy (self-invocation), so @Transactional is ignored",
     "o.persist() requires importAll itself to be @Transactional, otherwise a PersistenceException occurs — and REQUIRES_NEW is redundant here",
     "Everything is correct: each saveOne opens a new transaction and commits its entity independently"
    ],
@@ -27619,7 +27619,7 @@ window.I18N = {
   "bug2-buildtime-env": {
    "options": [
     "@ConfigProperty cannot inject a String without Optional — if the value is missing there will be a DeploymentException at startup",
-    "quarkus.hibernate-orm.database.generation is a build-time property: it is fixed at build time, and overriding it via the env variable DB_GEN at runtime has no effect",
+    "This is a build-time property: it is fixed at build time, and the DB_GEN env variable has no effect at runtime",
     "The default ${DB_GEN:none} is syntactically incorrect — Quarkus does not support defaults in property references",
     "FeatureGate must be @Singleton, otherwise the value of dbGen is re-read on every request and slows things down"
    ],
@@ -27629,7 +27629,7 @@ window.I18N = {
    "options": [
     "@Incoming requires returning a CompletionStage or Uni, otherwise messages are not acknowledged and the channel hangs",
     "BigDecimal cannot be added to an ArrayList without a comparator — it will throw a ClassCastException when comparing in size()",
-    "An @ApplicationScoped bean is one per application, and its mutable field buffer is modified concurrently by several consumer threads without synchronization — a race condition and loss/corruption of data",
+    "There is one bean per application, and its ArrayList is mutated from several threads without synchronisation — a race",
     "Everything is correct: Quarkus guarantees that @Incoming methods of a single bean run strictly on one thread, so there is no race"
    ],
    "why": "@ApplicationScoped is a singleton, and the unsafe ArrayList is mutated from concurrent onQuote calls: size, add, and clear are not atomic, which produces a race condition and loss of elements. You need to synchronize access, use a thread-safe structure, or limit the channel's concurrency."
@@ -27637,7 +27637,7 @@ window.I18N = {
   "bug2-self-invocation-tx": {
    "options": [
     "The loop calls saveOne for each order — you need a single @Transactional on process, otherwise there will be N commits instead of one",
-    "@Transactional on saveOne doesn't work: the internal call to saveOne() goes directly, bypassing the proxy, so no transaction is opened at all",
+    "@Transactional on saveOne does not work: the internal call goes directly, bypassing the proxy, so no transaction is opened",
     "publishEvent inside @Transactional will publish the event before the commit — you need @TransactionalEventListener",
     "repository.save is already transactional on its own, the annotation on saveOne is redundant and breaks nothing"
    ],
@@ -27647,14 +27647,14 @@ window.I18N = {
    "options": [
     "BigDecimal.subtract does not mutate — the balance won't change, and save will write the old value",
     "pay is not annotated with @Transactional, so save outside a transaction will throw a TransactionRequiredException",
-    "@Transactional on a private method is ignored (a CGLIB proxy cannot override it), so the transaction is not applied",
+    "@Transactional on a private method is ignored: the proxy cannot override it",
     "Everything is correct: Spring proxies private methods within the bean, and the transaction works normally"
    ],
    "why": "Spring AOP proxies work only with public methods (CGLIB cannot override private ones), so @Transactional on a private method is silently ignored. The method must be made public and called from outside."
   },
   "bug2-readonly-write": {
    "options": [
-    "readOnly=true optimizes reads, but a change to a managed entity will silently not be saved on flush — the lastSeen change will be lost",
+    "readOnly=true: a change to the managed entity is never flushed, and lastSeen is silently lost",
     "findById outside a separate transaction returns a detached entity, and setLastSeen will throw a LazyInitializationException",
     "readOnly=true rolls back the transaction on an attempt to modify the entity — there will be an UnsupportedOperationException",
     "Everything is correct: readOnly only affects the isolation level, and the lastSeen write will go through fine"
@@ -27664,7 +27664,7 @@ window.I18N = {
   "bug2-prototype-in-singleton": {
    "options": [
     "A prototype bean cannot be autowired — Spring will throw a NoUniqueBeanDefinitionException at startup",
-    "Handler is a singleton, so the prototype dependency is injected once at creation time: all requests share the same ctx instance",
+    "A prototype inside a singleton is injected once: all requests share one ctx",
     "@Scope(\"prototype\") requires proxyMode=TARGET_CLASS, otherwise the bean won't be created at all",
     "Everything is correct: on each access to ctx Spring substitutes a new prototype instance"
    ],
@@ -27672,7 +27672,7 @@ window.I18N = {
   },
   "bug2-catch-swallows-rollback": {
    "options": [
-    "Catching the exception and continuing leaves a debit without a credit, but the transaction still commits — money is debited while the credit is never performed",
+    "The exception is swallowed and the transaction commits: money is debited but never credited — an inconsistent state",
     "After the caught RuntimeException the transaction is already marked rollback-only, so the commit on exit will throw UnexpectedRollbackException",
     "debit and creditExternal in one transaction are automatically rolled back together on any exception inside the method",
     "Everything is correct: catch handles the error, the transaction commits with a consistent state"
@@ -27691,7 +27691,7 @@ window.I18N = {
   "bug2-float-equals-assert": {
    "options": [
     "calcCommission must return BigDecimal, otherwise the test won't compile",
-    "assertEquals(0.3, commission) compares doubles exactly: 0.1+0.2 == 0.30000000000000004, so the test fails. You need the overload with a delta or BigDecimal",
+    "assertEquals compares doubles exactly, and 0.1+0.2 ≠ 0.3 — a delta is needed",
     "The test is correct: JUnit 5 by default compares doubles with a delta of 1e-9",
     "The literal 0.3 is interpreted as a float; you need 0.3d"
    ],
@@ -27701,7 +27701,7 @@ window.I18N = {
    "options": [
     "A static List is not thread-safe; the tests will fail due to a race condition when run in parallel",
     "The field must be annotated @BeforeEach, otherwise it isn't initialized",
-    "The static field is shared between tests and is not reset: the second test that runs sees size()==2 and fails. The result depends on the run order; you need a non-static field or @BeforeEach that recreates it",
+    "The static field is not reset between tests: the second one sees size()==2 and fails",
     "JUnit 5 creates a new instance of the class for each test, so log is always empty — both tests are green"
    ],
    "why": "A static field lives between tests and accumulates state: whichever test runs second, size() becomes 2 and the assert fails — the result depends on the order. It is fixed with a non-static field (JUnit 5 creates a new instance per test) or by resetting it in @BeforeEach."
@@ -27709,7 +27709,7 @@ window.I18N = {
   "bug2-jwt-none-alg": {
    "options": [
     "verify() uses setSigningKey without specifying the required algorithm — but that is not the main problem here",
-    "getUserId() reads sub directly from the unverified payload, bypassing verify() — the signature and exp are not checked, and sub can be forged",
+    "getUserId() reads sub from an unverified payload, bypassing verify() — sub can be forged",
     "Base64.getDecoder() will fail on a JWT, since a JWT uses only standard Base64, and that is the bug",
     "Everything is correct: parts[1] is the payload, and the signature is verified by the separate verify() call above"
    ],
@@ -27719,7 +27719,7 @@ window.I18N = {
    "options": [
     "sendRedirect must be called only after resp.setStatus(302), otherwise the redirect won't work",
     "returnUrl is not URL-decoded, so a relative path will break on special characters",
-    "The startsWith(\"/\") check lets through values like //evil.com and /\\evil.com — the browser treats them as a protocol-relative URL and navigates to a foreign domain (open redirect)",
+    "startsWith(\"/\") lets //evil.com through — the browser goes to a foreign domain",
     "Everything is correct: startsWith(\"/\") guarantees the redirect always stays within the current host"
    ],
    "why": "//evil.com and /\\evil.com pass startsWith(\"/\"), but the browser interprets them as an absolute URL to a foreign host. You need to validate against a whitelist of paths or reject values that start with // and /\\."
@@ -27727,7 +27727,7 @@ window.I18N = {
   "bug2-cors-wildcard-creds": {
    "options": [
     "allowedMethods does not include OPTIONS, so preflight requests will be rejected and CORS won't work at all",
-    "allowedOriginPatterns(\"*\") together with allowCredentials(true) reflects any Origin into the header and permits sending cookies — effectively opening the API to any site with the user's authorization",
+    "allowedOriginPatterns(\"*\") together with allowCredentials(true) opens the API with cookies to any site",
     "allowedHeaders(\"*\") has no effect when allowCredentials(true) and should throw an exception at startup",
     "Everything is correct: allowedOriginPatterns(\"*\") is safer than allowedOrigins(\"*\") and is fully compatible with credentials"
    ],
@@ -27746,7 +27746,7 @@ window.I18N = {
    "options": [
     "sessionCreationPolicy.IF_REQUIRED does not create a session in advance, so oauth2Login cannot store state and login will break",
     "oauth2Login requires explicitly specifying loginPage, otherwise the bean won't come up",
-    "csrf().disable() with session cookie-based authentication (oauth2Login creates a session with JSESSIONID) opens up CSRF: a foreign site will be able to send authenticated POST requests on behalf of the user",
+    "csrf().disable() with a session cookie (oauth2Login creates JSESSIONID) opens up CSRF: another site can send POSTs as the user",
     "Everything is correct: when using OAuth2, CSRF protection is not needed, since tokens are passed in the Authorization header"
    ],
    "why": "oauth2Login works via a session cookie (JSESSIONID), which the browser sends automatically, so disabled CSRF makes state-changing requests vulnerable. CSRF is disabled only for stateless APIs on Bearer tokens, but here it must be left enabled."
@@ -27755,7 +27755,7 @@ window.I18N = {
    "why": "LocalDateTime is \"wall clock time\" with no zone: now() reads the process's time zone (the container, user.timezone). Asia/Almaty is UTC+5, so the same event gets timestamps five hours apart and sorting by executed_at shuffles trades from different instances. Store a moment in time as an Instant/OffsetDateTime in a timestamptz column and leave LocalDateTime for display.",
    "options": [
     "It is fine: LocalDateTime always stores UTC internally",
-    "LocalDateTime.now() takes the particular JVM's TZ and writes a timestamp with no offset — two instances record one event five hours apart; you need Instant/OffsetDateTime + timestamptz",
+    "LocalDateTime.now() uses the JVM's zone: two instances will write different times",
     "@Temporal(TemporalType.TIMESTAMP) is missing — Hibernate will save only the date",
     "The only problem is performance: LocalDateTime serialises more expensively than Date"
    ]
@@ -27765,7 +27765,7 @@ window.I18N = {
    "options": [
     "It will be 09:00 — for a day, Duration.ofDays(1) and plusDays(1) are equivalent",
     "It will throw a DateTimeException: a Duration cannot be added to a ZonedDateTime",
-    "It will be 10:00: a Duration is exactly 24 hours of physical time, and on the night of 29 March Berlin moved to summer time; a calendar day is given by plusDays(1)",
+    "It will be 10:00: a Duration is 24 hours, and the clocks changed overnight",
     "It will be 08:00 — on a transition the clocks always move back"
    ]
   },
@@ -27793,7 +27793,7 @@ window.I18N = {
     "Nothing terrible: the loop will exit anyway once running becomes false",
     "sleep(200) in a loop is a busy-wait, and there are no other problems here",
     "InterruptedException does not cover interruption of the pool, you have to catch Exception",
-    "The stop signal is swallowed: sleep clears the interrupt flag, the thread keeps spinning and shutdownNow()/graceful shutdown stops working; you need Thread.currentThread().interrupt() or an exit from the loop"
+    "The stop signal is swallowed: sleep cleared the interrupt flag"
    ]
   },
   "bug-exc3": {
@@ -27809,7 +27809,7 @@ window.I18N = {
    "why": "Kafka and Postgres are two independent resources: the send goes out immediately while the database commit happens (or does not) later, and there is no atomicity between them in either direction. The cure is a transactional outbox: the event is written as a table row in the same transaction and a separate relay sends it.",
    "options": [
     "The Kafka producer takes part in the Spring transaction, so the send rolls back together with the database",
-    "A dual write: the message leaves outside the database transaction — on a rollback at limits.reserve the consumer receives an event for an order that does not exist in the database; you need an outbox or publication in AFTER_COMMIT",
+    "A dual write: the message is gone, while the DB transaction may still roll back",
     "The error is that the id is still null: save() does not set the identifier before flush",
     "REQUIRES_NEW is needed, otherwise the send blocks the database connection"
    ]
@@ -27835,7 +27835,7 @@ window.I18N = {
   "bug-money2": {
    "why": "BigDecimal.equals requires both the unscaled value AND the scale to match, and the scale arrives from the column type, from parsing a string or from setScale — and diverges easily. The same mine sits in a HashSet/HashMap: the hashCode of 100.00 and 100.0000 differs (310002 against 31000004), so contains returns false.",
    "options": [
-    "BigDecimal's equals compares both the value and the scale: 100.00 != 100.0000, the account silently fails to close; you need compareTo(...) == 0",
+    "BigDecimal.equals compares the scale too: 100.00 ≠ 100.0000; use compareTo",
     "equals works, but the comparison must be made with ==, otherwise there will be an NPE",
     "It is all correct: scale does not affect equals, the values are numerically equal",
     "A Double comes back from the database, so equals is always false because the types do not match"
@@ -27845,7 +27845,7 @@ window.I18N = {
    "why": "divide(BigDecimal) is obliged to give an exact result, and 100.00/3 is a recurring fraction, so instead of rounding you get an ArithmeticException. Whether it fails depends on the data: divisors of 2, 4, 5 and 10 pass, so the bug survives until the first customer with three securities in an order. Cured by divide(x, 2, RoundingMode.HALF_UP).",
    "options": [
     "It returns 33.33 — divide rounds to the dividend's scale by default",
-    "ArithmeticException: Non-terminating decimal expansion — without a scale and a RoundingMode, BigDecimal refuses to round; on \"round\" test data the bug is invisible",
+    "ArithmeticException: without a scale and RoundingMode BigDecimal refuses to round 100/3",
     "It returns 33 — integer division, because shares is an int",
     "A loss of precision: you get 33.333333333333336, because valueOf uses a double internally"
    ]
@@ -27881,7 +27881,7 @@ window.I18N = {
    "why": "Between the evict and the commit there is a window of hundreds of milliseconds, and any concurrent reader fills the cache with data that has not changed yet — the entry sticks until the TTL although the database already holds the new name. Invalidation is hung on TransactionSynchronization/AFTER_COMMIT; that also fixes the rollback case, where the cache was cleared for nothing.",
    "options": [
     "The order is right: evict before the read — the code is correct",
-    "Invalidation before the commit: a parallel request between the evict and the commit reads the OLD value from the database and puts it back into the cache — after the commit the cache holds stale data forever; eviction must happen in AFTER_COMMIT",
+    "Eviction before the commit: a reader puts the old value back into the cache",
     "cache.evict inside an active transaction throws an IllegalStateException",
     "@CacheEvict is needed instead of the manual call, only then does the key land in the right region"
    ]
@@ -27891,7 +27891,7 @@ window.I18N = {
    "options": [
     "Just use equalsIgnoreCase — there is essentially no error here",
     "An NPE is possible if type == null; there are no other problems",
-    "toUpperCase() without a Locale takes Locale.getDefault(): in the Turkish locale \"i\" becomes \"İ\" and the comparison with \"ID\" stops matching; protocol strings need Locale.ROOT",
+    "toUpperCase() without a Locale: in the Turkish locale \"i\" becomes \"İ\"",
     "Cyrillic and Latin cannot be upper-cased without ICU4J"
    ]
   },

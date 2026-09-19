@@ -642,18 +642,33 @@ const check = (name, ok, detail) => {
       взять("викторина",qz,68);                                  /* храповик: было 68% на втором месте */
       /* У «найди баг» и «что выведет код» своя структура — первый замер их пропустил,
          а там хуже всего: в «найди баг» верный был самым длинным в 75 задачах из 75.
-         Чинится пачками, храповик опускается с каждой: 100 → 75 → 50 → 25. */
+         Выровнено тремя пачками: 100 → 75 → 25, дальше обычный потолок. */
       var bg=[]; (typeof BUGS!=="undefined"?BUGS:[]).forEach(function(b){ if(Array.isArray(b.options)&&typeof b.correct==="number"&&b.options.length===4)
         bg.push({correct:String(b.options[b.correct]), wrong:b.options.filter(function(_,i){return i!==b.correct}).map(String)}); });
-      взять("найди баг",bg,75);                                  /* храповик после пачки 1: было 100% на первом месте */
+      взять("найди баг",bg,40);                                  /* было 100% на первом месте; выровнено тремя пачками, храповик снят */
       var wp=[]; (window.WP||[]).forEach(function(q){ if(q&&q.out!=null&&Array.isArray(q.w)&&q.w.length===3) wp.push({correct:String(q.out), wrong:q.w.map(String)}); });
       взять("что выведет",wp,45);                                /* храповик: 45% на первом месте */
+      /* Английский мерился отдельно только одним правилом — «у каждого вопроса есть
+         неверный длиннее верного». Его выполнили буквально: ровно один. Итог — в
+         английской викторине верный стоит вторым по длине в 91% вопросов. Перевод
+         меняет длины, поэтому русская правка английский не чинит: меряем оба. */
+      var en=function(s){ return (typeof trLook==="function")?trLook(String(s)):null; };
+      var черезСловарь=function(arr){ return (arr||[]).map(function(x){ if(!x||typeof x.correct!=="string"||!Array.isArray(x.wrong)) return null;
+        var c=en(x.correct), w=x.wrong.map(en); return (c&&w.every(Boolean))?{correct:c,wrong:w}:null; }).filter(Boolean); };
+      взять("диагностика EN",черезСловарь(window.DIAG),40); взять("ревью EN",черезСловарь(window.REVIEW),40); взять("спроектируй EN",черезСловарь(ds),40);
+      var bgEn=[]; (typeof BUGS!=="undefined"?BUGS:[]).forEach(function(b){ var e=I18N.bugs&&I18N.bugs[b.id]; if(!e||!Array.isArray(e.options)||e.options.length!==4) return;
+        bgEn.push({correct:String(e.options[b.correct]), wrong:e.options.filter(function(_,i){return i!==b.correct}).map(String)}); });
+      взять("найди баг EN",bgEn,40);
+      var qzEn=[]; Object.keys(I18N.cards||{}).forEach(function(id){ var e=I18N.cards[id]; if(e&&e.quizCorrect&&Array.isArray(e.quizWrong)&&e.quizWrong.length===3) qzEn.push({correct:e.quizCorrect, wrong:e.quizWrong}); });
+      взять("викторина EN",qzEn,91);                             /* храповик: 91% на втором месте */
       return JSON.stringify(наборы);
     })()`));
     const плохие = места.filter(s => Math.max(...s.доли) > s.потолок);
-    check("викторины не пройти, выбирая вариант по месту длины", места.length === 6 && плохие.length === 0,
-      (плохие.length ? плохие : места).map(s => s.имя + " " + s.доли.join("/") + (плохие.length ? " (потолок " + s.потолок + "%)" : "")).join(" · ")
-        + (плохие.length ? "" : " — места 1/2/3/4 по длине, случайно по 25%"));
+    /* 6 русских наборов и 5 английских; меньше — значит пакет перевода не подгрузился и мерить было нечем */
+    check("викторины не пройти, выбирая вариант по месту длины", места.length === 11 && плохие.length === 0,
+      места.length !== 11 ? "наборов " + места.length + " вместо 11 — английский пакет не загружен?"
+        : (плохие.length ? плохие : места).map(s => s.имя + " " + s.доли.join("/") + (плохие.length ? " (потолок " + s.потолок + "%)" : "")).join(" · ")
+          + (плохие.length ? "" : " — места 1/2/3/4 по длине, случайно по 25%"));
     /* долг печатается при каждом прогоне: всё, что выше 40%, живёт на храповике */
     места.filter(s => Math.max(...s.доли) > 40).forEach(s =>
       console.log("    · долг: «" + s.имя + "» держит " + Math.max(...s.доли) + "% на одном месте — храповик " + s.потолок + "%, цель 35%"));

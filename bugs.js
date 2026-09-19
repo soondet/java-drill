@@ -254,7 +254,7 @@ window.BUGS = [
   "code": "void transfer(Account from, Account to, int amount) {\n    synchronized (from) {       // <-- ?\n        synchronized (to) {\n            from.debit(amount);\n            to.credit(amount);\n        }\n    }\n}",
   "options": [
    "Захват двух мониторов из одного потока всегда приводит к deadlock — нельзя держать два synchronized одновременно.",
-   "Два потока, делающие transfer(A,B) и transfer(B,A) одновременно, захватят локи в обратном порядке и получат deadlock; нужно упорядочить захват локов по стабильному ключу (например, по id аккаунта).",
+   "transfer(A,B) и transfer(B,A) одновременно захватят локи в обратном порядке — deadlock; нужен единый порядок захвата",
    "Всё корректно: вложенные synchronized гарантируют атомарность перевода и deadlock здесь невозможен.",
    "Проблема в том, что from.debit и to.credit вызываются внутри двух локов — это вызывает livelock из-за повторного входа в монитор."
   ],
@@ -267,7 +267,7 @@ window.BUGS = [
   "code": "@Transactional\npublic void withdraw(Long accountId, BigDecimal amount) {\n    Account acc = em.find(Account.class, accountId);\n    if (acc.getBalance().compareTo(amount) >= 0) {\n        acc.setBalance(acc.getBalance().subtract(amount));\n    }\n    // JPA flush на коммите\n}\n// Два параллельных вызова withdraw(1, 100) при балансе 150",
   "options": [
    "find() надо заменить на getReference(), иначе грузится вся сущность и это медленно",
-   "Read-modify-write без блокировки: оба читают 150, оба проходят проверку и списывают — баланс уходит в минус (lost update). Нужен @Lock(PESSIMISTIC_WRITE) или @Version",
+   "Lost update: оба читают 150, оба проходят проверку и оба списывают",
    "Нельзя сравнивать BigDecimal через compareTo, надо equals — иначе проверка баланса неверна",
    "Всё корректно: @Transactional при READ_COMMITTED гарантирует, что второй вызов увидит уже списанный баланс"
   ],
@@ -281,7 +281,7 @@ window.BUGS = [
   "options": [
    "nativeQuery несовместим с :param-плейсхолдерами, нужно ?1 — поэтому индекс игнорируется",
    "LOWER(:email) на параметре не вычисляется заранее, из-за чего планировщик не может использовать индекс",
-   "LOWER(email) — функция над колонкой, поэтому обычный индекс по email не применяется; нужен функциональный индекс на LOWER(email) либо хранить email уже в нижнем регистре",
+   "LOWER(email) — функция над колонкой: обычный индекс по email не применяется",
    "SELECT * мешает использовать индекс — надо перечислить колонки, тогда сработает index-only scan"
   ],
   "why": "Индекс построен по email, а условие фильтрует по LOWER(email) — это другое выражение, B-tree индекс не подходит и идёт seq scan. Нужен индекс на LOWER(email) (functional index) или нормализация email при записи."
@@ -292,7 +292,7 @@ window.BUGS = [
   "correct": 0,
   "code": "// постранично выгружаем активные заказы, новые приходят постоянно\nString sql = \"SELECT * FROM orders WHERE status='ACTIVE' \" +\n             \"ORDER BY created_at DESC LIMIT 50 OFFSET :offset\";\nfor (int page = 0; ; page++) {\n    List<Order> batch = jdbc.query(sql, Map.of(\"offset\", page * 50));\n    if (batch.isEmpty()) break;\n    process(batch);\n}",
   "options": [
-   "OFFSET-пагинация по часто меняющемуся набору: при вставке/удалении строк между страницами часть заказов дублируется или пропускается. Нужна keyset-пагинация (WHERE created_at < :lastSeen)",
+   "OFFSET по меняющемуся набору: строки между страницами дублируются или пропускаются; нужна keyset-пагинация",
    "LIMIT должен идти после OFFSET в SQL — порядок ключевых слов нарушен, запрос упадёт",
    "Цикл бесконечный: условие выхода break при empty недостижимо, потому что batch всегда содержит хотя бы одну строку",
    "ORDER BY created_at не уникален — без этого результаты вернутся в случайном порядке и process() обработает мусор"
@@ -307,7 +307,7 @@ window.BUGS = [
   "options": [
    "LAZY на @ManyToOne не работает без bytecode enhancement, поэтому client всегда null и будет NPE",
    "getClient().getName() вне транзакции бросит LazyInitializationException — это единственная проблема",
-   "N+1: на каждый заказ в цикле выполняется отдельный SELECT клиента. Нужен JOIN FETCH или @EntityGraph, чтобы подгрузить клиентов одним запросом",
+   "N+1: на каждый заказ в цикле отдельный SELECT клиента; нужен JOIN FETCH или @EntityGraph",
    "Всё корректно: Hibernate автоматически батчит ленивые загрузки по умолчанию, лишних запросов не будет"
   ],
   "why": "Запрос грузит только заказы, а обращение к ленивому client в цикле инициирует по одному SELECT на заказ — N+1. Чинится JOIN FETCH o.client или @EntityGraph/@BatchSize."
@@ -318,7 +318,7 @@ window.BUGS = [
   "correct": 0,
   "code": "@Transactional(isolation = Isolation.READ_COMMITTED)\npublic void reserveSeat(Long eventId) {\n    long taken = repo.countByEvent(eventId);   // SELECT count(*)\n    if (taken < CAPACITY) {\n        repo.save(new Seat(eventId));           // INSERT\n    } else {\n        throw new SoldOutException();\n    }\n}\n// продаётся больше мест, чем CAPACITY",
   "options": [
-   "READ_COMMITTED не защищает от phantom: два потока одновременно читают count < CAPACITY и оба вставляют — мест продаётся больше. Нужен SERIALIZABLE/SELECT FOR UPDATE на родителе или уникальное ограничение",
+   "READ_COMMITTED не защищает от phantom: оба потока видят count < CAPACITY и оба вставляют",
    "count(*) медленный на больших таблицах, поэтому проверка иногда не успевает и пропускает вставку",
    "save() надо вызывать в отдельной транзакции с REQUIRES_NEW, иначе INSERT не виден следующему вызову",
    "Всё корректно: @Transactional сериализует доступ к методу, поэтому два потока не могут одновременно пройти проверку"
@@ -358,7 +358,7 @@ window.BUGS = [
   "code": "@Retryable(maxAttempts = 3, value = IOException.class)\npublic String createPayment(PaymentReq req) {\n    // POST без ключа идемпотентности\n    return restClient.post()\n        .uri(\"/v1/payments\")          // <-- ?\n        .body(req)\n        .retrieve()\n        .body(String.class);\n    // таймаут ответа => IOException => повтор\n}",
   "options": [
    "@Retryable не работает на public-методах — нужен protected",
-   "POST неидемпотентен: при таймауте ответа платёж мог уже создаться на сервере, а ретрай создаст ещё один (двойное списание). Нужен Idempotency-Key в заголовке, чтобы сервер дедуплицировал",
+   "POST неидемпотентен: платёж мог создаться, и ретрай создаст второй",
    "maxAttempts=3 слишком мало, нужно экспоненциальный backoff — иначе DDoS сервера",
    "Всё корректно: ретрай только на IOException, бизнес-ошибки (4xx/5xx) не ретраятся"
   ],
@@ -397,7 +397,7 @@ window.BUGS = [
   "code": "@Component\npublic class RequestContextHolder {\n    private static final ThreadLocal<UserContext> CTX = new ThreadLocal<>();\n\n    public void bind(UserContext ctx) { CTX.set(ctx); }\n    public UserContext get() { return CTX.get(); }\n\n    // вызывается фильтром в начале обработки запроса\n    public void onRequest(HttpServletRequest req) {\n        CTX.set(new UserContext(req.getHeader(\"X-User-Id\")));  // <-- ?\n        // ... обработка ...\n    }\n}",
   "options": [
    "ThreadLocal должен быть нестатическим, иначе все потоки делят один объект UserContext и видят чужой контекст",
-   "В пуле потоков (Tomcat) поток переиспользуется, а CTX никогда не очищается через remove() — это утечка памяти и протечка чужого контекста в следующий запрос",
+   "Поток в пуле переиспользуется, а CTX не очищается через remove() — чужой контекст уйдёт в следующий запрос",
    "ThreadLocal не потокобезопасен, нужно обернуть set/get в synchronized",
    "Код корректен: ThreadLocal сам очищается при возврате потока в пул"
   ],
@@ -411,7 +411,7 @@ window.BUGS = [
   "options": [
    "finalize() должен быть public, иначе GC не сможет его вызвать и нативная память никогда не освободится",
    "Нужно вызывать super.finalize() в начале метода, а не в конце, иначе ресурс утечёт",
-   "Освобождение через finalize() ненадёжно: вызов не гарантирован, откладывает сбор объектов на лишний GC-цикл и под нагрузкой ведёт к OOM нативной памяти — нужен Cleaner/AutoCloseable",
+   "finalize() ненадёжен: вызов не гарантирован, и под нагрузкой нативная память кончится — нужен Cleaner",
    "Код корректен: finalize() гарантированно освободит нативный handle при сборке мусора"
   ],
   "why": "finalize() устарел и ненадёжен: момент и сам факт вызова не гарантированы, финализируемые объекты переживают лишний GC-цикл и копятся в очереди финализации, что под нагрузкой приводит к OOM нативной памяти. Замена — java.lang.ref.Cleaner или реализация AutoCloseable с try-with-resources."
@@ -423,7 +423,7 @@ window.BUGS = [
   "code": "@Service\npublic class PriceCache {\n    private final Map<String, BigDecimal> cache = new ConcurrentHashMap<>();\n\n    public BigDecimal price(String isin) {\n        return cache.computeIfAbsent(isin, this::loadFromDb);  // <-- ?\n    }\n    private BigDecimal loadFromDb(String isin) {\n        return repo.findPrice(isin);\n    }\n}",
   "options": [
    "computeIfAbsent не атомарен в ConcurrentHashMap — два потока могут загрузить цену дважды",
-   "Кэш ничем не ограничен и из него ничего не вытесняется: при большом числе уникальных isin (или ключах от пользователя) Map растёт неограниченно вплоть до OOM — нужен лимит/TTL (Caffeine)",
+   "Кэш ничем не ограничен и ничего не вытесняет: при потоке ключей растёт до OOM",
    "BigDecimal нельзя использовать как значение в ConcurrentHashMap из-за mutable-состояния",
    "Код корректен: GC сам удалит редко используемые записи из обычного HashMap"
   ],
@@ -449,7 +449,7 @@ window.BUGS = [
   "code": "public class Money {\n    private final long cents;\n    public Money(long cents) { this.cents = cents; }\n    @Override\n    public boolean equals(Object o) {\n        if (!(o instanceof Money)) return false;\n        return ((Money) o).cents == this.cents;\n    }\n}\n// ...\nSet<Money> seen = new HashSet<>();\nseen.add(new Money(100));\nboolean has = seen.contains(new Money(100)); // <-- ?",
   "options": [
    "equals написан неверно: нужно сравнивать через getClass(), а instanceof ломает контракт",
-   "Переопределён equals, но не переопределён hashCode — у двух равных Money разные хеши, и contains в HashSet вернёт false",
+   "Переопределён equals без hashCode: у равных Money разные хеши, contains вернёт false",
    "Всё корректно: HashSet использует equals для поиска, contains вернёт true",
    "cents должен быть Long (объект), иначе == сравнивает значения некорректно при больших числах"
   ],
@@ -463,7 +463,7 @@ window.BUGS = [
   "options": [
    "ArrayList нельзя использовать как ключ HashMap — это вызовет ClassCastException при put",
    "get вернёт 1, потому что это та же ссылка на объект key",
-   "После мутации ключа hashCode списка изменился, бакет больше не совпадает — get вернёт null (запись стала недостижимой)",
+   "После мутации ключа его hashCode изменился, бакет не совпадает — get вернёт null",
    "v будет равно 1, так как HashMap кэширует исходный hashCode при put"
   ],
   "why": "List как ключ HashMap изменяемый: после key.add(\"c\") его hashCode меняется, и запись попадает в \"неправильный\" бакет — get вернёт null. Ключи в HashMap должны быть неизменяемыми."
@@ -489,7 +489,7 @@ window.BUGS = [
   "options": [
    "intValue() у Long теряет точность, поэтому sameId всегда вернёт false",
    "Автобоксинг int→Integer не происходит, сравниваются примитивы — всё корректно",
-   "== сравнивает ссылки Integer: для значений в кэше (-128..127) работает, но для 200 даст false даже при равных значениях — нужен equals/intValue",
+   "== сравнивает ссылки Integer: в кэше (-128..127) работает, а для 200 даст false",
    "r1 и r2 оба вернут true, потому что компилятор оптимизирует автобоксинг одинаковых значений"
   ],
   "why": "Параметры Integer сравниваются через == по ссылке. Для значений из кэша Integer (-128..127) ссылки совпадают, но для 200 создаются разные объекты и == даёт false. Нужно equals или сравнивать как int."
@@ -501,7 +501,7 @@ window.BUGS = [
   "code": "List<Order> orders = new ArrayList<>(loadOrders());\nfor (Order o : orders) {\n    if (o.isExpired()) {\n        orders.remove(o); // <-- ?\n    }\n}\nprocess(orders);",
   "options": [
    "remove(o) удалит неверный элемент, потому что List.remove(Object) трактует Order как индекс",
-   "Изменение списка во время for-each через сам список нарушает modCount и бросит ConcurrentModificationException на следующей итерации",
+   "Удаление через сам список в for-each нарушает modCount — ConcurrentModificationException",
    "Всё корректно для одного потока: for-each безопасно удаляет элементы из ArrayList",
    "Будет утечка памяти, так как удалённые Order остаются в итераторе"
   ],
@@ -515,7 +515,7 @@ window.BUGS = [
   "options": [
    "ResultSet нельзя объявлять в try-with-resources — он не реализует AutoCloseable",
    "st.executeQuery вызовется до открытия Statement, что даст NullPointerException",
-   "Connection не объявлен в try-with-resources и не закрывается — при каждом вызове утечка соединения из пула",
+   "Connection не в try-with-resources и не закрывается — утечка из пула",
    "Всё корректно: закрытие Statement каскадно закроет и Connection"
   ],
   "why": "В try-with-resources объявлены только Statement и ResultSet, а Connection получен снаружи и нигде не закрывается — соединение не возвращается в пул (утечка). Connection нужно тоже включить в try-with-resources."
@@ -540,7 +540,7 @@ window.BUGS = [
   "code": "@ApplicationScoped\npublic class OrderService {\n\n    public void importAll(List<OrderDto> dtos) {\n        for (OrderDto d : dtos) {\n            saveOne(d); // <-- ?\n        }\n    }\n\n    @Transactional(Transactional.TxType.REQUIRES_NEW)\n    void saveOne(OrderDto d) {\n        Order o = new Order(d);\n        o.persist();\n    }\n}",
   "options": [
    "REQUIRES_NEW нельзя применять к void-методу — транзакция не закоммитится без явного flush",
-   "Внутренний вызов saveOne() идёт мимо CDI-прокси (self-invocation), поэтому @Transactional игнорируется и каждый persist выполняется без своей транзакции",
+   "Внутренний вызов saveOne() идёт мимо CDI-прокси (self-invocation), поэтому @Transactional игнорируется",
    "o.persist() требует, чтобы importAll сам был @Transactional, иначе PersistenceException — а REQUIRES_NEW тут лишний",
    "Всё корректно: каждый saveOne открывает новую транзакцию и коммитит свою сущность независимо"
   ],
@@ -553,7 +553,7 @@ window.BUGS = [
   "code": "@ApplicationScoped\npublic class FeatureGate {\n\n    // application.properties: quarkus.hibernate-orm.database.generation=${DB_GEN:none}\n\n    @ConfigProperty(name = \"quarkus.hibernate-orm.database.generation\")\n    String dbGen; // <-- ?\n\n    public boolean isDropCreate() {\n        return \"drop-and-create\".equals(dbGen);\n    }\n}",
   "options": [
    "@ConfigProperty нельзя инжектить String без Optional — при отсутствии значения будет DeploymentException на старте",
-   "quarkus.hibernate-orm.database.generation — build-time свойство: оно фиксируется при сборке, и переопределение через env-переменную DB_GEN в рантайме не подействует",
+   "Это build-time свойство: оно фиксируется при сборке, и env-переменная DB_GEN в рантайме уже не подействует",
    "Дефолт ${DB_GEN:none} синтаксически неверен — Quarkus не поддерживает дефолты в property-ссылках",
    "FeatureGate должен быть @Singleton, иначе значение dbGen перечитывается на каждый запрос и тормозит"
   ],
@@ -567,7 +567,7 @@ window.BUGS = [
   "options": [
    "@Incoming требует возвращать CompletionStage или Uni, иначе сообщения не подтверждаются и канал зависнет",
    "BigDecimal нельзя складывать в ArrayList без компаратора — будет ClassCastException при сравнении в size()",
-   "@ApplicationScoped-бин один на приложение, а его mutable-поле buffer изменяется конкурентно из нескольких потоков-консьюмеров без синхронизации — гонка и потеря/порча данных",
+   "Бин один на приложение, а его ArrayList меняется из нескольких потоков без синхронизации — гонка",
    "Всё корректно: Quarkus гарантирует, что @Incoming-методы одного бина исполняются строго в одном потоке, гонки нет"
   ],
   "why": "@ApplicationScoped — это синглтон, а небезопасный ArrayList мутируется из конкурентных вызовов onQuote: размер, add и clear не атомарны, что даёт гонку и потерю элементов. Нужно синхронизировать доступ, использовать потокобезопасную структуру или ограничить параллелизм канала."
@@ -579,7 +579,7 @@ window.BUGS = [
   "code": "@Service\npublic class OrderService {\n    public void process(List<Order> orders) {\n        for (Order o : orders) {\n            saveOne(o); // <-- ?\n        }\n    }\n\n    @Transactional\n    public void saveOne(Order o) {\n        repository.save(o);\n        publishEvent(o);\n    }\n}",
   "options": [
    "Цикл вызывает saveOne для каждого ордера — нужно одну @Transactional на process, иначе будет N коммитов вместо одного",
-   "@Transactional на saveOne не работает: внутренний вызов saveOne() идёт напрямую, минуя прокси, поэтому транзакция вообще не открывается",
+   "@Transactional на saveOne не работает: внутренний вызов идёт напрямую, минуя прокси, и транзакция не открывается",
    "publishEvent внутри @Transactional опубликует событие до коммита — нужен @TransactionalEventListener",
    "repository.save уже транзакционен сам по себе, аннотация на saveOne избыточна и ничего не ломает"
   ],
@@ -593,7 +593,7 @@ window.BUGS = [
   "options": [
    "BigDecimal.subtract не мутирует — баланс не изменится, save запишет старое значение",
    "pay не помечен @Transactional, поэтому save вне транзакции выбросит TransactionRequiredException",
-   "@Transactional на private-методе игнорируется (CGLIB-прокси не может его переопределить), транзакция не применяется",
+   "@Transactional на private-методе игнорируется: прокси его не переопределит",
    "Всё корректно: Spring проксирует private-методы внутри бина, транзакция отрабатывает штатно"
   ],
   "why": "Spring AOP-прокси работают только с public-методами (CGLIB не может переопределить private), поэтому @Transactional на private-методе молча игнорируется. Метод нужно сделать public и вызывать снаружи."
@@ -604,7 +604,7 @@ window.BUGS = [
   "correct": 0,
   "code": "@Service\npublic class ProfileService {\n    @Transactional(readOnly = true)\n    public Profile loadAndTouch(Long id) {\n        Profile p = repo.findById(id).orElseThrow();\n        p.setLastSeen(Instant.now()); // <-- ?\n        return p;\n    }\n}",
   "options": [
-   "readOnly=true оптимизирует чтение, но изменение managed-сущности молча не сохранится при flush — изменения lastSeen потеряются",
+   "readOnly=true: изменение managed-сущности не флашится, и lastSeen молча потеряется",
    "findById вне отдельной транзакции вернёт detached-сущность, setLastSeen бросит LazyInitializationException",
    "readOnly=true откатит транзакцию при попытке изменить сущность — будет UnsupportedOperationException",
    "Всё корректно: readOnly влияет только на уровень изоляции, запись lastSeen пройдёт нормально"
@@ -618,7 +618,7 @@ window.BUGS = [
   "code": "@Component @Scope(\"prototype\")\npublic class RequestContext { /* per-request state */ }\n\n@Service\npublic class Handler {\n    @Autowired\n    private RequestContext ctx; // <-- ?\n\n    public void handle() {\n        ctx.reset();\n        // ... use ctx\n    }\n}",
   "options": [
    "prototype-бин нельзя автовайрить — Spring бросит NoUniqueBeanDefinitionException на старте",
-   "Handler — singleton, поэтому prototype-зависимость инжектится один раз при создании: все запросы делят один и тот же экземпляр ctx",
+   "Prototype в singleton инжектится один раз: все запросы делят один ctx",
    "@Scope(\"prototype\") требует proxyMode=TARGET_CLASS, иначе бин вообще не создастся",
    "Всё корректно: при каждом обращении к ctx Spring подставляет новый prototype-экземпляр"
   ],
@@ -630,7 +630,7 @@ window.BUGS = [
   "correct": 0,
   "code": "@Service\npublic class TransferService {\n    @Transactional\n    public void transfer(Account from, Account to, BigDecimal sum) {\n        debit(from, sum);\n        try {\n            creditExternal(to, sum); // может бросить\n        } catch (Exception e) {\n            log.warn(\"credit failed, continue\", e); // <-- ?\n        }\n    }\n}",
   "options": [
-   "Ловля исключения и продолжение оставит дебет без кредита, но транзакция всё равно закоммитится — деньги списаны, а зачисление не выполнено",
+   "Исключение проглочено, и транзакция закоммитится: деньги списаны, а зачисление не выполнено — состояние неконсистентно",
    "После пойманного RuntimeException транзакция уже помечена rollback-only, поэтому коммит на выходе бросит UnexpectedRollbackException",
    "debit и creditExternal в одной транзакции автоматически откатятся вместе при любом исключении внутри метода",
    "Всё корректно: catch обрабатывает ошибку, транзакция коммитится с консистентным состоянием"
@@ -657,7 +657,7 @@ window.BUGS = [
   "code": "@Test\nvoid commissionIsCalculatedCorrectly() {\n    double amount = 0.1 + 0.2;\n    double commission = priceService.calcCommission(amount); // returns amount * 1.0\n\n    assertEquals(0.3, commission); // <-- ?\n}",
   "options": [
    "calcCommission должен возвращать BigDecimal, иначе тест не компилируется",
-   "assertEquals(0.3, commission) сравнивает double точно: 0.1+0.2 == 0.30000000000000004, тест падает. Нужна перегрузка с delta или BigDecimal",
+   "assertEquals сравнивает double точно, а 0.1+0.2 ≠ 0.3 — нужна delta",
    "Тест корректен: JUnit 5 по умолчанию сравнивает double с дельтой 1e-9",
    "Литерал 0.3 интерпретируется как float, нужно 0.3d"
   ],
@@ -671,7 +671,7 @@ window.BUGS = [
   "options": [
    "static List не потокобезопасен, тесты упадут из-за гонки при параллельном запуске",
    "Поле должно быть помечено @BeforeEach, иначе не инициализируется",
-   "static-поле разделяется между тестами и не сбрасывается: второй выполненный тест видит size()==2 и падает. Состояние зависит от порядка запуска; нужно нестатичное поле или @BeforeEach с пересозданием",
+   "static-поле не сбрасывается между тестами: второй увидит size()==2 и упадёт",
    "JUnit 5 создаёт новый экземпляр класса на каждый тест, поэтому log всегда пуст — оба теста зелёные"
   ],
   "why": "static-поле живёт между тестами и накапливает состояние: какой бы тест ни выполнился вторым, size() станет 2 и assert упадёт — результат зависит от порядка. Чинится нестатичным полем (JUnit5 создаёт новый инстанс на тест) или сбросом в @BeforeEach."
@@ -683,7 +683,7 @@ window.BUGS = [
   "code": "public Claims verify(String token) {\n    return Jwts.parser()\n        .setSigningKey(secretKey)\n        .parseClaimsJws(token)\n        .getBody();\n}\n\npublic String getUserId(String token) {\n    String[] parts = token.split(\"\\\\.\");\n    String payload = new String(Base64.getDecoder().decode(parts[1])); // <-- ?\n    return new ObjectMapper().readValue(payload, Map.class).get(\"sub\").toString();\n}",
   "options": [
    "verify() использует setSigningKey без указания требуемого алгоритма — но это не главная проблема здесь",
-   "getUserId() читает sub напрямую из незаверенного payload, минуя verify() — подпись и exp не проверяются, sub можно подделать",
+   "getUserId() читает sub из непроверенного payload в обход verify() — sub можно подделать",
    "Base64.getDecoder() упадёт на JWT, так как JWT использует только стандартный Base64, и это и есть баг",
    "Всё корректно: parts[1] — это payload, а подпись проверяется отдельным вызовом verify() выше"
   ],
@@ -697,7 +697,7 @@ window.BUGS = [
   "options": [
    "sendRedirect нужно вызывать только после resp.setStatus(302), иначе редирект не сработает",
    "returnUrl не URL-декодируется, поэтому относительный путь сломается на спецсимволах",
-   "Проверка startsWith(\"/\") пропускает значения вида //evil.com и /\\evil.com — браузер трактует их как протокол-относительный URL и уходит на чужой домен (open redirect)",
+   "startsWith(\"/\") пропускает //evil.com — браузер уйдёт на чужой домен",
    "Всё корректно: startsWith(\"/\") гарантирует, что редирект всегда останется внутри текущего хоста"
   ],
   "why": "//evil.com и /\\evil.com проходят startsWith(\"/\"), но браузер воспринимает их как абсолютный URL на чужой хост. Нужно валидировать через белый список путей или отвергать значения, начинающиеся с // и /\\."
@@ -709,7 +709,7 @@ window.BUGS = [
   "code": "@Override\npublic void addCorsMappings(CorsRegistry registry) {\n    registry.addMapping(\"/api/**\")\n        .allowedOriginPatterns(\"*\") // <-- ?\n        .allowedMethods(\"GET\", \"POST\")\n        .allowedHeaders(\"*\")\n        .allowCredentials(true);\n}",
   "options": [
    "allowedMethods не содержит OPTIONS, поэтому preflight-запросы будут отклонены и CORS не заработает вовсе",
-   "allowedOriginPatterns(\"*\") вместе с allowCredentials(true) отражает любой Origin в заголовок и разрешает слать куки — фактически открывает API любому сайту с авторизацией пользователя",
+   "allowedOriginPatterns(\"*\") вместе с allowCredentials(true) открывает API с куками любому сайту",
    "allowedHeaders(\"*\") не имеет эффекта при allowCredentials(true) и должен вызывать исключение на старте",
    "Всё корректно: allowedOriginPatterns(\"*\") безопаснее allowedOrigins(\"*\") и полностью совместим с credentials"
   ],
@@ -736,7 +736,7 @@ window.BUGS = [
   "options": [
    "sessionCreationPolicy.IF_REQUIRED не создаёт сессию заранее, поэтому oauth2Login не сможет сохранить состояние и логин сломается",
    "oauth2Login требует явного указания loginPage, иначе бин не поднимется",
-   "csrf().disable() при сессионной cookie-аутентификации (oauth2Login создаёт сессию с JSESSIONID) открывает CSRF: чужой сайт сможет слать аутентифицированные POST от имени юзера",
+   "csrf().disable() при сессионной cookie (oauth2Login создаёт JSESSIONID) открывает CSRF: чужой сайт шлёт POST от имени юзера",
    "Всё корректно: при использовании OAuth2 CSRF-защита не нужна, так как токены передаются в заголовке Authorization"
   ],
   "why": "oauth2Login работает через сессионную cookie (JSESSIONID), которую браузер шлёт автоматически, поэтому отключённый CSRF делает state-changing запросы уязвимыми. CSRF отключают только для stateless API на Bearer-токенах, а здесь его надо оставить включённым."
