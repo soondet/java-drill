@@ -619,6 +619,37 @@ const check = (name, ok, detail) => {
       "под worker'ом онлайн: " + гр.да + " · без worker'а " + гр.безSW + " · офлайн " + гр.офлайн + " · экономия трафика " + гр.экономия + " · уже загружен " + гр.ужеЕсть + " · здесь, на file:// " + гр.тут);
   }
 
+  /* ---- место верного ответа по длине ----
+     Закон Гудхарта в чистом виде. Проверки выше смотрят одно: «верный — не самый
+     длинный». Метрику честно выполнили самым дешёвым способом — удлинили ОДИН
+     неверный вариант. Верный переехал с первого места по длине на второе и там
+     осел: в викторине 68% вопросов, в диагностике 64%, в «Спроектируй» 50% — при
+     случайных 25%. Слепая тактика «тыкай второй по длине» проходила викторину на
+     68. В «Спроектируй» это сделал я сам и ещё похвалился в коммите.
+     Честная метрика — всё распределение: ни одно место не должно собирать
+     заметно больше четверти. У викторины пока храповик — потолок на сегодняшнем
+     значении: хуже стать не может, а опускается он по мере переписывания. */
+  {
+    const места = JSON.parse(await A.ev(`(function(){
+      var наборы=[];
+      var взять=function(имя,arr,потолок){ var set=[]; (arr||[]).forEach(function(x){ if(x&&typeof x.correct==="string"&&Array.isArray(x.wrong)&&x.wrong.length===3) set.push(x); });
+        if(!set.length) return; var r=[0,0,0,0];
+        set.forEach(function(x){ var c=x.correct.length; r[x.wrong.filter(function(w){return String(w).length>c}).length]++; });
+        наборы.push({имя:имя, n:set.length, доли:r.map(function(v){return Math.round(v/set.length*100)}), потолок:потолок}); };
+      var ds=[]; (window.DESIGN||[]).forEach(function(t){ (t.steps||[]).forEach(function(s){ ds.push(s); }); });
+      взять("диагностика",window.DIAG,40); взять("ревью",window.REVIEW,40); взять("спроектируй",ds,40);
+      var qz=[]; if(typeof QUIZ!=="undefined"){ (Array.isArray(QUIZ)?QUIZ:Object.values(QUIZ)).forEach(function(q){ qz.push(q); }); }
+      взять("викторина",qz,68);                                  /* храповик: было 68% на втором месте */
+      return JSON.stringify(наборы);
+    })()`));
+    const плохие = места.filter(s => Math.max(...s.доли) > s.потолок);
+    check("викторины не пройти, выбирая вариант по месту длины", места.length === 4 && плохие.length === 0,
+      (плохие.length ? плохие : места).map(s => s.имя + " " + s.доли.join("/") + (плохие.length ? " (потолок " + s.потолок + "%)" : "")).join(" · ")
+        + (плохие.length ? "" : " — места 1/2/3/4 по длине, случайно по 25%"));
+    const вик = места.find(s => s.имя === "викторина");
+    if (вик) console.log("    · долг: викторина держит " + Math.max(...вик.доли) + "% на одном месте — храповик " + вик.потолок + "%, цель 35%");
+  }
+
   /* ---- телефон: ничего не распирает страницу ---- */
   await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 900, deviceScaleFactor: 2, mobile: true });
   await sleep(800);
