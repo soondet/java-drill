@@ -640,14 +640,23 @@ const check = (name, ok, detail) => {
       взять("диагностика",window.DIAG,40); взять("ревью",window.REVIEW,40); взять("спроектируй",ds,40);
       var qz=[]; if(typeof QUIZ!=="undefined"){ (Array.isArray(QUIZ)?QUIZ:Object.values(QUIZ)).forEach(function(q){ qz.push(q); }); }
       взять("викторина",qz,68);                                  /* храповик: было 68% на втором месте */
+      /* У «найди баг» и «что выведет код» своя структура — первый замер их пропустил,
+         а там хуже всего: в «найди баг» верный был самым длинным в 75 задачах из 75.
+         Чинится пачками, храповик опускается с каждой: 100 → 75 → 50 → 25. */
+      var bg=[]; (typeof BUGS!=="undefined"?BUGS:[]).forEach(function(b){ if(Array.isArray(b.options)&&typeof b.correct==="number"&&b.options.length===4)
+        bg.push({correct:String(b.options[b.correct]), wrong:b.options.filter(function(_,i){return i!==b.correct}).map(String)}); });
+      взять("найди баг",bg,75);                                  /* храповик после пачки 1: было 100% на первом месте */
+      var wp=[]; (window.WP||[]).forEach(function(q){ if(q&&q.out!=null&&Array.isArray(q.w)&&q.w.length===3) wp.push({correct:String(q.out), wrong:q.w.map(String)}); });
+      взять("что выведет",wp,45);                                /* храповик: 45% на первом месте */
       return JSON.stringify(наборы);
     })()`));
     const плохие = места.filter(s => Math.max(...s.доли) > s.потолок);
-    check("викторины не пройти, выбирая вариант по месту длины", места.length === 4 && плохие.length === 0,
+    check("викторины не пройти, выбирая вариант по месту длины", места.length === 6 && плохие.length === 0,
       (плохие.length ? плохие : места).map(s => s.имя + " " + s.доли.join("/") + (плохие.length ? " (потолок " + s.потолок + "%)" : "")).join(" · ")
         + (плохие.length ? "" : " — места 1/2/3/4 по длине, случайно по 25%"));
-    const вик = места.find(s => s.имя === "викторина");
-    if (вик) console.log("    · долг: викторина держит " + Math.max(...вик.доли) + "% на одном месте — храповик " + вик.потолок + "%, цель 35%");
+    /* долг печатается при каждом прогоне: всё, что выше 40%, живёт на храповике */
+    места.filter(s => Math.max(...s.доли) > 40).forEach(s =>
+      console.log("    · долг: «" + s.имя + "» держит " + Math.max(...s.доли) + "% на одном месте — храповик " + s.потолок + "%, цель 35%"));
   }
 
   /* ---- телефон: ничего не распирает страницу ---- */

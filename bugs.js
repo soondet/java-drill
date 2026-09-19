@@ -7,9 +7,9 @@ window.BUGS = [
   "code": "@Service\nclass OrderService {\n    public void place(Order o) {\n        this.save(o);          // <-- ?\n    }\n    @Transactional\n    public void save(Order o) {\n        repo.save(o);\n    }\n}",
   "options": [
    "save() выполнится БЕЗ транзакции: вызов через this идёт мимо прокси",
-   "Всё корректно — транзакция откроется в save()",
-   "Будет двойная транзакция: на place() и на save()",
-   "Не скомпилируется без @Transactional на place()"
+   "Всё корректно — транзакция откроется в save(): Spring перехватывает любой вызов аннотированного метода",
+   "Будет двойная транзакция: одна откроется на place(), вторая, вложенная, — на save()",
+   "Не скомпилируется: вызывать @Transactional-метод можно только из другого @Transactional-метода"
   ],
   "why": "Прокси перехватывает только ВНЕШНИЕ вызовы. this.save() — внутренний, мимо прокси, поэтому @Transactional не срабатывает. Вынеси save() в другой бин."
  },
@@ -20,7 +20,7 @@ window.BUGS = [
   "code": "class Point {\n    int x, y;\n    @Override public boolean equals(Object o) {\n        return o instanceof Point p && p.x == x && p.y == y;\n    }\n}\n// set.add(new Point(1,2));\n// set.contains(new Point(1,2)) -> ?",
   "options": [
    "Нет hashCode() — в HashSet/HashMap объект «потеряется», contains вернёт false",
-   "Всё ок, для HashSet достаточно equals()",
+   "Всё ок: HashSet ищет элемент через equals(), а hashCode() нужен только для HashMap, но не для множеств",
    "equals должен возвращать int, а не boolean",
    "instanceof с pattern не компилируется"
   ],
@@ -33,8 +33,8 @@ window.BUGS = [
   "code": "Integer a = 1000;\nInteger b = 1000;\nif (a == b) {              // <-- ?\n    System.out.println(\"равны\");\n}",
   "options": [
    "== сравнивает ССЫЛКИ: 1000 вне кеша -128..127 → false; нужен equals()",
-   "Выведет «равны» — Integer сравнивается по значению",
-   "Не скомпилируется — Integer нельзя сравнивать через ==",
+   "Выведет «равны» — при сравнении через == обёртки Integer автоматически распаковываются в int",
+   "Не скомпилируется — оператор == определён только для примитивов, для Integer нужен equals()",
    "Бросит NullPointerException"
   ],
   "why": "Автобоксинг кеширует только -128..127. 1000 — два новых объекта, == по ссылкам = false. Обёртки сравнивай через equals()."
@@ -43,14 +43,14 @@ window.BUGS = [
   "id": "bug-cme",
   "t": "Java",
   "correct": 0,
-  "code": "List<String> list = new ArrayList<>(List.of(\"a\",\"b\",\"c\"));\nfor (String s : list) {\n    if (s.equals(\"b\")) list.remove(s);   // <-- ?\n}",
+  "code": "List<String> list = new ArrayList<>(List.of(\"a\",\"b\",\"c\",\"d\"));\nfor (String s : list) {\n    if (s.equals(\"b\")) list.remove(s);   // <-- ?\n}",
   "options": [
    "ConcurrentModificationException — изменение коллекции мимо итератора",
-   "Всё ок, спокойно удалит «b»",
-   "Удалит все элементы списка",
-   "NullPointerException на remove()"
+   "Всё ок, спокойно удалит «b»: for-each по ArrayList допускает удаление текущего элемента",
+   "Удалит все элементы: после remove() индексы сдвигаются, и условие срабатывает на каждом шаге",
+   "NullPointerException на remove(): после удаления в списке остаётся пустая ячейка с null"
   ],
-  "why": "for-each идёт через итератор, который ловит изменение modCount. Удаляй через iterator.remove() или list.removeIf()."
+  "why": "for-each идёт через итератор, который ловит изменение modCount. Удаляй через iterator.remove() или list.removeIf(). Коварная деталь: при удалении ПРЕДПОСЛЕДНЕГО элемента исключения не будет — hasNext() увидит cursor == size и цикл молча закончится, пропустив последний элемент."
  },
  {
   "id": "bug-rollback",
@@ -59,7 +59,7 @@ window.BUGS = [
   "code": "@Transactional\npublic void transfer() throws IOException {\n    repo.debit();\n    throw new IOException(\"fail\");   // <-- ?\n}",
   "options": [
    "Транзакция НЕ откатится: на checked-исключение по умолчанию commit",
-   "Откатится — @Transactional ловит любые исключения",
+   "Откатится — @Transactional ловит любые исключения, вылетевшие из метода, и помечает транзакцию на откат",
    "Не скомпилируется — @Transactional нельзя с throws",
    "Откатится только debit(), остальное закоммитится"
   ],
@@ -72,9 +72,9 @@ window.BUGS = [
   "code": "String csv = \"\";\nfor (String item : items) {\n    csv += item + \",\";       // <-- ?\n}",
   "options": [
    "O(n²): каждый += создаёт новую строку и копирует старую; нужен StringBuilder",
-   "Всё ок, += для String эффективен",
+   "Всё ок: компилятор сам заменяет += в цикле на один общий StringBuilder, копирований не будет",
    "Не скомпилируется — нельзя += для String",
-   "Утечка памяти из-за String pool"
+   "Утечка памяти: каждая промежуточная строка попадает в String pool и остаётся там навсегда"
   ],
   "why": "String неизменяем — каждый += копирует всю строку. На большом списке это O(n²). Используй StringBuilder."
  },
@@ -85,9 +85,9 @@ window.BUGS = [
   "code": "double total = 0;\nfor (int i = 0; i < 10; i++) {\n    total += 0.1;\n}\n// total == 1.0 ?",
   "options": [
    "Нет: double копит ошибку (0.999…); для денег BigDecimal / NUMERIC",
-   "Да, total будет ровно 1.0",
-   "Будет 0.0 — double обнуляется",
-   "ArithmeticException при сложении"
+   "Да, total будет ровно 1.0: погрешность double проявляется только на очень больших числах",
+   "Будет 0.0 — слишком маленькие слагаемые double округляет до нуля и теряет при сложении",
+   "ArithmeticException: при потере точности в сложении double бросает исключение, как BigDecimal"
   ],
   "why": "0.1 в двоичном double неточна, ошибка накапливается → 0.9999999999999999. Для денег BigDecimal или целые копейки."
  },
@@ -98,7 +98,7 @@ window.BUGS = [
   "code": "try {\n    read();\n} catch (Exception e) {        // <-- ?\n    log(e);\n} catch (IOException e) {\n    retry();\n}",
   "options": [
    "Не скомпилируется: общий Exception раньше частного IOException — второй блок недостижим",
-   "Всё ок, IOException обработается во втором блоке",
+   "Всё ок, IOException обработается во втором блоке: JVM выбирает самый точный из подходящих catch",
    "Оба блока выполнятся по очереди",
    "IOException надо объявить в throws"
   ],
@@ -111,8 +111,8 @@ window.BUGS = [
   "code": "public String read(String path) throws IOException {\n    BufferedReader r = new BufferedReader(new FileReader(path));\n    return r.readLine();       // <-- ?\n}",
   "options": [
    "Ресурс не закрыт (нет close) — утечка дескриптора; нужен try-with-resources",
-   "Всё ок, GC закроет файл сам",
-   "readLine() закрывает поток автоматически",
+   "Всё ок, GC закроет файл сам: дескриптор освобождается сразу, как только метод вернёт управление",
+   "readLine() закрывает поток автоматически, как только дочитывает файл до последней строки",
    "Нужно объявить r как static"
   ],
   "why": "FileReader держит файловый дескриптор. Без close() — утечка. Оберни в try (var r = …) — закроется само."
@@ -124,9 +124,9 @@ window.BUGS = [
   "code": "List<Order> orders = orderRepo.findAll();\nfor (Order o : orders) {\n    total += o.getClient().getBalance();   // client — LAZY\n}",
   "options": [
    "N+1 запросов: на каждый заказ отдельный SELECT клиента",
-   "Один запрос — Hibernate грузит всё сразу",
-   "Всегда LazyInitializationException",
-   "Deadlock на чтении"
+   "Один запрос — Hibernate сам догадается подтянуть клиентов через JOIN в том же SELECT",
+   "Всегда LazyInitializationException: ленивую связь нельзя читать внутри цикла",
+   "Deadlock на чтении: цикл держит блокировку заказов и ждёт блокировку клиентов"
   ],
   "why": "findAll — 1 запрос, но обращение к ленивому client в цикле даёт ещё N запросов. Лечи через JOIN FETCH / @EntityGraph."
  },
@@ -137,7 +137,7 @@ window.BUGS = [
   "code": "volatile int count = 0;\n\n// 10 потоков параллельно:\ncount++;                       // <-- ?",
   "options": [
    "volatile не даёт атомарность: count++ потеряет инкременты; нужен AtomicInteger",
-   "volatile делает count++ потокобезопасным",
+   "volatile делает count++ потокобезопасным: каждое чтение и запись идут напрямую в основную память",
    "Будет ровно столько, сколько инкрементов",
    "Не скомпилируется — volatile только для ссылок"
   ],
@@ -150,8 +150,8 @@ window.BUGS = [
   "code": "static final SimpleDateFormat FMT =\n    new SimpleDateFormat(\"yyyy-MM-dd\");\n\n// вызывается из многих потоков:\nString s = FMT.format(date);   // <-- ?",
   "options": [
    "SimpleDateFormat НЕ потокобезопасен — общий статик выдаёт мусор/исключения",
-   "Всё ок, format() потокобезопасен",
-   "static делает его потокобезопасным",
+   "Всё ок, format() потокобезопасен: он только читает шаблон и не меняет состояние форматтера",
+   "static final делает его потокобезопасным: ссылка неизменяема, значит и объект под ней тоже",
    "Достаточно пометить поле volatile"
   ],
   "why": "SimpleDateFormat хранит изменяемое состояние внутри. Общий экземпляр из многих потоков = гонка. Используй DateTimeFormatter (immutable)."
@@ -163,9 +163,9 @@ window.BUGS = [
   "code": "Optional<User> u = repo.findById(id);\nreturn u.get().getName();      // <-- ?",
   "options": [
    "get() без проверки → NoSuchElementException, если пусто",
-   "Всё ок, get() вернёт null если пусто",
-   "Не скомпилируется без isPresent()",
-   "Вернёт пустую строку при отсутствии"
+   "Всё ок, get() вернёт null, если пусто, и дальше сработает обычная проверка на null",
+   "Не скомпилируется: компилятор требует isPresent() перед любым вызовом get()",
+   "Вернёт пустую строку: у пустого Optional getName() даёт значение по умолчанию"
   ],
   "why": "Optional.get() на пустом значении кидает NoSuchElementException. Используй map(...).orElse(...) или orElseThrow с понятной ошибкой."
  },
@@ -176,7 +176,7 @@ window.BUGS = [
   "code": "@GetMapping(\"/{id}\")\npublic Order get(@PathVariable Long id) {\n    Order o = repo.findById(id).orElseThrow();\n    return o;   // o.items — LAZY, сериализуется вне транзакции\n}",
   "options": [
    "LazyInitializationException: ленивые связи читаются после закрытия сессии",
-   "Всё ок, Hibernate догрузит при сериализации",
+   "Всё ок, Hibernate догрузит items при сериализации: ленивая связь сама откроет новое соединение",
    "Вернёт null вместо items",
    "Двойной запрос к БД"
   ],
@@ -188,7 +188,7 @@ window.BUGS = [
   "correct": 0,
   "code": "public class Worker implements Runnable {\n    private boolean running = true; // <-- ?\n\n    public void stop() {\n        running = false;\n    }\n\n    @Override\n    public void run() {\n        while (running) {\n            doWork();\n        }\n    }\n}",
   "options": [
-   "Поле running должно быть volatile: без него фоновый поток может вечно крутиться в цикле, не увидев записи running=false из другого потока (нет гарантии видимости).",
+   "Поле running должно быть volatile: без него поток может вечно крутиться в цикле, не увидев записи из другого потока.",
    "Метод stop() обязан быть synchronized, иначе будет race condition при записи boolean, и значение запишется некорректно.",
    "boolean нельзя писать атомарно в Java без AtomicBoolean — запись running=false может оставить поле в промежуточном состоянии.",
    "Всё корректно: запись простого boolean из одного потока всегда немедленно видна другим потокам в Java."
@@ -202,7 +202,7 @@ window.BUGS = [
   "code": "private final Map<String, User> cache = new ConcurrentHashMap<>();\n\npublic User getOrCreate(String id) {\n    if (!cache.containsKey(id)) { // <-- ?\n        cache.put(id, loadUser(id));\n    }\n    return cache.get(id);\n}",
   "options": [
    "ConcurrentHashMap не потокобезопасен для метода get(), нужно обернуть весь блок в synchronized по cache.",
-   "Здесь check-then-act race: между containsKey и put два потока могут одновременно увидеть отсутствие ключа и оба вызвать loadUser, перезаписав значение. Нужен computeIfAbsent.",
+   "Check-then-act: между containsKey и put два потока оба увидят, что ключа нет, и оба вызовут loadUser.",
    "containsKey на ConcurrentHashMap может бросить ConcurrentModificationException при параллельном put из другого потока.",
    "Всё корректно: ConcurrentHashMap делает последовательность containsKey/put атомарной за счёт внутренней сегментации."
   ],
@@ -217,7 +217,7 @@ window.BUGS = [
    "getBalance() не должен быть synchronized: чтение int атомарно, лишняя блокировка вызывает deadlock с deposit().",
    "synchronized(this) в deposit() лишний — инкремент int и так атомарен, блокировка только замедляет код.",
    "Всё корректно: static synchronized и synchronized(this) защищают одно и то же поле, гонок нет.",
-   "static synchronized метод reset() блокируется по монитору класса (Account.class), а deposit/getBalance — по монитору экземпляра (this); это разные мониторы, поэтому reset не взаимоисключается с deposit и balance гонится."
+   "reset() берёт монитор класса, deposit и getBalance — монитор this: мониторы разные, взаимного исключения нет."
   ],
   "why": "static synchronized захватывает монитор Class-объекта, а нестатические — монитор this: это разные локи, взаимного исключения между reset и deposit нет. Нужно синхронизировать reset по тому же монитору экземпляра/общему объекту."
  },
@@ -229,7 +229,7 @@ window.BUGS = [
   "options": [
    "Внешняя проверка instance == null вне synchronized — лишняя; её надо убрать, иначе создадутся два экземпляра.",
    "Double-checked locking в Java не работает в принципе с любой версией JMM — нужно убрать оба if и всегда входить в synchronized.",
-   "Поле instance должно быть volatile: без него другой поток из-за переупорядочивания записей может увидеть ненулевую, но ещё не до конца сконструированную ссылку на Config.",
+   "Поле instance должно быть volatile: иначе другой поток может увидеть ссылку на не до конца сконструированный Config.",
    "Всё корректно: synchronized-блок гарантирует, что instance будет полностью сконструирован до выхода, volatile не нужен."
   ],
   "why": "Без volatile запись instance может стать видимой до завершения конструктора (reordering), и поток на внешней проверке получит частично инициализированный объект. Поле должно быть volatile."
@@ -243,7 +243,7 @@ window.BUGS = [
    "long нельзя объявлять volatile — на 32-битных JVM это вызовет ошибку компиляции, нужен AtomicLong.",
    "volatile здесь избыточен: при многопоточном hit() он гарантирует и видимость, и атомарность инкремента, можно убрать.",
    "Всё корректно: volatile делает counter++ атомарным, потеря инкрементов при параллельных hit() невозможна.",
-   "volatile даёт только видимость, но counter++ — это read-modify-write из трёх шагов; при параллельных hit() инкременты теряются. Нужен AtomicLong/LongAdder или synchronized."
+   "volatile даёт видимость, но не атомарность: counter++ — это три шага, и инкременты теряются."
   ],
   "why": "volatile гарантирует видимость, но не атомарность составной операции counter++ (чтение-инкремент-запись), поэтому при гонке инкременты теряются. Использовать AtomicLong.incrementAndGet() или LongAdder."
  },

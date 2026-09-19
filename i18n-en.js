@@ -27241,16 +27241,16 @@ window.I18N = {
   "bug-self-tx": {
    "options": [
     "save() will run WITHOUT a transaction: the call via this bypasses the proxy",
-    "Everything is correct — the transaction opens in save()",
-    "There will be a double transaction: on place() and on save()",
-    "Won't compile without @Transactional on place()"
+    "All fine — a transaction opens in save(): Spring intercepts every call to an annotated method",
+    "There will be two transactions: one opens on place(), and a second, nested one, on save()",
+    "It will not compile: a @Transactional method may only be called from another @Transactional method"
    ],
    "why": "The proxy intercepts only EXTERNAL calls. this.save() is internal, bypassing the proxy, so @Transactional doesn't kick in. Move save() into a separate bean."
   },
   "bug-eq-nohash": {
    "options": [
     "No hashCode() — in HashSet/HashMap the object gets 'lost', contains returns false",
-    "Everything is fine, equals() is enough for HashSet",
+    "All fine: HashSet finds an element through equals(), and hashCode() matters only for HashMap, not for sets",
     "equals must return int, not boolean",
     "instanceof with a pattern doesn't compile"
    ],
@@ -27259,8 +27259,8 @@ window.I18N = {
   "bug-integer-eq": {
    "options": [
     "== compares REFERENCES: 1000 is outside the -128..127 cache → false; you need equals()",
-    "Prints 'equal' — Integer is compared by value",
-    "Won't compile — Integer can't be compared with ==",
+    "It prints \"equal\" — when compared with ==, Integer wrappers are automatically unboxed to int",
+    "It will not compile — the == operator is defined only for primitives, Integer needs equals()",
     "Throws NullPointerException"
    ],
    "why": "Autoboxing caches only -128..127. 1000 produces two new objects, == compares references = false. Compare wrappers with equals()."
@@ -27268,16 +27268,16 @@ window.I18N = {
   "bug-cme": {
    "options": [
     "ConcurrentModificationException — modifying the collection outside the iterator",
-    "Everything is fine, it calmly removes 'b'",
-    "Removes all elements of the list",
-    "NullPointerException on remove()"
+    "All fine, it quietly removes \"b\": a for-each over an ArrayList allows removing the current element",
+    "It removes every element: after remove() the indexes shift, and the condition fires on every step",
+    "NullPointerException on remove(): after the removal an empty null slot is left in the list"
    ],
-   "why": "for-each goes through an iterator that detects a change in modCount. Remove via iterator.remove() or list.removeIf()."
+   "why": "for-each goes through an iterator that detects a change in modCount. Remove via iterator.remove() or list.removeIf(). A nasty detail: removing the SECOND-TO-LAST element throws nothing — hasNext() sees cursor == size and the loop ends silently, skipping the last element."
   },
   "bug-rollback": {
    "options": [
     "The transaction will NOT roll back: a checked exception commits by default",
-    "It rolls back — @Transactional catches any exception",
+    "It rolls back — @Transactional catches any exception leaving the method and marks the transaction for rollback",
     "Won't compile — @Transactional can't be used with throws",
     "Only debit() rolls back, the rest is committed"
    ],
@@ -27286,25 +27286,25 @@ window.I18N = {
   "bug-string-loop": {
    "options": [
     "O(n²): each += creates a new string and copies the old one; you need StringBuilder",
-    "Everything is fine, += for String is efficient",
+    "All fine: the compiler itself turns += in the loop into one shared StringBuilder, so nothing is copied",
     "Won't compile — you can't use += for String",
-    "Memory leak due to the String pool"
+    "A memory leak: every intermediate string lands in the String pool and stays there for good"
    ],
    "why": "String is immutable — each += copies the whole string. On a large list this is O(n²). Use StringBuilder."
   },
   "bug-float-money": {
    "options": [
     "No: double accumulates error (0.999…); for money use BigDecimal / NUMERIC",
-    "Yes, total will be exactly 1.0",
-    "It'll be 0.0 — double resets to zero",
-    "ArithmeticException during addition"
+    "Yes, total will be exactly 1.0: double's error only shows up on very large numbers",
+    "It will be 0.0 — double rounds terms that small down to zero and loses them in the addition",
+    "ArithmeticException: on losing precision in an addition double throws, just like BigDecimal"
    ],
    "why": "0.1 is imprecise in binary double, the error accumulates → 0.9999999999999999. For money use BigDecimal or integer cents."
   },
   "bug-catch-order": {
    "options": [
     "Won't compile: the general Exception comes before the specific IOException — the second block is unreachable",
-    "Everything is fine, IOException is handled in the second block",
+    "All fine, the IOException is handled in the second block: the JVM picks the most specific matching catch",
     "Both blocks execute one after another",
     "IOException must be declared in throws"
    ],
@@ -27313,8 +27313,8 @@ window.I18N = {
   "bug-resource": {
    "options": [
     "The resource is not closed (no close) — descriptor leak; use try-with-resources",
-    "All fine, the GC will close the file by itself",
-    "readLine() closes the stream automatically",
+    "All fine, the GC closes the file itself: the descriptor is released as soon as the method returns",
+    "readLine() closes the stream automatically as soon as it reads the file through to the last line",
     "r must be declared as static"
    ],
    "why": "FileReader holds a file descriptor. Without close() it leaks. Wrap it in try (var r = …) — it closes itself."
@@ -27322,16 +27322,16 @@ window.I18N = {
   "bug-nplus1": {
    "options": [
     "N+1 queries: a separate SELECT for the client on each order",
-    "A single query — Hibernate loads everything at once",
-    "Always throws LazyInitializationException",
-    "Deadlock on read"
+    "One query — Hibernate will work out by itself to pull the clients with a JOIN in the same SELECT",
+    "Always a LazyInitializationException: a lazy association cannot be read inside a loop",
+    "A deadlock on read: the loop holds the lock on orders and waits for the lock on clients"
    ],
    "why": "findAll is 1 query, but accessing the lazy client inside the loop triggers N more queries. Fix it with JOIN FETCH / @EntityGraph."
   },
   "bug-volatile": {
    "options": [
     "volatile does not provide atomicity: count++ will lose increments; use AtomicInteger",
-    "volatile makes count++ thread-safe",
+    "volatile makes count++ thread-safe: every read and write goes straight to main memory",
     "It will be exactly as many as the number of increments",
     "Won't compile — volatile is only for references"
    ],
@@ -27340,8 +27340,8 @@ window.I18N = {
   "bug-sdf": {
    "options": [
     "SimpleDateFormat is NOT thread-safe — a shared static produces garbage/exceptions",
-    "All fine, format() is thread-safe",
-    "static makes it thread-safe",
+    "All fine, format() is thread-safe: it only reads the pattern and never changes the formatter's state",
+    "static final makes it thread-safe: the reference is immutable, and so is the object behind it",
     "Marking the field volatile is enough"
    ],
    "why": "SimpleDateFormat keeps mutable state inside. A shared instance across many threads = race condition. Use DateTimeFormatter (immutable)."
@@ -27349,16 +27349,16 @@ window.I18N = {
   "bug-optional-get": {
    "options": [
     "get() without a check → NoSuchElementException if empty",
-    "All fine, get() returns null if empty",
-    "Won't compile without isPresent()",
-    "Returns an empty string when absent"
+    "All fine, get() returns null when empty, and an ordinary null check takes it from there",
+    "It will not compile: the compiler requires isPresent() before any call to get()",
+    "It returns an empty string: on an empty Optional getName() yields a default value"
    ],
    "why": "Optional.get() on an empty value throws NoSuchElementException. Use map(...).orElse(...) or orElseThrow with a clear error."
   },
   "bug-lazyinit": {
    "options": [
     "LazyInitializationException: lazy associations are read after the session is closed",
-    "All fine, Hibernate will lazily load it during serialization",
+    "All fine, Hibernate loads items during serialisation: the lazy association opens a new connection itself",
     "Returns null instead of items",
     "Double query to the DB"
    ],
@@ -27366,7 +27366,7 @@ window.I18N = {
   },
   "bug2-visibility-flag": {
    "options": [
-    "The running field must be volatile: without it the background thread may spin in the loop forever, never seeing the running=false write from another thread (no visibility guarantee).",
+    "The running field must be volatile: without it the thread may spin in the loop forever, never seeing the write from another thread.",
     "The stop() method must be synchronized, otherwise there will be a race condition writing the boolean, and the value will be written incorrectly.",
     "A boolean cannot be written atomically in Java without AtomicBoolean — the running=false write may leave the field in an intermediate state.",
     "Everything is correct: writing a plain boolean from one thread is always immediately visible to other threads in Java."
@@ -27376,7 +27376,7 @@ window.I18N = {
   "bug2-check-then-act": {
    "options": [
     "ConcurrentHashMap is not thread-safe for the get() method, you need to wrap the whole block in synchronized on cache.",
-    "Here is a check-then-act race: between containsKey and put two threads may simultaneously see the key is absent and both call loadUser, overwriting the value. computeIfAbsent is needed.",
+    "Check-then-act: between containsKey and put two threads both see the key missing and both call loadUser.",
     "containsKey on a ConcurrentHashMap may throw ConcurrentModificationException during a concurrent put from another thread.",
     "Everything is correct: ConcurrentHashMap makes the containsKey/put sequence atomic through its internal segmentation."
    ],
@@ -27387,7 +27387,7 @@ window.I18N = {
     "getBalance() should not be synchronized: reading an int is atomic, and the extra lock causes a deadlock with deposit().",
     "synchronized(this) in deposit() is redundant — incrementing an int is already atomic, the lock only slows the code down.",
     "Everything is correct: static synchronized and synchronized(this) protect the same field, there are no races.",
-    "The static synchronized method reset() locks on the class monitor (Account.class), while deposit/getBalance lock on the instance monitor (this); these are different monitors, so reset is not mutually exclusive with deposit and balance is subject to a race."
+    "reset() takes the class monitor, while deposit and getBalance take the monitor of this: different monitors, so no mutual exclusion."
    ],
    "why": "static synchronized acquires the monitor of the Class object, while non-static methods acquire the monitor of this: these are different locks, so there is no mutual exclusion between reset and deposit. reset must be synchronized on the same instance monitor / a shared object."
   },
@@ -27395,7 +27395,7 @@ window.I18N = {
    "options": [
     "The outer check instance == null outside synchronized is redundant; it must be removed, otherwise two instances will be created.",
     "Double-checked locking in Java does not work at all with any version of the JMM — you must remove both ifs and always enter synchronized.",
-    "The instance field must be volatile: without it, another thread may — due to reordering of writes — see a non-null but not yet fully constructed reference to Config.",
+    "The instance field must be volatile: otherwise another thread may see a reference to a Config that is not fully constructed.",
     "Everything is correct: the synchronized block guarantees that instance is fully constructed before exit, volatile is not needed."
    ],
    "why": "Without volatile, the write to instance may become visible before the constructor finishes (reordering), and a thread on the outer check would get a partially initialized object. The field must be volatile."
@@ -27405,7 +27405,7 @@ window.I18N = {
     "long cannot be declared volatile — on 32-bit JVMs this causes a compilation error, an AtomicLong is needed.",
     "volatile is redundant here: with multithreaded hit() it guarantees both visibility and atomicity of the increment, so it can be removed.",
     "Everything is correct: volatile makes counter++ atomic, losing increments under concurrent hit() is impossible.",
-    "volatile provides only visibility, but counter++ is a read-modify-write of three steps; under concurrent hit() increments are lost. AtomicLong/LongAdder or synchronized is needed."
+    "volatile gives visibility, not atomicity: counter++ is three steps, and increments get lost."
    ],
    "why": "volatile guarantees visibility but not atomicity of the compound operation counter++ (read-increment-write), so under a race increments are lost. Use AtomicLong.incrementAndGet() or LongAdder."
   },
