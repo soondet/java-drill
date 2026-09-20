@@ -256,7 +256,7 @@ const check = (name, ok, detail) => {
     });
     return JSON.stringify({n:R.length,pct:Math.round(win/R.length*100),bad:bad,wide:wide});
   })()`));
-  check("разборов ревью загружено", rv.n >= 12, rv.n + "");
+  check("разборов ревью загружено", rv.n >= 40, rv.n + "");
   check("у разборов по три варианта и есть код", rv.bad.length === 0, rv.bad.join(", "));
   check("ревью не пройти «выбирай самый длинный»", rv.pct <= 40,
     "стратегия даёт " + rv.pct + "%, потолок 40%, случайный тык 25%");
