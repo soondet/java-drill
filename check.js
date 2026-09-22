@@ -1152,6 +1152,47 @@ const check = (name, ok, detail) => {
     await sleep(300);
   }
 
+  /* ---- банк историй ----
+     Личные тексты живут только в браузере, так что проверяем механику, а не содержимое:
+     история сохраняется, прогон подбирает вопрос и запоминает выбор, ключ попадает в бэкап,
+     кривой импорт не роняет страницу. Страница здесь по-английски — заодно видно,
+     что подписи блока переведены. */
+  {
+    const st = JSON.parse(await A.ev(`(async function(){
+      var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})}, кир=/[А-Яа-яЁё]/, плохо=[];
+      var было=localStorage.getItem("jdStories"); localStorage.removeItem("jdStories");
+      STORIES.list=[]; STORIES.map={}; ST.edit=null; ST.drill=null;
+      /* Любая поломка по пути — «плохо», а не исключение: иначе гейт падает целиком и
+         без слов. Хранилище возвращается на место при любом исходе. */
+      try {
+      document.getElementById("tabBeh").click(); await ж(400);
+      if(!document.getElementById("stAdd")) плохо.push("нет кнопки добавления");
+      document.getElementById("stAdd").click(); await ж(30);
+      var tas=document.querySelectorAll(".st-ta"); if(tas.length!==4) плохо.push("полей "+tas.length);
+      document.getElementById("stTitle").value="Проверка"; tas.forEach(function(ta){ ta.value="x".repeat(25); });
+      document.getElementById("stSave").click(); await ж(30);
+      var j=JSON.parse(localStorage.getItem("jdStories")||"{}"); if(!j.list||j.list.length!==1){ плохо.push("история не сохранилась"); throw 0; }
+      if(backupKeys().indexOf("jdStories")<0) плохо.push("ключ не в бэкапе");
+      document.getElementById("stDrill").click(); await ж(30);
+      var q=ST.drill&&ST.drill.q; var pick=document.querySelector(".st-pick[data-id]"); if(!q||!pick){ плохо.push("прогон не начался"); throw 0; }
+      pick.click(); await ж(30);
+      var j2=JSON.parse(localStorage.getItem("jdStories")||"{}"); if(!j2.map||j2.map[behKey(q)]!==j.list[0].id) плохо.push("выбор не запомнен");
+      if(document.querySelectorAll(".st-checks input").length!==5) плохо.push("чек-лист не из пяти");
+      var labs=[].slice.call(document.querySelectorAll("#behStories .beh-lab, #behStories .st-checks label, #behStories .btn")).map(function(l){return l.textContent});
+      var рус=labs.filter(function(l){ return кир.test(l.replace(/Проверка/g,"")); }); if(рус.length) плохо.push("по-русски: "+рус.slice(0,3).join(" | "));
+      stImport(new File(["{кривой"],"y.json")); await ж(120);
+      var j3=JSON.parse(localStorage.getItem("jdStories")||"{}"); if(!j3.list||j3.list.length!==1) плохо.push("кривой импорт что-то изменил");
+      } catch(e){ if(e!==0) плохо.push("исключение: "+(e&&e.message||e)); }
+      finally {
+        if(ST.drill){ ST.drill=null; } ST.edit=null;
+        if(было==null) localStorage.removeItem("jdStories"); else localStorage.setItem("jdStories",было);
+      }
+      return JSON.stringify({плохо:плохо, вопросов:stQuestions().length});
+    })()`));
+    check("банк историй: добавить, прогнать, запомнить, не сломаться", st.плохо.length === 0,
+      st.плохо.length ? st.плохо.join(" · ") : "история → прогон → выбор → чек-лист · вопросов под истории " + st.вопросов + " · ключ в бэкапе");
+  }
+
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }

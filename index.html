@@ -656,6 +656,25 @@
      Болели «С нуля» (135 000 px), «Игра» (2 246) и «Поведенческий» (4 021). */
   #gameStage{min-height:0;overflow-y:auto;overscroll-behavior:contain}
   #viewBeh .beh-list{overflow-y:auto;overscroll-behavior:contain}
+  /* банк историй */
+  .st-box{border:1px solid var(--line);border-radius:16px;background:var(--panel-2);padding:14px 18px;margin-bottom:14px}
+  .st-head{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap}
+  .st-t{font:700 15px var(--sans)} .st-t b{color:var(--acc)}
+  .st-sub{font-size:12px;flex:1 1 200px}
+  .st-btns{display:flex;gap:8px;flex-wrap:wrap} .st-btns .btn{flex:none;padding:6px 12px;font-size:12px}
+  .st-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:9px;margin-top:12px}
+  .st-card{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:12px;padding:10px 12px;cursor:pointer;background:var(--panel)}
+  .st-card.full{border-left-color:var(--good)} .st-card b{display:block;font-size:14px;margin-bottom:4px} .st-card .mut{font-size:11.5px}
+  .st-tag{font-style:normal;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:1px 7px;margin-right:4px}
+  .st-in{width:100%;box-sizing:border-box;margin-top:8px;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--txt);font:500 14px var(--sans)}
+  .st-ta{min-height:72px}
+  .st-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px} .st-row .btn{flex:none;padding:7px 14px;font-size:13px}
+  .st-q{font:600 calc(16px * var(--ts)) var(--sans);line-height:1.5;margin:4px 0 6px}
+  .st-picks{display:flex;gap:8px;flex-wrap:wrap} .st-pick{flex:none;padding:7px 12px;font-size:13px}
+  .st-pick.was{border-color:var(--acc)} .st-pick.none{color:var(--mut)}
+  .st-story{border-left:2px solid var(--acc);padding-left:12px;margin-top:8px}
+  .st-txt{font-size:calc(13.5px * var(--ts));line-height:1.6;white-space:pre-wrap}
+  .st-checks{display:grid;gap:6px;font-size:13.5px} .st-checks label{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
   #viewFp .fpmain{min-height:0}
   /* .fpmain — ряд с align-items:center, поэтому ребёнок НЕ растягивается и его
      высота идёт от содержимого. Ограничиваем потолком, центрирование сохраняется. */
@@ -2458,6 +2477,7 @@
     <div class="bas-intro">🎤 <b>Поведенческий собес.</b> <span id="behIntro">Техническую часть ты закроешь карточками. Здесь то, что спросят первым и к чему обычно не готовятся. Пиши свои заготовки — они сохраняются.</span></div>
     <div class="zero-top"><div class="zero-bar"><span id="behBar"></span></div><b id="behPct">0%</b>
       <span class="mut" style="font-size:12px" id="behCnt"></span></div>
+    <div id="behStories" class="st-box"></div>
     <div id="behList" class="beh-list"></div>
   </div>
 </section>
@@ -3855,8 +3875,9 @@ function buildBeh(){
   BEHAV.forEach((b,i)=>{
     if(b.g!==g){ g=b.g; html+=`<div class="zero-g"><span>${esc(tr(g))}</span></div>`; }
     const k=behKey(b), ans=BANS[k]||"", done=ans.trim().length>40;
+    const st=typeof STORIES!=="undefined"&&STORIES.map[k]&&stById(STORIES.map[k]);
     html+=`<div class="beh-q${done?" done":""}" data-i="${i}">
-      <div class="beh-h"><span class="beh-i">${done?"✓":i+1}</span><b>${esc(tr(b.q))}</b></div>
+      <div class="beh-h"><span class="beh-i">${done?"✓":i+1}</span><b>${esc(tr(b.q))}</b>${st?`<span class="pill" title="${engA(tr("история под этот вопрос"))}">📚 ${esc(st.t)}</span>`:""}</div>
       <div class="beh-body">
         <div class="beh-lab">${tr("что на самом деле проверяют")}</div><div class="beh-w">${esc(tr(b.w))}</div>
         <div class="beh-lab">${tr("каркас ответа")}</div><div class="beh-hint">${esc(tr(b.h))}</div>
@@ -3888,6 +3909,7 @@ function buildBeh(){
       if(left<=0){ clearInterval(behTimer); behTimer=null; if(el)el.textContent=tr("время"); } },1000); });
   wrap.querySelectorAll("[data-r]").forEach(b=>b.onclick=e=>{ e.stopPropagation(); behRecToggle(b); });
   behBarUI();
+  if(typeof buildStories==="function") buildStories();
 }
 let behTimer=null;
 /* Запись ответа голосом.
@@ -3945,6 +3967,150 @@ async function behRecToggle(btn){
     btn.textContent="⏹ "+Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0");
     if(sec>=300) behRecStop();                                   /* пять минут — потолок, чтобы не забить память */
   },250);
+}
+/* ---------- 📚 Мои истории: банк историй для поведенческого собеса ----------
+ *
+ * У каждого вопроса выше есть своё поле — но на собесе не 74 ответа, а шесть-восемь
+ * историй, и каждая закрывает по десятку вопросов. Историю держим в четырёх частях:
+ * ситуация, что сделал именно я, результат в цифрах, урок. Прогон берёт случайный
+ * вопрос и просит выбрать историю под него — это и есть навык, который проверяют:
+ * не вспомнить заготовку, а быстро подобрать случай под чужой вопрос.
+ *
+ * Тексты личные и живут только в браузере (ключ jdStories, в бэкап попадает по
+ * префиксу). Репозиторий публичный, поэтому в него не уходит ничего.
+ */
+const ST_F=[
+  ["s","Ситуация","Где, что за система, что пошло не так или что требовалось. Две-три фразы."],
+  ["a","Что сделал именно я","Не «мы», а «я»: решения, которые принял, и почему именно так."],
+  ["r","Результат в цифрах","Было → стало: время, деньги, строки, инциденты, проценты."],
+  ["l","Что вынес","Что сделал бы иначе и как это изменило твою работу дальше."]];
+const STORIES=(()=>{
+  try{ const j=JSON.parse(localStorage.getItem("jdStories")||"null"); if(j&&Array.isArray(j.list)) return Object.assign({__v:1,map:{}},j); }catch(e){}
+  return {__v:1,list:[],map:{}};
+})();
+function stSave(){ try{ localStorage.setItem("jdStories",JSON.stringify(STORIES)); }catch(e){} }
+function stFull(s){ return ST_F.every(f=>(s[f[0]]||"").trim().length>=20); }
+function stId(){ return "s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function stById(id){ return STORIES.list.find(s=>s.id===id); }
+function stCovered(){ return Object.keys(STORIES.map).filter(k=>stById(STORIES.map[k])).length; }
+/* Вопросы, под которые вообще имеет смысл подбирать историю: не «расскажи о себе» и не «вопросы им». */
+function stQuestions(){ return BEHAV.filter(b=>/^Ситуации|^Провалы|^Команда|^Опыт/.test(b.g)); }
+let ST={open:false, edit:null, drill:null};
+function buildStories(){
+  const box=$("#behStories"); if(!box) return;
+  const L=STORIES.list, full=L.filter(stFull).length, Q=stQuestions();
+  let html=`<div class="st-head" id="stHead">
+    <span class="st-t">📚 ${tr("Мои истории")} <b>${L.length}</b></span>
+    <span class="mut st-sub">${L.length?tr("готовых")+" "+full+" · "+tr("закрывают вопросов")+" "+stCovered()+"/"+Q.length:tr("шесть-восемь историй закрывают почти все вопросы выше")}</span>
+    <span class="st-btns">
+      <button class="btn" id="stAdd">${tr("+ история")}</button>
+      <button class="btn primary" id="stDrill" ${L.length?"":"disabled"}>🎲 ${tr("прогон")}</button>
+      <button class="btn" id="stImp" title="${engA(tr("файл JSON со списком историй"))}">⇩ ${tr("импорт")}</button>
+      <input type="file" id="stFile" accept="application/json,.json" hidden>
+    </span></div>`;
+  if(ST.drill) html+=stDrillHtml();
+  else if(ST.edit) html+=stEditHtml(ST.edit);
+  else if(L.length) html+=`<div class="st-list">${L.map(s=>{
+      const n=Object.keys(STORIES.map).filter(k=>STORIES.map[k]===s.id).length;
+      return `<div class="st-card${stFull(s)?" full":""}" data-id="${s.id}">
+        <b>${esc(s.t||tr("без названия"))}</b>
+        <span class="mut">${(s.tags||[]).map(t=>`<i class="st-tag">${esc(t)}</i>`).join("")}${n?` · ${n} ${tr("вопр.")}`:""}${stFull(s)?"":` · <em>${tr("не дописана")}</em>`}</span>
+      </div>`; }).join("")}</div>`;
+  box.innerHTML=html;
+  const add=$("#stAdd"); if(add) add.onclick=()=>{ ST.drill=null; ST.edit={id:stId(),t:"",tags:[],s:"",a:"",r:"",l:"",_new:true}; buildStories(); };
+  const dr=$("#stDrill"); if(dr) dr.onclick=()=>{ ST.edit=null; stDrillStart(); };
+  const im=$("#stImp"), f=$("#stFile"); if(im&&f){ im.onclick=()=>f.click(); f.onchange=e=>stImport(e.target.files&&e.target.files[0]); }
+  box.querySelectorAll(".st-card").forEach(c=>c.onclick=()=>{ ST.edit=Object.assign({},stById(c.dataset.id)); buildStories(); });
+  if(ST.edit) stEditWire(); if(ST.drill) stDrillWire();
+}
+function stEditHtml(s){
+  return `<div class="st-edit">
+    <input class="st-in" id="stTitle" placeholder="${engA(tr("Название: «Рефакторинг портфеля», «Потеря событий в коннекторе»"))}" value="${engA(s.t||"")}">
+    <input class="st-in" id="stTags" placeholder="${engA(tr("теги через запятую: прод, конфликт, провал, рефакторинг"))}" value="${engA((s.tags||[]).join(", "))}">
+    ${ST_F.map(([k,lab,hint])=>`<div class="beh-lab">${esc(tr(lab))}</div>
+      <textarea class="beh-ta st-ta" data-f="${k}" placeholder="${engA(tr(hint))}">${esc(s[k]||"")}</textarea>`).join("")}
+    <div class="st-row">
+      <button class="btn primary" id="stSave">${tr("сохранить")}</button>
+      <button class="btn" id="stCancel">${tr("отмена")}</button>
+      ${s._new?"":`<button class="btn" id="stDel" style="margin-left:auto">${tr("удалить")}</button>`}
+    </div></div>`;
+}
+function stEditWire(){
+  const s=ST.edit, read=()=>{ s.t=$("#stTitle").value.trim(); s.tags=$("#stTags").value.split(",").map(x=>x.trim()).filter(Boolean);
+    $("#behStories").querySelectorAll(".st-ta").forEach(ta=>s[ta.dataset.f]=ta.value); };
+  $("#stSave").onclick=()=>{ read(); if(!s.t&&!s.s){ $("#stTitle").focus(); return; }
+    if(!s.t) s.t=s.s.slice(0,40); delete s._new;
+    const i=STORIES.list.findIndex(x=>x.id===s.id); if(i<0) STORIES.list.push(s); else STORIES.list[i]=s;
+    stSave(); ST.edit=null; buildStories(); buildBeh(); };
+  $("#stCancel").onclick=()=>{ ST.edit=null; buildStories(); };
+  const d=$("#stDel"); if(d) d.onclick=()=>{ if(!confirm(tr("Удалить историю?"))) return;
+    STORIES.list=STORIES.list.filter(x=>x.id!==s.id);
+    Object.keys(STORIES.map).forEach(k=>{ if(STORIES.map[k]===s.id) delete STORIES.map[k]; });
+    stSave(); ST.edit=null; buildStories(); buildBeh(); };
+}
+/* Прогон: вопрос → история → две минуты вслух → чек-лист. Историю к вопросу запоминаем:
+   так видно, сколько вопросов уже закрыто и какие истории не пригодились ни разу. */
+function stDrillStart(){
+  const Q=stQuestions(); if(!Q.length||!STORIES.list.length) return;
+  const seen=ST.drill&&ST.drill.seen||[];
+  let pool=Q.filter(b=>seen.indexOf(behKey(b))<0); if(!pool.length){ pool=Q; seen.length=0; }
+  const b=pool[Math.floor(Math.random()*pool.length)];
+  ST.drill={q:b, pick:null, seen:seen.concat(behKey(b)), checks:[]};
+  buildStories();
+  const h=$("#stHead"); if(h) h.scrollIntoView({block:"start",behavior:"smooth"});
+}
+function stDrillHtml(){
+  const d=ST.drill, k=behKey(d.q), s=d.pick&&stById(d.pick), own=(BANS[k]||"").trim();
+  let html=`<div class="st-drill">
+    <div class="beh-lab">${esc(tr(d.q.g))} · ${tr("вопрос")}</div>
+    <div class="st-q">${esc(tr(d.q.q))}</div>`;
+  if(!s){
+    html+=`<div class="beh-lab">${tr("какая история подходит?")}</div>
+      <div class="st-picks">${STORIES.list.map(x=>`<button class="btn st-pick${STORIES.map[k]===x.id?" was":""}" data-id="${x.id}">${esc(x.t||tr("без названия"))}</button>`).join("")}
+        <button class="btn st-pick none" data-id="">${tr("ни одна — нужна новая")}</button></div>`;
+  } else {
+    const CH=[tr("ситуацию уложил в две-три фразы"),tr("сказал, что сделал именно я, а не «мы»"),tr("назвал число в результате"),tr("сказал, что вынес"),tr("уложился в две минуты")];
+    html+=`<div class="st-story"><b>${esc(s.t)}</b>${ST_F.map(([f,lab])=>`<div class="beh-lab">${esc(tr(lab))}</div><div class="st-txt">${esc(s[f]||"—")}</div>`).join("")}</div>
+      ${own?`<div class="beh-lab">${tr("твоя заготовка к этому вопросу")}</div><div class="st-txt mut">${esc(own)}</div>`:""}
+      <div class="beh-tm"><button class="btn" id="stTimer" style="flex:none;padding:6px 12px;font-size:12px">⏱ ${tr("2 минуты вслух")}</button><b id="stClock">2:00</b>
+        <button class="btn beh-rec" data-r="st" style="flex:none;padding:6px 12px;font-size:12px">🎙 ${tr("записать ответ")}</button></div>
+      <div class="beh-play" id="bpst" hidden></div>
+      <div class="beh-lab">${tr("после рассказа — честно отметь")}</div>
+      <div class="st-checks">${CH.map((c,i)=>`<label><input type="checkbox" data-c="${i}"${d.checks[i]?" checked":""}> ${esc(c)}</label>`).join("")}</div>
+      <div class="st-row"><button class="btn primary" id="stNext">${tr("следующий вопрос")} →</button>
+        <button class="btn" id="stRepick">${tr("другая история")}</button></div>`;
+  }
+  html+=`<div class="st-row"><button class="btn" id="stStop">${tr("закончить прогон")}</button></div></div>`;
+  return html;
+}
+function stDrillWire(){
+  const d=ST.drill, k=behKey(d.q);
+  $("#behStories").querySelectorAll(".st-pick").forEach(b=>b.onclick=()=>{
+    if(!b.dataset.id){ ST.drill=null; ST.edit={id:stId(),t:"",tags:[],s:"",a:"",r:"",l:"",_new:true}; buildStories(); return; }
+    d.pick=b.dataset.id; STORIES.map[k]=d.pick; stSave(); buildStories(); buildBeh(); });
+  const t=$("#stTimer"); if(t) t.onclick=()=>{ const el=$("#stClock"); if(behTimer) clearInterval(behTimer); let left=120;
+    behTimer=setInterval(()=>{ left--; if(el) el.textContent=Math.floor(left/60)+":"+String(left%60).padStart(2,"0");
+      if(left<=0){ clearInterval(behTimer); behTimer=null; if(el) el.textContent=tr("время"); } },1000); };
+  const r=$("#behStories").querySelector("[data-r]"); if(r) r.onclick=()=>behRecToggle(r);
+  $("#behStories").querySelectorAll("[data-c]").forEach(c=>c.onchange=()=>{ d.checks[+c.dataset.c]=c.checked; });
+  const n=$("#stNext"); if(n) n.onclick=()=>{ behRecStop(); stDrillStart(); };
+  const rp=$("#stRepick"); if(rp) rp.onclick=()=>{ d.pick=null; buildStories(); };
+  $("#stStop").onclick=()=>{ behRecStop(); ST.drill=null; buildStories(); };
+}
+/* Импорт: {list:[{t,tags,s,a,r,l}]} или просто массив. Сливаем по id, без id — добавляем. */
+function stImport(file){
+  if(!file) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ let j; try{ j=JSON.parse(String(rd.result)); }catch(e){ toast(tr("Это не JSON")); return; }
+    const arr=Array.isArray(j)?j:(j&&Array.isArray(j.list)?j.list:null);
+    if(!arr){ toast(tr("В файле нет списка историй")); return; }
+    let add=0, upd=0;
+    arr.forEach(x=>{ if(!x||typeof x!=="object") return;
+      const s={id:x.id||stId(), t:String(x.t||""), tags:Array.isArray(x.tags)?x.tags.map(String):[], s:String(x.s||""), a:String(x.a||""), r:String(x.r||""), l:String(x.l||"")};
+      const i=STORIES.list.findIndex(y=>y.id===s.id); if(i<0){ STORIES.list.push(s); add++; } else { STORIES.list[i]=s; upd++; } });
+    stSave(); ST.edit=null; ST.drill=null; buildStories();
+    toast(tr("историй добавлено")+": "+add+(upd?" · "+tr("обновлено")+": "+upd:"")); };
+  rd.readAsText(file);
 }
 /* ---------- 🌱 С нуля: лестница от транзистора до программы ---------- */
 const ZERO_RAW=(window.ZERO||[]);
