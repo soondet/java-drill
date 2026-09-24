@@ -2624,6 +2624,9 @@
 <script src="cards-craft.js"></script>
 <script src="cards-fix.js"></script>
 <script src="quiz-fix.js"></script>
+<script src="zero-ai.js"></script>
+<script src="cards-ai.js"></script>
+<script src="terms-ai.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[]),
@@ -4132,11 +4135,15 @@ const ZDONE=(()=>{
 /* Добор маршрутов вставляем ПОСЛЕ миграции: до неё порядок должен совпадать с тем,
    к которому относились сохранённые номера. */
 const ZERO=(()=>{
-  const add=window.ZERO_ADD;
-  if(!add||!add.steps||!add.steps.length) return ZERO_RAW;
-  const i=ZERO_RAW.map(z=>z.g).lastIndexOf(add.after);
-  if(i<0) return ZERO_RAW.concat(add.steps);
-  return ZERO_RAW.slice(0,i+1).concat(add.steps, ZERO_RAW.slice(i+1));
+  /* Доборов стало несколько (реактивность, AI): ZERO_ADD — объект или список объектов
+     {after, steps}; after:null — в конец. Каждый вставляется по очереди. */
+  let out=ZERO_RAW;
+  [].concat(window.ZERO_ADD||[]).forEach(add=>{
+    if(!add||!add.steps||!add.steps.length) return;
+    const i=add.after==null?-1:out.map(z=>z.g).lastIndexOf(add.after);
+    out = i<0 ? out.concat(add.steps) : out.slice(0,i+1).concat(add.steps, out.slice(i+1));
+  });
+  return out;
 })();
 function zeroSave(){ try{localStorage.setItem("jdZero",JSON.stringify([...ZDONE]))}catch(e){} }
 function zDone(i){ const z=ZERO[i]; return !!z&&ZDONE.has(zeroKey(z)); }
@@ -12505,7 +12512,7 @@ function openRoadmap(){
   buildRoadmap();
 }
 function closeRoadmap(){ $("#rmDrawer").classList.remove("open"); $("#rmBackdrop").hidden=true; setTimeout(()=>{$("#rmDrawer").hidden=true;},260); }
-const MACRO_ORDER=["Java","JVM","Concurrency","Algorithms","DB","Web","Spring","Quarkus","Build","Testing","Git","Reactive","Distributed","Infra","DevOps","Crypto","Design","Архитектура","System Design"];
+const MACRO_ORDER=["Java","JVM","Concurrency","Algorithms","DB","Web","Spring","Quarkus","Build","Testing","Git","Reactive","Distributed","Infra","DevOps","Crypto","AI","Design","Архитектура","System Design"];
 function rmDot(id){ const p=prog[id]; return `<i class="rm-dot ${!p?"":p.box>=5?"m":p.box>=2?"l":""}"></i>`; }
 function clMastery(cl){ const cs=CARDS.filter(c=>c.t===cl); const m=cs.filter(c=>prog[c.id]&&prog[c.id].box>=5).length; return {total:cs.length,m,pct:cs.length?Math.round(m/cs.length*100):0}; }
 let rmLast=null;   // {cl,s,id} — последняя позиция в роудмапе, чтобы вернуться к ней при повторном открытии

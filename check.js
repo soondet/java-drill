@@ -242,6 +242,22 @@ const check = (name, ok, detail) => {
   check("диагностику не пройти «выбирай самый длинный»", dg.pct <= 40,
     "стратегия даёт " + dg.pct + "%, потолок 40%, случайный тык 25%");
 
+  /* ---- раздел AI: маршрут, карточки, термины ----
+     Про AI в тренажёре не было ничего; теперь маршрут в «С нуля», кластер карточек и
+     термины. Считаем всё вместе, чтобы выпадение одного файла из сборки было видно. */
+  {
+    const ai = JSON.parse(await A.ev(`(function(){
+      var st=ZERO.filter(function(z){return /^AI:/.test(z.g)}), g={}; st.forEach(function(z){ g[z.g]=1; });
+      var viz=st.filter(function(z){ return (window.ZVIZ||{})[z.t]; }).length, code=st.filter(function(z){return z.c}).length;
+      var cards=CARDS.filter(function(c){return c.t==="AI"}), full=cards.filter(function(c){ return c.q&&c.a&&c.d&&QUIZ[c.id]&&HOOKS.cards[c.id]; }).length;
+      var terms=(window.TERMS||[]).filter(function(t){return t.t==="AI"}).length;
+      return JSON.stringify({шагов:st.length, групп:Object.keys(g).length, схем:viz, кода:code, карт:cards.length, полных:full, терминов:terms, порядок:MACRO_ORDER.indexOf("AI")>=0, конец:/^AI:/.test((ZERO[ZERO.length-1]||{}).g||"")});
+    })()`));
+    check("раздел AI: маршрут, карточки и термины на месте",
+      ai.шагов >= 30 && ai.групп === 6 && ai.схем >= 4 && ai.кода >= 3 && ai.карт >= 20 && ai.полных === ai.карт && ai.терминов >= 30 && ai.порядок && ai.конец,
+      "шагов " + ai.шагов + " в " + ai.групп + " группах, схем " + ai.схем + ", с кодом " + ai.кода + " · карточек " + ai.карт + " (полных " + ai.полных + ") · терминов " + ai.терминов + (ai.конец ? " · маршрут в конце лестницы" : " · маршрут НЕ в конце"));
+  }
+
   /* ---- ревью: тот же запрет на подсказку по длине ---- */
   const rv = JSON.parse(await A.ev(`(function(){
     var R=window.REVIEW||[];
