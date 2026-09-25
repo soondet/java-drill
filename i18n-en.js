@@ -8895,7 +8895,8 @@ window.I18N = {
   "поставщик A": "vendor A",
   "поставщик B": "vendor B",
   "свойства, не код": "properties, not code",
-  "обёртка даёт интерфейс, инженерия остаётся твоей": "the wrapper gives an interface, the engineering stays yours"
+  "обёртка даёт интерфейс, инженерия остаётся твоей": "the wrapper gives an interface, the engineering stays yours",
+  "Музыка · пьесы": "Music · pieces"
  },
  "cards": {
   "jc-eqhash": {

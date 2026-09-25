@@ -242,6 +242,46 @@ const check = (name, ok, detail) => {
   check("диагностику не пройти «выбирай самый длинный»", dg.pct <= 40,
     "стратегия даёт " + dg.pct + "%, потолок 40%, случайный тык 25%");
 
+  /* ---- пьесы: список, разбор, задания на клавишах ----
+     Отдельный раздел рядом с книгой. Проверяем механику от входа до зачёта: вкладка есть,
+     список рисуется, разбор открывается, задания на клавишах зачитываются через штатный
+     musKeyTap, отметка живёт в jdPieces и попадает в бэкап, «назад» возвращает список. */
+  {
+    const pcRaw = await A.ev(`(async function(){
+      var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})}, плохо=[];
+      var было=localStorage.getItem("jdPieces"); localStorage.removeItem("jdPieces");
+      try {
+        document.getElementById("tabMus").click(); await ж(500);
+        var tab=[].slice.call(document.querySelectorAll("#musTabs .mus-tab")).find(function(b){return b.dataset.m==="piece"}); if(!tab){ плохо.push("нет вкладки"); throw 0; }
+        tab.click(); await ж(300);
+        var cards=document.querySelectorAll(".pc-card"); if(!cards.length){ плохо.push("список пуст"); throw 0; }
+        cards[0].click(); await ж(300);
+        var p=MUSPIECES.find(function(x){return x.id===PC.cur}); if(!p){ плохо.push("разбор не открылся"); throw 0; }
+        if(p.steps.length<8) плохо.push("шагов "+p.steps.length);
+        var bad=[]; p.steps.forEach(function(s,i){ if(s.check){ var ks=s.check.k||[]; ks.forEach(function(m){ if(m<KB_LO||m>KB_HI) bad.push(i); }); if(!s.check.hint||!s.check.ok) bad.push(i); } (s.act&&s.act.s||[]).forEach(function(v){ if(MUS_BASE+v<KB_LO||MUS_BASE+v>KB_HI) bad.push(i); }); });
+        if(bad.length) плохо.push("клавиши вне клавиатуры в шагах "+bad.join(","));
+        var зачтено=0, всего=0;
+        for (var i=0;i<p.steps.length;i++){ var T=p.steps[i].check; if(!T) continue; всего++;
+          document.querySelector('[data-chk="'+i+'"]').click(); await ж(50);
+          var ks=T.m==="pcs"?T.pcs.map(function(c){return 60+c}):T.k; ks.forEach(function(m){ musKeyTap(m); }); await ж(100);
+          if((JSON.parse(localStorage.getItem("jdPieces")||"{}")[p.id]||{})[i]) зачтено++; }
+        if(зачтено!==всего) плохо.push("зачтено "+зачтено+" из "+всего);
+        if(backupKeys().indexOf("jdPieces")<0) плохо.push("ключ не в бэкапе");
+        document.getElementById("pcBack").click(); await ж(200);
+        if(!document.querySelector(".pc-card")) плохо.push("назад не вернул список");
+        if(!/\\d+ \\/ \\d+/.test(document.querySelector(".pc-n").textContent)) плохо.push("нет счётчика на карточке");
+      } catch(e){ if(e!==0) плохо.push("исключение: "+(e&&e.message||e)); }
+      finally { MUS_TAP_HOOK=null; MUS_MIDI_HOOK=null; PC.cur=null; if(было==null) localStorage.removeItem("jdPieces"); else localStorage.setItem("jdPieces",было);
+        /* раздел остаётся на вкладке пьес, а проверка книги ниже ждёт книгу — возвращаем */
+        var bt=[].slice.call(document.querySelectorAll("#musTabs .mus-tab")).find(function(b){return b.dataset.m==="book"}); if(bt) bt.click(); await ж(300); }
+      return JSON.stringify({плохо:плохо, пьес:MUSPIECES.length, шагов:MUSPIECES.reduce(function(k,p){return k+p.steps.length},0)});
+    })()`);
+    /* исключение внутри страницы приходит строкой «__ОШИБКА__ …» — показываем его, а не «не JSON» */
+    const pc = /^__ОШИБКА__/.test(String(pcRaw)) ? { плохо: [String(pcRaw).slice(0, 220)], пьес: 0, шагов: 0 } : JSON.parse(pcRaw);
+    check("пьесы: список, разбор и задания на клавишах", pc.плохо.length === 0,
+      pc.плохо.length ? pc.плохо.join(" · ") : "пьес " + pc.пьес + " · шагов " + pc.шагов + " · задания зачитываются · отметки в бэкапе");
+  }
+
   /* ---- раздел AI: маршрут, карточки, термины ----
      Про AI в тренажёре не было ничего; теперь маршрут в «С нуля», кластер карточек и
      термины. Считаем всё вместе, чтобы выпадение одного файла из сборки было видно. */

@@ -1299,6 +1299,18 @@
   .hk.open .hk-arr{transform:rotate(180deg)}
   .hk-b{display:none;padding:0 14px 14px}
   .hk.open .hk-b{display:block}
+  /* пьесы */
+  .pc-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+  .pc-card{text-align:left;font:inherit;color:var(--txt);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:14px;background:var(--panel-2);padding:14px 16px;cursor:pointer;display:flex;flex-direction:column;gap:7px}
+  .pc-card.full{border-left-color:var(--good)} .pc-card b{font-size:16px}
+  .pc-sub,.pc-n,.pc-note{font-size:12px;color:var(--mut)} .pc-note{margin:10px 0 0}
+  .pc-chips{display:flex;flex-wrap:wrap;gap:6px} .pc-chips i{font:600 11.5px var(--mono);font-style:normal;color:var(--txt);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:2px 8px}
+  .pc-chips.big i{display:flex;flex-direction:column;padding:6px 10px;font-size:13px} .pc-chips.big small{font:700 9.5px var(--sans);letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+  .pc-prog{display:block;height:6px;border-radius:4px;background:var(--panel);border:1px solid var(--line);overflow:hidden} .pc-prog em{display:block;height:100%;background:var(--grad)}
+  .pc-back{flex:none;padding:7px 14px;font-size:13px;margin-bottom:12px}
+  .pc-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);font:700 11px var(--mono);font-style:normal;margin-right:9px;color:var(--mut)}
+  .hk.ok .pc-num{background:var(--good);border-color:var(--good);color:#0b0f19}
+  .pc-check{cursor:pointer;margin-top:10px} .pc-done{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;color:var(--mut);cursor:pointer}
   .hk-b>p{margin:0 0 12px;font-size:14px;line-height:1.62;color:var(--txt)}
   .hk-row{border-left:3px solid var(--line);padding:2px 0 2px 12px;margin-bottom:10px}
   .hk-row span{display:block;font:700 11px var(--sans);letter-spacing:1px;color:var(--mut)}
@@ -2599,6 +2611,7 @@
 <script src="hacks.js"></script>
 <script src="music-ref.js"></script>
 <script src="music-book.js"></script>
+<script src="music-pieces.js"></script>
 <script src="english.js"></script>
 <script src="english-grammar.js"></script>
 <script src="guitar.js"></script>
@@ -4619,6 +4632,8 @@ function gsRun(q){
   push(tr("Английский · фразы"),gPh,x=>({ico:x.g.ico,txt:x.it.en,tag:x.g.group,act:()=>gsEng(()=>{ ENG.mode="phrases"; },'.eng-ph[data-id="'+x.id+'"]')}));
   const gBk=[]; ((window.MUSBOOK||{}).chapters||[]).forEach((c,ci)=>c.pages.forEach((pg,pi)=>{ if(inc(pg.t,pg.p,c.title)) gBk.push({c,pg,ci,pi}); }));
   push(tr("Музыка · книга"),gBk,x=>({ico:x.c.ico,txt:x.pg.t,tag:x.c.title,act:()=>gsMus("piano","book",()=>{ try{ localStorage.setItem("jdMusBook",JSON.stringify({ch:x.ci,pg:x.pi})); }catch(e){} })}));
+  const gPc=[]; (window.MUSPIECES||[]).forEach(p=>{ if(inc(p.title,p.composer,p.source,p.key,...p.steps.map(s=>s.t+" "+s.p))) gPc.push(p); });
+  push(tr("Музыка · пьесы"),gPc,p=>({ico:"🎼",txt:p.title,tag:p.composer,act:()=>gsMus("piano","piece",()=>{ PC.cur=p.id; })}));
   const gHk=[]; [["piano","hack",window.MUSHACK],["guitar","ghack",window.GTHACK]].forEach(([ins,m,H])=>(H||[]).forEach((g,gi)=>g.hacks.forEach((h,hi)=>{
     if(inc(h.title,h.idea,h.how,h.why,h.mistake,g.group)) gHk.push({ins,m,g,h,id:"h"+gi+"_"+hi}); })));
   push(tr("Музыка · приёмы"),gHk,x=>({ico:x.ins==="guitar"?"🎸":"🎹",txt:x.h.title,tag:x.g.group,act:()=>gsMus(x.ins,x.m,null,'.hk[data-id="'+x.id+'"]')}));
@@ -4964,6 +4979,8 @@ function progExtraRows(){
   if(ph)rows.push({ico:"💬",name:tr("Английский · фразы"),m:Object.keys(ld("jdEngKnown")).length,l:0,total:ph,go:"eng-phrases"});
   const bk=((window.MUSBOOK||{}).chapters||[]).reduce((k,c)=>k+c.pages.length,0);
   if(bk)rows.push({ico:"📕",name:tr("Музыка · книга"),m:Object.keys(ld("jdMusBookDone")).length,l:0,total:bk,go:"mus-book"});
+  const pcAll=(window.MUSPIECES||[]).reduce((k,p)=>k+p.steps.length,0), pcD=ld("jdPieces");
+  if(pcAll)rows.push({ico:"🎼",name:tr("Музыка · пьесы"),m:(window.MUSPIECES||[]).reduce((k,p)=>k+Object.keys(pcD[p.id]||{}).length,0),l:0,total:pcAll,go:"mus-piece"});
   return rows;
 }
 function progExtraHtml(){
@@ -4981,6 +4998,7 @@ function progExtraGo(k){
   if(k==="eng-rules")return gsEng(()=>{ ENG.mode="rules"; ENG.rtest=null; ENG.rtopic=null; });
   if(k==="eng-phrases")return gsEng(()=>{ ENG.mode="phrases"; });
   if(k==="mus-book")return gsMus("piano","book");
+  if(k==="mus-piece")return gsMus("piano","piece",()=>{ PC.cur=null; });
 }
 function buildProg(){
   const stg=$("#progStage"); const total=CARDS.length;
@@ -13720,13 +13738,91 @@ function musUI(){
     return musHacks(b,window.GTHACK,"гитарные лайфхаки ещё не подгрузились");
   }
   if(MUS_MODE==="book")return musBook(b);
+  if(MUS_MODE==="piece")return musPieces(b);
   if(MUS_MODE==="hack")return musHacks(b);
   if(MUS_MODE==="ref")return musRef(b);
   if(MUS_MODE==="ear")return musEar(b);
   return musVoice(b);
 }
+/* ═══ Пьесы: список и разбор ═══
+   Книга учит клавиатуре, лайфхаки — приёмам, а «вот пьеса, с чего начать» не закрывал
+   никто. Раздел: список пьес с прогрессом, у каждой — факты, мотив и бас на клавишах,
+   шаги с отметками, задания на клавишах через тот же перехват, что у книги, трудные
+   места и план на неделю. Отметки — jdPieces, в бэкап попадают по префиксу. */
+const PC={cur:null}, PC_KEY="jdPieces";
+function pcDone(){ try{ return JSON.parse(localStorage.getItem(PC_KEY)||"{}"); }catch(e){ return {}; } }
+function pcSet(id,i,v){ const d=pcDone(); d[id]=d[id]||{}; if(v)d[id][i]=1; else delete d[id][i]; try{ localStorage.setItem(PC_KEY,JSON.stringify(d)); }catch(e){} }
+function pcCount(p){ const d=pcDone()[p.id]||{}; return p.steps.filter((_,i)=>d[i]).length; }
+function pcChips(p){ return [p.key,p.meter,p.tempo,p.bars+" тактов",p.minutes,p.level].filter(Boolean).map(x=>"<i>"+esc(String(x))+"</i>").join(""); }
+function musPieces(b){
+  const P=window.MUSPIECES||[];
+  if(!P.length){ b.innerHTML='<div class="mus-card"><p class="mus-p">Пьесы не загрузились — нужен файл music-pieces.js рядом.</p></div>'; return; }
+  const p=PC.cur&&P.find(x=>x.id===PC.cur);
+  if(!p){ PC.cur=null; return pcList(b,P); }
+  pcDetail(b,p);
+}
+function pcList(b,P){
+  b.innerHTML='<div class="mus-card"><h3>Пьесы</h3><p class="mus-p">Ноты — у тебя. Здесь порядок работы над каждой: что учить первым, когда соединять руки, где ставить метроном и что крутить в петле. Отмечай шаги — прогресс сохраняется.</p></div>'
+    +'<div class="pc-list">'+P.map(p=>{ const n=pcCount(p), all=p.steps.length;
+      return '<button class="pc-card'+(n===all?" full":"")+'" data-id="'+p.id+'"><b>'+esc(p.title)+'</b>'
+        +'<span class="pc-sub">'+esc(p.composer)+' · '+esc(p.source)+'</span>'
+        +'<span class="pc-chips">'+pcChips(p)+'</span>'
+        +'<span class="pc-prog"><em style="width:'+(all?Math.round(n/all*100):0)+'%"></em></span>'
+        +'<span class="pc-n">'+n+' / '+all+' шагов</span></button>'; }).join("")+'</div>';
+  [...b.querySelectorAll(".pc-card")].forEach(el=>el.onclick=()=>{ PC.cur=el.dataset.id; musUI(); });
+  musKbCap("выбери пьесу — мотив подсветится на клавишах");
+}
+function pcDetail(b,p){
+  const d=pcDone()[p.id]||{}, all=p.steps.length, n=p.steps.filter((_,i)=>d[i]).length;
+  const plays=[p.motif,p.bass].filter(Boolean);
+  b.innerHTML='<button class="btn pc-back" id="pcBack">← все пьесы</button>'
+    +'<div class="mus-card pc-head"><h3>'+esc(p.title)+'</h3>'
+    +'<p class="mus-p">'+esc(p.composer)+' · '+esc(p.source)+(p.arr?' · '+esc(p.arr):'')+'</p>'
+    +'<div class="pc-chips big">'+[["тональность",p.key],["размер",p.meter],["темп",p.tempo],["тактов",p.bars],["длина",p.minutes],["уровень",p.level]].filter(x=>x[1]).map(([k,v])=>'<i><small>'+k+'</small>'+esc(String(v))+'</i>').join("")+'</div>'
+    +(p.form?'<div class="hk-row"><span>ФОРМА</span><p>'+esc(p.form)+'</p></div>':'')
+    +'<div class="mus-play">'+plays.map((x,i)=>'<button class="btn" data-pl="'+i+'">🔊 '+esc(x.l)+'</button>').join("")+'</div>'
+    +(p.notes?'<p class="pc-note">'+esc(p.notes)+'</p>':'')+'</div>'
+    +'<div class="hk-top"><div class="hk-bar"><i id="pcBar" style="width:'+(all?Math.round(n/all*100):0)+'%"></i></div><span id="pcCnt">'+n+' из '+all+' шагов</span></div>'
+    +p.steps.map((s,i)=>'<div class="hk pc-step'+(d[i]?" ok":"")+'" data-i="'+i+'">'
+      +'<button class="hk-h"><b><i class="pc-num">'+(d[i]?"✓":(i+1))+'</i>'+esc(s.t)+'</b><i class="hk-arr">▾</i></button>'
+      +'<div class="hk-b"><p>'+esc(s.p)+'</p>'
+      +(s.act?'<div class="mus-play"><button class="btn" data-act="'+i+'">🔊 '+esc(s.act.l)+'</button></div>':'')
+      +(s.check?'<div class="bk-task pc-check'+(d[i]?" ok":"")+'" data-chk="'+i+'"><i>'+(d[i]?"✓":"🎹")+'</i><span>'+esc(d[i]?s.check.ok:s.check.hint)+'</span></div>':'')
+      +'<label class="pc-done"><input type="checkbox" data-done="'+i+'"'+(d[i]?" checked":"")+'> шаг сделан</label></div></div>').join("")
+    +((p.spots||[]).length?'<div class="mus-card"><h3>Трудные места</h3>'+p.spots.map(s=>'<div class="hk-row bad"><span>'+esc(s.where)+'</span><p><b>'+esc(s.what)+'</b> '+esc(s.how)+'</p></div>').join("")+'</div>':'')
+    +((p.week||[]).length?'<div class="mus-card"><h3>План на неделю</h3>'+p.week.map(w=>'<div class="hk-row"><span>'+esc(w[0])+'</span><p>'+esc(w[1])+'</p></div>').join("")+'</div>':'');
+  const refresh=()=>{ const dd=pcDone()[p.id]||{}, k=p.steps.filter((_,i)=>dd[i]).length;
+    const bar=$("#pcBar"), c=$("#pcCnt"); if(bar)bar.style.width=(all?Math.round(k/all*100):0)+"%"; if(c)c.textContent=k+" из "+all+" шагов";
+    [...b.querySelectorAll(".pc-step")].forEach(el=>{ const i=+el.dataset.i; el.classList.toggle("ok",!!dd[i]); const num=el.querySelector(".pc-num"); if(num)num.textContent=dd[i]?"✓":(i+1);
+      const cb=el.querySelector("[data-done]"); if(cb)cb.checked=!!dd[i]; }); };
+  $("#pcBack").onclick=()=>{ MUS_TAP_HOOK=null; MUS_MIDI_HOOK=null; PC.cur=null; musUI(); };
+  [...b.querySelectorAll("[data-pl]")].forEach(el=>el.onclick=()=>{ const x=plays[+el.dataset.pl]; MUS_TAP_HOOK=null; musLight(x.s.map(v=>MUS_BASE+v)); musPlay(x.s,!!x.t); musKbCap(x.l); });
+  [...b.querySelectorAll(".hk-h")].forEach(el=>el.onclick=()=>el.parentNode.classList.toggle("open"));
+  [...b.querySelectorAll("[data-act]")].forEach(el=>el.onclick=()=>{ const x=p.steps[+el.dataset.act].act; MUS_TAP_HOOK=null; musLight(x.s.map(v=>MUS_BASE+v)); musPlay(x.s,!!x.t); musKbCap(x.l); });
+  [...b.querySelectorAll("[data-chk]")].forEach(el=>el.onclick=()=>pcArm(p,+el.dataset.chk,refresh));
+  [...b.querySelectorAll("[data-done]")].forEach(el=>el.onchange=()=>{ pcSet(p.id,+el.dataset.done,el.checked); refresh(); });
+  if(p.motif){ musLight(p.motif.k||p.motif.s.map(v=>MUS_BASE+v)); musKbCap(p.title+" — "+p.motif.l); }
+}
+/* Задание на клавишах: тот же перехват, что у книги — set (ровно набор), pcs (все нажатые из
+   классов, не меньше n), seq (по порядку). Зачёт отмечает шаг сделанным. */
+function pcArm(p,i,refresh){
+  const T=p.steps[i].check; if(!T)return;
+  const taps=[]; KB_SEL=[]; musPaint(); musKbCap("задание: "+T.hint);
+  const box=$("#musBody").querySelector('[data-chk="'+i+'"]'); if(box){ box.classList.remove("ok"); box.innerHTML="<i>🎹</i><span>"+esc(T.hint)+"</span>"; }
+  const check=()=>{ let ok=false;
+    if(T.m==="set") ok=KB_SEL.length===T.k.length&&T.k.every(m=>KB_SEL.indexOf(m)>=0);
+    else if(T.m==="pcs") ok=KB_SEL.length>=T.n&&KB_SEL.every(m=>T.pcs.indexOf(m%12)>=0)&&T.pcs.every(c=>KB_SEL.some(m=>m%12===c));
+    else if(T.m==="seq"){ const n=T.k.length; ok=taps.length>=n&&T.k.every((m,j)=>taps[taps.length-n+j]===m); }
+    if(!ok)return;
+    pcSet(p.id,i,true); if(box){ box.classList.add("ok"); box.innerHTML="<i>✓</i><span>"+esc(T.ok)+"</span>"; }
+    musKbCap("✓ "+T.ok); MUS_TAP_HOOK=null; MUS_MIDI_HOOK=null; if(refresh)refresh(); };
+  MUS_TAP_HOOK=m=>{
+    if(T.m==="seq"){ taps.push(m); KB_SEL=[m]; musPaint(); musPlay([m-MUS_BASE],false); musKbCap(musName([m])); check(); return true; }
+    musKeyDefault(m); check(); return true; };
+  MUS_MIDI_HOOK=m=>{ if(T.m==="seq")taps.push(m); setTimeout(check,0); return false; };
+}
 const MUS_TABS={
-  piano:[["book","📕 Книга"],["hack","💡 Лайфхаки"],["ref","📖 Шпоры"],["ear","👂 Интервал на слух"],["voice","🎤 Спой интервал"]],
+  piano:[["book","📕 Книга"],["piece","🎼 Пьесы"],["hack","💡 Лайфхаки"],["ref","📖 Шпоры"],["ear","👂 Интервал на слух"],["voice","🎤 Спой интервал"]],
   guitar:[["ghack","💡 Лайфхаки"],["gchord","🎵 Аккорды"],["grhy","🥁 Бои и переборы"],["gtune","🎯 Тюнер"],["gref","📖 Гриф и строй"]]
 };
 /* Тюнер: переиспользует то же определение высоты, что и вокальные тренажёры.
