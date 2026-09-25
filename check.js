@@ -305,7 +305,7 @@ const check = (name, ok, detail) => {
      словаря ещё нет и «непереведённым» выглядит вообще всё. Ждём загрузку явно. */
   const язык0 = await A.ev(`LANG`);
   await A.ev(`try{ if(LANG!=="en") setLang("en"); }catch(e){}`);
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 80; i++) {
     if (await A.ev(`LANG==="en" && tr("Сокращатель ссылок")!=="Сокращатель ссылок"`)) break;
     await sleep(300);
   }
@@ -359,7 +359,7 @@ const check = (name, ok, detail) => {
     let листов = 0; const высоты = [];
     const мерка = `(function(){var sp=document.getElementById("bkSpread"); return sp?Math.round(sp.getBoundingClientRect().height):0;})()`;
     высоты.push([await A.ev(`BK.ch+"."+BK.pg`), await A.ev(мерка)]);
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 80; i++) {
       const r = await A.ev(`(function(){var b=document.getElementById("bkNext"); if(!b||b.disabled)return "end"; bkNext(); return "ok";})()`);
       if (r !== "ok") break; листов++; await sleep(1350);   /* поворот 1.15с; раньше bkNext отбросит busy */
       высоты.push([await A.ev(`BK.ch+"."+BK.pg`), await A.ev(мерка)]);
@@ -443,7 +443,7 @@ const check = (name, ok, detail) => {
     /* подписи секции переведены */
     const язык0 = await A.ev(`LANG`);
     await A.ev(`try{ if(LANG!=="en") setLang("en"); }catch(e){}`);
-    for (let i = 0; i < 40; i++) { if (await A.ev(`LANG==="en"`)) break; await sleep(300); }
+    for (let i = 0; i < 80; i++) { if (await A.ev(`LANG==="en"`)) break; await sleep(300); }
     await A.ev(`document.getElementById("tabEng").click()`); await sleep(400);
     /* Подписи у каждого режима свои — обходим все три, иначе снятый перевод в
        одном режиме проскочит, пока сторож смотрит на другой. */
@@ -550,7 +550,7 @@ const check = (name, ok, detail) => {
     /* подписи режима переведены — обзор и страница темы */
     const язык0 = await A.ev(`LANG`);
     await A.ev(`try{ if(LANG!=="en") setLang("en"); }catch(e){}`);
-    for (let i = 0; i < 40; i++) { if (await A.ev(`LANG==="en"`)) break; await sleep(300); }
+    for (let i = 0; i < 80; i++) { if (await A.ev(`LANG==="en"`)) break; await sleep(300); }
     const кир = [];
     for (const шаг of ["ENG.rtest=null; ENG.rtopic=null; ENG.mode=\"rules\"; engUI();", "ENG.rtopic=engLevels()[0].topics[0].id; engUI();"]) {
       await A.ev(`document.getElementById("tabEng").click(); ${шаг}`); await sleep(400);
@@ -588,7 +588,7 @@ const check = (name, ok, detail) => {
         var it=[].slice.call(gsResults.querySelectorAll(".gs-item")).find(function(e){ return re.test(e.textContent); });
         if(!it) return "нет результата"; it.click(); return "ok"; })()`);
       if (ok !== "ok") return ok;
-      for (let i = 0; i < 40; i++) { if (await A.ev(ждать)) return "ok"; await sleep(250); }
+      for (let i = 0; i < 80; i++) { if (await A.ev(ждать)) return "ok"; await sleep(250); }
       return "не дошёл";
     };
     const п1 = await цель("артикли", "Артикли", `mode==="eng" && ENG.mode==="rules" && !!document.querySelector(".eng-topic h3") && /Артикли/.test(document.querySelector(".eng-topic h3").textContent)`);
@@ -848,7 +848,7 @@ const check = (name, ok, detail) => {
     catch(e){ return "исключение из setLang: "+e.message+" | "+String(e.stack||"").split("\\n")[1]; } })()`;
   const reload = async () => {
     await A.ev("location.reload()");
-    for (let i = 0; i < 40; i++) { await sleep(500);
+    for (let i = 0; i < 80; i++) { await sleep(500);
       if (await A.ev("document.readyState===\"complete\" && typeof CARDS!==\"undefined\" && CARDS.length>0")) break; }
     await sleep(400); await A.ev(HOOK);
   };

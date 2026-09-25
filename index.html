@@ -14284,7 +14284,7 @@ function bkKeysSvg(midis,root){
 function bkPageHtml(abs,side){
   const F=bkFlat(), total=F.length;
   if(abs<0)return '<div class="bk-page l"><div class="bk-title"><div class="bk-orn">❦</div><h1>Музыка<br>с нуля</h1>'
-    +'<p class="bk-sub">семь глав · '+total+' страниц<br>одна мысль на страницу</p>'
+    +'<p class="bk-sub">'+({7:"семь",8:"восемь",9:"девять",10:"десять"}[bkChapters().length]||bkChapters().length)+' глав · '+total+' страниц<br>одна мысль на страницу</p>'
     +'<p class="bk-how">Клавиши сверху живые: подсвечиваются под текст, звучат и проверяют задания. Листай стрелками или свайпом — закладка запомнится.</p></div></div>';
   const {c,p,ch,pg}=F[abs], done=bkDone(), id=bkId(ch,pg), R=side==="r";
   const last=abs===total-1;
