@@ -1611,6 +1611,11 @@
   .tmr-wire.cut{border-color:#46d6a0;background:rgba(70,214,160,.15)} .tmr-wire.cut i{background:repeating-linear-gradient(90deg,#46d6a0 0 10px,transparent 10px 16px)} .tmr-wire.boom{border-color:#ff7a90;background:rgba(255,122,144,.15)}
   .tmr-verd{min-height:20px;margin-top:10px;font-size:13.5px;color:var(--mut)}
   .tmr-end{padding:16px;border-radius:12px;text-align:center;margin-bottom:12px} .tmr-end b{display:block;font-size:22px;margin-bottom:6px} .tmr-end span{color:var(--mut)} .tmr-end.win{background:rgba(110,168,254,.14);border:1px solid #6ea8fe} .tmr-end.lose{background:rgba(255,184,107,.12);border:1px solid #ffb86b}
+  .tmr-ticker{overflow:hidden;white-space:nowrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 0;margin:0 0 6px;font:600 12.5px var(--mono);color:var(--mut)}
+  .tmr-ticker-in{display:inline-block;animation:tmrTick 60s linear infinite} .tmr-ticker span{margin-right:48px} .tmr-ticker:hover .tmr-ticker-in{animation-play-state:paused}
+  @keyframes tmrTick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media(prefers-reduced-motion:reduce){.tmr-ticker-in{animation:none;white-space:normal}}
+  .tmr-tb{display:flex;align-items:center;gap:14px;margin-top:12px;flex-wrap:wrap} .tmr-tb span{font:700 18px var(--mono);color:#46d6a0;min-width:150px} .tmr-tb .sg-btn{flex:1;min-width:160px}
   .tmr-videos{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))} .tmr-video video{width:100%;border-radius:12px;background:#000} .tmr-video b{display:block;margin-top:6px;text-align:center}
   @media(max-width:560px){.tmr-kv{grid-template-columns:1fr}.tmr-bid{grid-template-columns:1fr auto}.tmr-bid .tmr-p{grid-column:1/-1}.tmr-tbl{font-size:12px}}
   .hb-term{max-width:720px;margin:9vh auto 0;padding:16px 18px;border-radius:14px;
@@ -12753,7 +12758,7 @@ function tmrIntro(done){
 }
 let TMR_ANIM=null;
 function tmrWire(){
-  tmrChart(); tmrBook(); tmrDividends(); tmrGame(); tmrVideos();
+  tmrChart(); tmrBook(); tmrGame(); tmrTrade(); tmrVideos();
   sgWire();                                            /* песня: разметка та же, что в комнате Лауры */
 }
 /* График, который растёт всегда: детерминированный шум, события с провалом и отскоком.
@@ -12851,6 +12856,51 @@ function tmrGame(){
       +'<button type="button" class="sg-btn ghost" id="tmrAgain">ещё раунд</button>'; $("#tmrAgain").onclick=start; };
   start();
 }
+/* Купи на дне: котировка бежит 30 секунд, одна кнопка — купить или продать, счёт — прибыль.
+   Тренд вверх, как у всего TMR: кто держит, тот в плюсе; кто дёргается — как повезёт. */
+let TMR_TRADE=null;
+function tmrTrade(){
+  const box=$("#tmrTrade"); if(!box)return;
+  const BEST="jdTmrBest"; let best=0; try{ best=+localStorage.getItem(BEST)||0; }catch(e){}
+  const idle=()=>{ box.innerHTML='<p class="tmr-bomb">Котировка TMR пойдёт в реальном времени. Купи, когда дёшево, продай, когда дорого — тридцать секунд, сделок сколько угодно.'
+      +(best?' Рекорд: <b>+'+best.toLocaleString("ru-RU")+' ₸</b>.':'')+'</p><button type="button" class="sg-btn" id="tmrTradeGo">начать торги</button>';
+    $("#tmrTradeGo").onclick=run; };
+  const run=()=>{
+    box.innerHTML='<div class="tmr-hud"><span class="ct">P&amp;L <b id="tmrPnl">0 ₸</b></span><span class="tm" id="tmrTt">0:30</span><span class="t" id="tmrPos">без позиции</span></div>'
+      +'<canvas class="tmr-chart" id="tmrLive" width="900" height="240"></canvas>'
+      +'<div class="tmr-tb"><span id="tmrLast">1 000 000 ₸</span><button type="button" class="sg-btn" id="tmrBtn">купить</button></div>';
+    const cv=$("#tmrLive"), ctx=cv.getContext("2d"), W=cv.width, H=cv.height, pad=14;
+    const pts=[1000000]; let price=1000000, pos=null, pnl=0, t0=performance.now(), last=t0, over=false;
+    const btn=$("#tmrBtn"), pnlEl=$("#tmrPnl"), posEl=$("#tmrPos"), lastEl=$("#tmrLast"), tt=$("#tmrTt");
+    const fmt=v=>(v>0?"+":v<0?"−":"")+Math.abs(Math.round(v)).toLocaleString("ru-RU")+" ₸";
+    btn.onclick=()=>{ if(over)return;
+      if(pos==null){ pos=price; btn.textContent="продать"; btn.classList.add("ghost"); posEl.textContent="куплено по "+Math.round(pos).toLocaleString("ru-RU"); }
+      else { pnl+=price-pos; pos=null; btn.textContent="купить"; btn.classList.remove("ghost"); posEl.textContent="без позиции"; pnlEl.textContent=fmt(pnl); pnlEl.style.color=pnl>=0?"#46d6a0":"#ff7a90";
+        const r=btn.getBoundingClientRect(); if(price>0)hbBurst(r.left+r.width/2,r.top,pnl>=0?18:6); } };
+    const draw=()=>{
+      const n=pts.length, lo=Math.min(...pts), hi=Math.max(...pts), span=Math.max(hi-lo,20000);
+      const X=i=>pad+(W-2*pad)*i/Math.max(n-1,1), Y=v=>H-pad-(H-2*pad)*(v-lo)/span;
+      ctx.clearRect(0,0,W,H); ctx.beginPath(); ctx.lineWidth=2.5; ctx.strokeStyle="#46d6a0"; ctx.lineJoin="round";
+      pts.forEach((v,i)=>{ if(i)ctx.lineTo(X(i),Y(v)); else ctx.moveTo(X(i),Y(v)); }); ctx.stroke();
+      if(pos!=null){ ctx.setLineDash([6,6]); ctx.strokeStyle="#6ea8fe"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(pad,Y(pos)); ctx.lineTo(W-pad,Y(pos)); ctx.stroke(); ctx.setLineDash([]); }
+      ctx.fillStyle=price>=pts[n-2]?"#46d6a0":"#ff7a90"; ctx.beginPath(); ctx.arc(X(n-1),Y(price),5,0,Math.PI*2); ctx.fill(); };
+    const loop=now=>{
+      if(over)return;
+      if(now-last>=120){ last=now; const trend=.0012, shock=Math.random()<.06?(Math.random()-.4)*.05:0;
+        price=price*(1+trend+(Math.random()-.5)*.012+shock); pts.push(price); if(pts.length>250)pts.shift();
+        lastEl.textContent=Math.round(price).toLocaleString("ru-RU")+" ₸"; lastEl.style.color=price>=pts[pts.length-2]?"#46d6a0":"#ff7a90"; draw(); }
+      const left=Math.max(0,30-(now-t0)/1000); tt.textContent="0:"+String(Math.ceil(left)).padStart(2,"0");
+      if(left<=0)return end(); TMR_TRADE=requestAnimationFrame(loop); };
+    const end=()=>{ over=true; if(pos!=null){ pnl+=price-pos; pos=null; }
+      const rec=pnl>best; if(rec){ best=Math.round(pnl); try{ localStorage.setItem(BEST,String(best)); }catch(e){} }
+      const verdict=pnl>200000?"Тамир одобряет: так и надо":pnl>0?"в плюсе — как и всё у Тамира":"минус? на TMR это временно, держи дольше";
+      box.innerHTML='<div class="tmr-end '+(pnl>=0?"win":"lose")+'"><b>'+fmt(pnl)+'</b><span>'+verdict+(rec?" · рекорд 🏆":"")+'</span></div>'
+        +'<button type="button" class="sg-btn ghost" id="tmrTradeAgain">ещё раз</button>';
+      $("#tmrTradeAgain").onclick=run; if(pnl>0)for(let k=0;k<3;k++)setTimeout(()=>hbBurst(innerWidth*(.3+Math.random()*.4),innerHeight*.4,50),k*200); };
+    draw(); TMR_TRADE=requestAnimationFrame(loop);
+  };
+  idle();
+}
 /* Видео лежит в шифртексте как base64; наружу отдаём через blob-ссылку, чтобы тег video
    не держал мегабайты в атрибуте. Ссылки отзываем при закрытии комнаты. */
 let TMR_URLS=[];
@@ -12893,6 +12943,7 @@ function hbClose(){
   hbMicStop(); sgStopMelody();                         /* закрыли комнату — микрофон и звук отпускаем сразу */
   if(typeof TMR_URLS!=="undefined"){ TMR_URLS.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); TMR_URLS=[]; }
   if(typeof TMR_ANIM!=="undefined"&&TMR_ANIM)cancelAnimationFrame(TMR_ANIM);
+  if(typeof TMR_TRADE!=="undefined"&&TMR_TRADE)cancelAnimationFrame(TMR_TRADE);
   if(HB){ cancelAnimationFrame(HB.raf); removeEventListener("resize",HB.fit); HB=null; }
   if(Object.keys(HB_ROOMS).some(k=>location.hash==="#"+k))   /* иначе повторный вход в ту же комнату не срабатывает */
     history.replaceState(null,"",location.pathname+location.search);

@@ -149,24 +149,12 @@ const HTML=`
   <h1>С днём рождения, ${NAME}!</h1>
   <p class="tmr-sub">Биржа Тамира · единственная бумага на рынке, которая растёт всегда</p>
 </div>
+<div class="tmr-ticker"><div class="tmr-ticker-in">${NEWS.concat(NEWS).map(n=>'<span>📰 '+n+'</span>').join("")}</div></div>
 
 <div class="tmr-card">
   <div class="tmr-h"><b>Котировки ${TICKER}</b><span>год к году · тапни по значку события</span></div>
   <canvas class="tmr-chart" id="tmrChart" width="900" height="300" data-ev='${JSON.stringify(EVENTS).replace(/'/g,"&#39;")}'></canvas>
   <div class="tmr-ev" id="tmrEv">${EVENTS[EVENTS.length-1].ico} <b>${EVENTS[EVENTS.length-1].t}.</b> ${EVENTS[EVENTS.length-1].d}</div>
-</div>
-
-<div class="tmr-card">
-  <div class="tmr-h"><b>Проспект эмиссии</b><span>составлен по правилам эмитента</span></div>
-  <div class="tmr-kv"><span>Эмитент</span><p>${NAME}, ${ROLE}. Отрасль: инвестиции, юмор, мемы, вокал.</p></div>
-  <div class="tmr-kv"><span>Требования</span><div class="tmr-st">${STORIES.map(s=>'<div><i>'+s[0]+'</i> '+s[1]+', <em>'+s[2]+'</em><b>'+s[3]+'</b></div>').join("")}</div></div>
-  <div class="tmr-kv"><span>Риски</span><table class="tmr-tbl"><tr><th>риск</th><th>вероятность</th><th>влияние</th><th>митигация</th></tr>${RISKS.map(r=>'<tr>'+r.map(x=>'<td>'+x+'</td>').join("")+'</tr>').join("")}</table></div>
-  <div class="tmr-kv"><span>Критерии приёмки</span><p>Год принят, если: здоровье без инцидентов, портфель зелёный, хотя бы одна спетая песня и ни одного требования, которое пришлось переписывать.</p></div>
-</div>
-
-<div class="tmr-card">
-  <div class="tmr-h"><b>Новости эмитента</b><span>лента</span></div>
-  <div class="tmr-news">${NEWS.map(n=>'<p>'+n+'</p>').join("")}</div>
 </div>
 
 <div class="tmr-card">
@@ -176,9 +164,8 @@ const HTML=`
 </div>
 
 <div class="tmr-card">
-  <div class="tmr-h"><b>Дивиденды</b><span>выплата в пиве</span></div>
-  <div class="tmr-div" id="tmrDiv"></div>
-  <p class="tmr-note">Экс-дивидендная дата — четверг. Реестр закрывается в 18:00 по времени офиса.</p>
+  <div class="tmr-h"><b>Купи на дне, продай на хае</b><span>30 секунд · TMR в реальном времени</span></div>
+  <div id="tmrTrade"></div>
 </div>
 
 <div class="tmr-card tmr-round">
