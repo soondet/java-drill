@@ -27,7 +27,7 @@ html = html.replace("<!--INLINE-I18N-EN-->", () => {
 });
 // Данные комнат на сайте грузятся лениво (их 740 КБ, а открывают по паролю),
 // но однофайловая сборка должна оставаться самодостаточной — вшиваем их сюда.
-const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js"];
+const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js", "tmr-data.js"];
 let roomKb = 0;
 const roomTags = ROOMS.map(f => {
   try {

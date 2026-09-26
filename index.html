@@ -1583,6 +1583,36 @@
     .sg-bars i,.sg-hero .sg-em,.sg-stage,.sg-card,.sg-toast{animation:none}
     .sg-syl.now{animation:none}
   }
+  /* комната Тамира: биржа */
+  .tmr-room .tmr-hero{text-align:center;padding:18px 0 26px}
+  .tmr-room .tmr-hero h1{margin:14px 0 6px;font-size:clamp(26px,5vw,40px);letter-spacing:-.5px}
+  .tmr-room .tmr-sub{color:var(--mut);margin:0}
+  .tmr-tk{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;padding:8px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(10,12,20,.55);font:600 14px var(--mono)}
+  .tmr-sym{color:#6ea8fe;letter-spacing:2px} .tmr-px{color:var(--txt)} .tmr-chg{color:#46d6a0}
+  .tmr-card{border:1px solid var(--line);border-radius:18px;background:rgba(14,16,28,.72);padding:16px 18px;margin:14px 0;backdrop-filter:blur(10px)}
+  .tmr-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px} .tmr-h b{font-size:17px} .tmr-h span{font-size:12px;color:var(--mut)}
+  .tmr-chart{width:100%;height:auto;display:block;border-radius:12px;background:rgba(0,0,0,.25);cursor:pointer}
+  .tmr-ev{margin-top:10px;font-size:14px;line-height:1.5;color:var(--txt)}
+  .tmr-kv{display:grid;grid-template-columns:130px 1fr;gap:8px 14px;margin:10px 0;align-items:start}
+  .tmr-kv>span{font:700 11px var(--mono);letter-spacing:1.2px;text-transform:uppercase;color:var(--mut);padding-top:3px} .tmr-kv p{margin:0;line-height:1.55}
+  .tmr-st div{padding:7px 0;border-bottom:1px dashed var(--line);line-height:1.5} .tmr-st i{color:#6ea8fe;font-style:normal;font-weight:600} .tmr-st em{color:var(--mut)} .tmr-st b{display:inline-block;margin-left:8px;font:600 11px var(--mono);color:#46d6a0;border:1px solid rgba(70,214,160,.4);border-radius:8px;padding:1px 7px}
+  .tmr-tbl{width:100%;border-collapse:collapse;font-size:13px} .tmr-tbl th{text-align:left;font:700 10.5px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--mut);padding:4px 8px 4px 0} .tmr-tbl td{padding:6px 8px 6px 0;border-top:1px dashed var(--line);vertical-align:top}
+  .tmr-news p{margin:0;padding:9px 0;border-bottom:1px dashed var(--line);line-height:1.5} .tmr-news p:last-child{border:0}
+  .tmr-book{display:grid;gap:8px}
+  .tmr-bid{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-align:left;font:inherit;color:var(--txt);background:rgba(70,214,160,.06);border:1px solid rgba(70,214,160,.28);border-radius:12px;padding:10px 12px;cursor:pointer}
+  .tmr-bid.ok{background:rgba(70,214,160,.18);border-color:#46d6a0} .tmr-p{font:700 13px var(--mono);color:#46d6a0;white-space:nowrap} .tmr-w{line-height:1.45;font-size:14px} .tmr-w b{display:block;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.8px} .tmr-bid i{font:600 12px var(--sans);font-style:normal;color:#6ea8fe;white-space:nowrap}
+  .tmr-note{margin:10px 0 0;font-size:12.5px;color:var(--mut)}
+  .tmr-div{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px} .tmr-dv{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px} .tmr-dv b{font-size:16px} .tmr-dv span{font-size:11.5px;color:var(--mut)} .tmr-dv i{font-style:normal;margin-top:4px}
+  .tmr-hud{display:flex;justify-content:space-between;align-items:center;font:700 14px var(--mono);padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.35);margin-bottom:12px} .tmr-hud .ct{color:#6ea8fe} .tmr-hud .t{color:#ffb86b} .tmr-hud .tm{font-size:22px;color:#ff7a90}
+  .tmr-bomb{line-height:1.55;margin-bottom:12px} .tmr-q{margin-bottom:12px} .tmr-q span{display:block;font:700 11px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-bottom:4px} .tmr-q b{font-size:17px}
+  .tmr-wires{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  .tmr-wire{display:flex;align-items:center;gap:10px;text-align:left;font:inherit;color:var(--txt);background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;padding:11px 13px;cursor:pointer} .tmr-wire i{flex:none;width:34px;height:6px;border-radius:3px}
+  .tmr-wire.c0 i{background:#ff7a90} .tmr-wire.c1 i{background:#6ea8fe} .tmr-wire.c2 i{background:#ffd166} .tmr-wire.c3 i{background:#46d6a0}
+  .tmr-wire.cut{border-color:#46d6a0;background:rgba(70,214,160,.15)} .tmr-wire.cut i{background:repeating-linear-gradient(90deg,#46d6a0 0 10px,transparent 10px 16px)} .tmr-wire.boom{border-color:#ff7a90;background:rgba(255,122,144,.15)}
+  .tmr-verd{min-height:20px;margin-top:10px;font-size:13.5px;color:var(--mut)}
+  .tmr-end{padding:16px;border-radius:12px;text-align:center;margin-bottom:12px} .tmr-end b{display:block;font-size:22px;margin-bottom:6px} .tmr-end span{color:var(--mut)} .tmr-end.win{background:rgba(110,168,254,.14);border:1px solid #6ea8fe} .tmr-end.lose{background:rgba(255,184,107,.12);border:1px solid #ffb86b}
+  .tmr-videos{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))} .tmr-video video{width:100%;border-radius:12px;background:#000} .tmr-video b{display:block;margin-top:6px;text-align:center}
+  @media(max-width:560px){.tmr-kv{grid-template-columns:1fr}.tmr-bid{grid-template-columns:1fr auto}.tmr-bid .tmr-p{grid-column:1/-1}.tmr-tbl{font-size:12px}}
   .hb-term{max-width:720px;margin:9vh auto 0;padding:16px 18px;border-radius:14px;
     background:rgba(0,0,0,.55);border:1px solid var(--line);font:500 12.5px/1.75 var(--mono);
     color:#cfd6e6;white-space:pre-wrap;word-break:break-word;box-shadow:var(--shadow)}
@@ -12693,12 +12723,148 @@ const HB_WORD="tort";                                  /* набрать это 
 const HB_ROOMS={
   hb:  {cls:"",        data:()=>window.HBDATA, src:"hb-data.js",   intro:hbLog,        wire:hbWireBd},
   sing:{cls:"sg-room", data:()=>window.SGDATA, src:"sing-data.js", intro:sgSoundcheck, wire:sgWire},
-  qa:  {cls:"qa-room", data:()=>window.QADATA, src:"qa-data.js",   intro:qaIntro,      wire:qaWire}
+  qa:  {cls:"qa-room", data:()=>window.QADATA, src:"qa-data.js",   intro:qaIntro,      wire:qaWire},
+  tmr: {cls:"sg-room tmr-room", data:()=>window.TMRDATA, src:"tmr-data.js", intro:tmrIntro, wire:tmrWire}
 };
 
 /* Данные комнат — 740 КБ шифртекста с фотографиями. Открывают их по паролю
    считаные разы, поэтому на старте они не грузятся: подтягиваем при входе.
    В однофайловой сборке они уже вшиты, и загрузчик сразу видит готовый объект. */
+/* ---- комната Тамира: биржа ----
+   Содержимое приходит из шифртекста (tmr-build.js): график, стакан, раунд и песня
+   размечены атрибутами, здесь только поведение. Пение — тот же движок, что у Лауры. */
+const TMR_LOG=[
+ ['<span class="i">подключаюсь к бирже ....... </span><span class="g">ok</span>',380],
+ ['<span class="i">стакан заявок ............. </span><span class="g">загружен</span>',330],
+ ['<span class="i">тикер TMR ................. </span><span class="g">только вверх</span>',360],
+ ['<span class="i">режим торгов .............. </span><span class="g">праздничный</span>',360],
+ ['<span class="y">торги открыты 📈</span>',520]
+];
+function tmrIntro(done){
+  const box=$("#hbIn");
+  box.innerHTML='<div class="sg-check"><div class="sg-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>'
+    +'<pre class="hb-term" id="hbTerm"></pre></div><button class="hb-skip" id="hbSkip">пропустить</button>';
+  const t=$("#hbTerm"); let i=0,timer=null,killed=false;
+  const skip=$("#hbSkip"); if(skip)skip.onclick=()=>{ killed=true; clearTimeout(timer); done(); };
+  const next=()=>{ if(killed)return;
+    if(i>=TMR_LOG.length){ setTimeout(()=>{ if(!killed)done(); },200); return; }
+    const [line,wait]=TMR_LOG[i++]; t.innerHTML+=(i>1?"\n":"")+line; timer=setTimeout(next,wait); };
+  next();
+}
+let TMR_ANIM=null;
+function tmrWire(){
+  tmrChart(); tmrBook(); tmrDividends(); tmrGame(); tmrVideos();
+  sgWire();                                            /* песня: разметка та же, что в комнате Лауры */
+}
+/* График, который растёт всегда: детерминированный шум, события с провалом и отскоком.
+   Рисуется постепенно слева направо, значки событий — кнопки по тапу. */
+function tmrChart(){
+  const cv=$("#tmrChart"); if(!cv)return;
+  let ev=[]; try{ ev=JSON.parse(cv.getAttribute("data-ev")||"[]"); }catch(e){}
+  const N=120, pts=[]; let s=7, v=1;
+  const rnd=()=>{ s=(s*16807)%2147483647; return s/2147483647; };
+  for(let i=0;i<N;i++){
+    const x=i/(N-1); let drift=.012+.004*Math.sin(i/9);
+    const dip=ev.find(e=>e.dip&&x>=e.at&&x<e.at+.04);
+    if(dip)drift=-.06; else if(ev.find(e=>e.dip&&x>=e.at+.04&&x<e.at+.12))drift=.05;
+    v=v*(1+drift)+(rnd()-.5)*.03; if(v<.6)v=.6; pts.push(v);
+  }
+  const lo=Math.min(...pts), hi=Math.max(...pts), W=cv.width, H=cv.height, pad=18;
+  const X=i=>pad+(W-2*pad)*i/(N-1), Y=v=>H-pad-(H-2*pad)*(v-lo)/(hi-lo);
+  const ctx=cv.getContext("2d");
+  const draw=upto=>{
+    ctx.clearRect(0,0,W,H);
+    ctx.strokeStyle="rgba(255,255,255,.06)"; ctx.lineWidth=1;
+    for(let k=1;k<5;k++){ const y=pad+(H-2*pad)*k/5; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke(); }
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,"rgba(70,214,160,.35)"); g.addColorStop(1,"rgba(70,214,160,0)");
+    ctx.beginPath(); ctx.moveTo(X(0),H-pad);
+    for(let i=0;i<=upto;i++)ctx.lineTo(X(i),Y(pts[i]));
+    ctx.lineTo(X(upto),H-pad); ctx.closePath(); ctx.fillStyle=g; ctx.fill();
+    ctx.beginPath(); ctx.lineWidth=2.5; ctx.strokeStyle="#46d6a0"; ctx.lineJoin="round";
+    for(let i=0;i<=upto;i++){ if(i)ctx.lineTo(X(i),Y(pts[i])); else ctx.moveTo(X(i),Y(pts[i])); }
+    ctx.stroke();
+    ctx.font="22px system-ui,sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ev.forEach(e=>{ const i=Math.round(e.at*(N-1)); if(i>upto)return; const x=X(i), y=Y(pts[i])-22;
+      ctx.beginPath(); ctx.arc(x,y,17,0,Math.PI*2); ctx.fillStyle="rgba(10,12,20,.85)"; ctx.fill();
+      ctx.strokeStyle=e.dip?"#ff7a90":"#6ea8fe"; ctx.lineWidth=1.5; ctx.stroke(); ctx.fillText(e.ico,x,y+1); });
+  };
+  let i=0; if(TMR_ANIM)cancelAnimationFrame(TMR_ANIM);
+  const step=()=>{ draw(i); if(i<N-1){ i+=2; TMR_ANIM=requestAnimationFrame(step); } };
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)draw(N-1); else step();
+  const px=$("#tmrPx"); if(px){ let p=1000000; const t=setInterval(()=>{ p+=Math.round(1000+Math.random()*9000); px.textContent=p.toLocaleString("ru-RU")+" ₸"; if(!$("#tmrPx"))clearInterval(t); },900); }
+  cv.onclick=e=>{                                      /* тап по значку — описание события */
+    const r=cv.getBoundingClientRect(), x=(e.clientX-r.left)*W/r.width, y=(e.clientY-r.top)*H/r.height;
+    const hit=ev.find(o=>{ const i=Math.round(o.at*(N-1)); return Math.abs(X(i)-x)<30; });   /* по горизонтали: пальцем в значок иначе не попасть */
+    const box=$("#tmrEv"); if(hit&&box){ box.innerHTML=hit.ico+" <b>"+esc(hit.t)+".</b> "+esc(hit.d); hbBurst(e.clientX,e.clientY,hit.dip?12:30); }
+  };
+}
+function tmrBook(){
+  const book=$("#tmrBook"); if(!book)return;
+  const bids=[...book.querySelectorAll(".tmr-bid")]; let filled=0;
+  bids.forEach(b=>b.onclick=()=>{
+    if(b.classList.contains("ok"))return;
+    b.classList.add("ok"); b.querySelector("i").textContent="исполнено ✓"; filled++;
+    const r=b.getBoundingClientRect(); hbBurst(r.left+r.width/2,r.top+r.height/2,26);
+    const n=$("#tmrBookNote"); if(n)n.textContent=filled<bids.length?"исполнено "+filled+" из "+bids.length:"все заявки исполнены — TMR ушёл в рост 🚀";
+    if(filled===bids.length)for(let k=0;k<3;k++)setTimeout(()=>hbBurst(innerWidth*(.25+Math.random()*.5),innerHeight*.35,60),k*220);
+  });
+}
+function tmrDividends(){                               /* четыре ближайшие пятницы */
+  const box=$("#tmrDiv"); if(!box)return;
+  const d=new Date(); d.setHours(0,0,0,0); const add=(5-d.getDay()+7)%7||7; d.setDate(d.getDate()+add);
+  const M=["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"], rows=[];
+  for(let k=0;k<4;k++){ rows.push('<div class="tmr-dv"><b>'+d.getDate()+" "+M[d.getMonth()]+'</b><span>пятница</span><i>🍺 ×'+(k+1)+'</i></div>'); d.setDate(d.getDate()+7); }
+  box.innerHTML=rows.join("");
+}
+/* Раунд: пять «проводов» — вопросов про именинника, таймер 40 секунд, ошибка стоит пять. */
+function tmrGame(){
+  const box=$("#tmrGame"); if(!box)return;
+  let W=[]; try{ W=JSON.parse(box.getAttribute("data-w")||"[]"); }catch(e){}
+  if(!W.length)return;
+  let i=0, left=40, timer=null, busy=false, won=0;
+  const hud=()=>'<div class="tmr-hud"><span class="ct">CT <b id="tmrWon">'+won+'</b></span><span class="tm" id="tmrTime">0:'+String(left).padStart(2,"0")+'</span><span class="t">T <b>'+(W.length-won)+'</b></span></div>';
+  const start=()=>{
+    box.innerHTML=hud()+'<div class="tmr-bomb">💣 Подарок заминирован. Пять проводов — пять фактов про именинника. Перережь верные.</div>'
+      +'<button type="button" class="sg-btn" id="tmrGo">начать раунд</button>';
+    $("#tmrGo").onclick=()=>{ i=0; left=40; won=0; busy=false; clearInterval(timer);
+      timer=setInterval(()=>{ left--; const t=$("#tmrTime"); if(t)t.textContent="0:"+String(Math.max(0,left)).padStart(2,"0"); if(left<=0){ clearInterval(timer); lose(); } },1000);
+      q(); };
+  };
+  const q=()=>{
+    if(i>=W.length){ clearInterval(timer); return win(); }
+    const w=W[i];
+    box.innerHTML=hud()+'<div class="tmr-q"><span>провод '+(i+1)+' из '+W.length+'</span><b>'+esc(w.q)+'</b></div>'
+      +'<div class="tmr-wires">'+w.a.map((a,k)=>'<button type="button" class="tmr-wire c'+k+'" data-k="'+k+'"><i></i>'+esc(a)+'</button>').join("")+'</div>'
+      +'<div class="tmr-verd" id="tmrVerd"></div>';
+    [...box.querySelectorAll(".tmr-wire")].forEach(b=>b.onclick=()=>{
+      if(busy)return; busy=true; const k=+b.dataset.k, ok=k===w.ok;
+      b.classList.add(ok?"cut":"boom"); const v=$("#tmrVerd");
+      if(ok){ won++; v.textContent="есть! провод перерезан"; hbBurst(innerWidth/2,innerHeight*.5,30); }
+      else { left=Math.max(0,left-5); v.textContent="не тот провод: −5 секунд. Верный — «"+w.a[w.ok]+"»"; }
+      setTimeout(()=>{ busy=false; i++; if(left>0)q(); },ok?700:1300);
+    });
+  };
+  const win=()=>{ box.innerHTML=hud()+'<div class="tmr-end win"><b>Bomb has been defused</b><span>Counter-Terrorists win · '+won+' из '+W.length+' проводов · осталось 0:'+String(left).padStart(2,"0")+'</span></div>'
+      +'<button type="button" class="sg-btn ghost" id="tmrAgain">ещё раунд</button>'; $("#tmrAgain").onclick=start;
+    for(let k=0;k<4;k++)setTimeout(()=>hbBurst(innerWidth*(.2+Math.random()*.6),innerHeight*.35,70),k*200); };
+  const lose=()=>{ box.innerHTML=hud()+'<div class="tmr-end lose"><b>Время вышло</b><span>Terrorists win · но подарок всё равно твой</span></div>'
+      +'<button type="button" class="sg-btn ghost" id="tmrAgain">ещё раунд</button>'; $("#tmrAgain").onclick=start; };
+  start();
+}
+/* Видео лежит в шифртексте как base64; наружу отдаём через blob-ссылку, чтобы тег video
+   не держал мегабайты в атрибуте. Ссылки отзываем при закрытии комнаты. */
+let TMR_URLS=[];
+function tmrVideos(){
+  const box=$("#tmrVideos"), data=$("#tmrVideoData"); if(!box||!data)return;
+  let V=[]; try{ V=JSON.parse(data.textContent||"[]"); }catch(e){}
+  TMR_URLS.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); TMR_URLS=[];
+  box.innerHTML=V.map((v,i)=>{
+    const b64=v.src.split(",")[1], bin=atob(b64), u=new Uint8Array(bin.length);
+    for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);
+    const url=URL.createObjectURL(new Blob([u],{type:"video/mp4"})); TMR_URLS.push(url);
+    return '<div class="tmr-video"><video controls playsinline preload="metadata" src="'+url+'"></video><b>'+esc(v.n)+'</b></div>';
+  }).join("");
+}
 function hbLoad(cfg){
   return new Promise(res=>{
     if(cfg.data())return res(true);
@@ -12725,6 +12891,8 @@ function hbClose(){
   const w=$("#hbWrap"); if(w)w.remove();
   document.body.style.overflow="";
   hbMicStop(); sgStopMelody();                         /* закрыли комнату — микрофон и звук отпускаем сразу */
+  if(typeof TMR_URLS!=="undefined"){ TMR_URLS.forEach(u=>{ try{ URL.revokeObjectURL(u); }catch(e){} }); TMR_URLS=[]; }
+  if(typeof TMR_ANIM!=="undefined"&&TMR_ANIM)cancelAnimationFrame(TMR_ANIM);
   if(HB){ cancelAnimationFrame(HB.raf); removeEventListener("resize",HB.fit); HB=null; }
   if(Object.keys(HB_ROOMS).some(k=>location.hash==="#"+k))   /* иначе повторный вход в ту же комнату не срабатывает */
     history.replaceState(null,"",location.pathname+location.search);
@@ -13430,7 +13598,7 @@ function qaScore(box,team,score){
 /* ---- как сюда попасть: ссылка #hb или набрать секретное слово ---- */
 (function(){
   const byHash=()=>{ const h=location.hash;
-    if(h==="#hb")hbOpen("hb"); else if(h==="#sing")hbOpen("sing"); else if(h==="#qa")hbOpen("qa"); };
+    if(h==="#hb")hbOpen("hb"); else if(h==="#sing")hbOpen("sing"); else if(h==="#qa")hbOpen("qa"); else if(h==="#tmr")hbOpen("tmr"); };
   addEventListener("hashchange",byHash);
   if(document.readyState==="loading")addEventListener("DOMContentLoaded",byHash); else byHash();
   let buf="";

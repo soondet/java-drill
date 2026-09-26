@@ -282,6 +282,23 @@ const check = (name, ok, detail) => {
       pc.плохо.length ? pc.плохо.join(" · ") : "пьес " + pc.пьес + " · шагов " + pc.шагов + " · задания зачитываются · отметки в бэкапе");
   }
 
+  /* ---- комната #tmr: замок на месте, чужой код не открывает ----
+     Самой комнаты гейт не видит — она за паролем, и это правильно. Проверяем то, что
+     видно снаружи: вход по хешу, данные подтянулись, неверный код отбит. */
+  {
+    const tm = JSON.parse(await A.ev(`(async function(){
+      var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+      location.hash="#tmr"; await ж(600);
+      var lock=!!document.querySelector("#hbWrap .hb-lock"), data=!!window.TMRDATA, inp=document.getElementById("hbPw");
+      var ошибка=""; if(inp){ inp.value="явно-не-тот-код"; await hbTry(inp.value); await ж(50); ошибка=(document.getElementById("hbErr")||{}).textContent||""; }
+      var open=!!document.querySelector("#hbWrap .tmr-hero");
+      hbClose(); await ж(100);
+      return JSON.stringify({lock:lock, data:data, ошибка:ошибка, open:open, closed:!document.getElementById("hbWrap")});
+    })()`));
+    check("комната #tmr: замок, данные, чужой код отбит", tm.lock && tm.data && /Не тот код/.test(tm.ошибка) && !tm.open && tm.closed,
+      "замок " + tm.lock + " · данные " + tm.data + " · на чужой код: «" + tm.ошибка + "» · открылась без кода: " + tm.open + " · закрылась: " + tm.closed);
+  }
+
   /* ---- раздел AI: маршрут, карточки, термины ----
      Про AI в тренажёре не было ничего; теперь маршрут в «С нуля», кластер карточек и
      термины. Считаем всё вместе, чтобы выпадение одного файла из сборки было видно. */
