@@ -141,7 +141,19 @@ const WIRES=[
   {q:"Что делает Тамир, когда рынок падает?", a:["продаёт всё","плачет","звонит брокеру","шутит и докупает"], ok:3},
   {q:"Напиток закрытия недели",               a:["пиво","чай","смузи","эспрессо"],                ok:0}
 ];
-const PRICES=BIDS.map((b,i)=>1000000+i*111111);
+/* Стакан: биды — пожелания коллег (покупают TMR), аски — то, что рынок продаёт и что
+   Тамиру не нужно. Объёмы в лотах, глубина считается накопительно, как в терминале. */
+const STEP=11111, LAST=1000000;
+const BIDROWS=BIDS.map((b,i)=>({p:LAST-STEP*(i+1), v:[42,37,25,18,12][i]||10, n:b.n, w:b.w}));
+const ASKS=[
+  {p:LAST+STEP*1, v:3,  w:"Рынок продаёт: понедельники"},
+  {p:LAST+STEP*2, v:8,  w:"Рынок продаёт: красные дни"},
+  {p:LAST+STEP*3, v:0,  w:"Рынок продаёт: баги в требованиях — объём ноль, Тамир не покупает"},
+  {p:LAST+STEP*4, v:15, w:"Рынок продаёт: ещё один баскетбол"}
+];
+const fmtP=v=>v.toLocaleString("ru-RU");
+let acc=0; const bidDepth=BIDROWS.map(r=>acc+=r.v); const bidMax=acc;
+acc=0; const askDepth=ASKS.map(r=>acc+=r.v); const askMax=Math.max(acc,1);
 
 const HTML=`
 <div class="tmr-hero">
@@ -158,9 +170,14 @@ const HTML=`
 </div>
 
 <div class="tmr-card">
-  <div class="tmr-h"><b>Стакан заявок</b><span>пожелания стоят бидами · исполни каждую</span></div>
-  <div class="tmr-book" id="tmrBook">${BIDS.map((b,i)=>'<button type="button" class="tmr-bid" data-i="'+i+'"><span class="tmr-p">'+PRICES[i].toLocaleString("ru-RU")+' ₸</span><span class="tmr-w"><b>'+b.n+'</b>'+b.w+'</span><i>исполнить</i></button>').join("")}</div>
-  <p class="tmr-note" id="tmrBookNote">исполнено 0 из ${BIDS.length}</p>
+  <div class="tmr-h"><b>Стакан ${TICKER}</b><span>биды — пожелания коллег · тапни по биду, чтобы исполнить</span></div>
+  <div class="tmr-dom" id="tmrBook">
+    <div class="tmr-dom-h"><span>объём</span><span>цена, ₸</span><span>заявка</span></div>
+    ${ASKS.slice().reverse().map((r,k)=>{ const d=askDepth[ASKS.length-1-k]; return '<div class="tmr-row ask"><i style="width:'+Math.round(d/askMax*100)+'%"></i><span class="v">'+r.v+'</span><span class="p">'+fmtP(r.p)+'</span><span class="w">'+r.w+'</span></div>'; }).join("")}
+    <div class="tmr-spread"><span>спред ${fmtP(STEP*2)} ₸</span><b>последняя ${fmtP(LAST)} ₸ ▲</b><span>${BIDROWS.length} бидов · ${ASKS.length} аска</span></div>
+    ${BIDROWS.map((r,i)=>'<button type="button" class="tmr-row bid" data-i="'+i+'" data-p="'+r.p+'"><i style="width:'+Math.round(bidDepth[i]/bidMax*100)+'%"></i><span class="v">'+r.v+'</span><span class="p">'+fmtP(r.p)+'</span><span class="w"><b>'+r.n+'</b>'+r.w+'</span></button>').join("")}
+  </div>
+  <div class="tmr-tape"><div class="tmr-tape-h"><b>Лента сделок</b><span id="tmrBookNote">исполнено 0 из ${BIDROWS.length}</span></div><div id="tmrTape"><p class="tmr-note">пока пусто — исполни первый бид</p></div></div>
 </div>
 
 <div class="tmr-card">
@@ -171,28 +188,6 @@ const HTML=`
 <div class="tmr-card tmr-round">
   <div class="tmr-h"><b>Раунд: обезвредь подарок</b><span>Counter-Strike · 40 секунд</span></div>
   <div id="tmrGame" data-w='${JSON.stringify(WIRES).replace(/'/g,"&#39;")}'></div>
-</div>
-
-<div class="sg-stage">
-  <div class="tmr-h"><b>Спой ${TICKER}</b><span>микрофон меряет попадание в ноты</span></div>
-  <canvas class="sg-eq" id="sgEq" width="640" height="112"></canvas>
-  <div class="sg-tuner">
-    <div class="sg-tgt" id="sgTgt">начни с любой удобной ноты</div>
-    <div class="sg-scale"><span class="sg-zone"></span><i class="sg-needle" id="sgNeedle"></i></div>
-    <div class="sg-dev" id="sgDev">микрофон выключен</div>
-    <div class="sg-now" id="sgNote"></div>
-  </div>
-  <div class="sg-pick" id="sgPick"></div>
-  <div class="sg-song" id="sgSong" data-songs='${JSON.stringify(SONGS).replace(/'/g,"&#39;")}'></div>
-  <div class="sg-hold"><i id="sgHoldBar"></i></div>
-  <div class="sg-res" id="sgRes" hidden></div>
-  <div class="sg-acts">
-    <button class="sg-btn" id="sgMic" type="button">🎤 включить микрофон</button>
-    <button class="sg-btn ghost" id="sgPlay" type="button">🔊 послушать мелодию</button>
-  </div>
-  <div class="sg-styles" id="sgStyles"></div>
-  <label class="sg-hp"><input type="checkbox" id="sgHp"> я в наушниках — подпевать под музыку</label>
-  <div class="sg-hint" id="sgHint"></div>
 </div>
 
 ${VIDEOS.length?`<div class="tmr-card">
