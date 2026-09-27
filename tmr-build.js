@@ -157,9 +157,11 @@ acc=0; const askDepth=ASKS.map(r=>acc+=r.v); const askMax=Math.max(acc,1);
 
 const HTML=`
 <div class="tmr-hero">
+  <div class="tmr-ph"><img src="${IMG}" alt="${NAME}"><span class="tmr-ph-tag">${TICKER}</span></div>
   <div class="tmr-tk"><span class="tmr-sym">${TICKER}</span><span class="tmr-px" id="tmrPx">1 000 000 ₸</span><span class="tmr-chg">▲ +∞% · оптимизм</span></div>
   <h1>С днём рождения, ${NAME}!</h1>
   <p class="tmr-sub">Биржа Тамира · единственная бумага на рынке, которая растёт всегда</p>
+  <div class="tmr-tags"><span>📊 ${ROLE}</span><span>🎮 Counter-Strike</span><span>🎤 вокал</span><span>🍺 пятница</span><span>📈 торги</span><span>😂 мемы</span></div>
 </div>
 <div class="tmr-ticker"><div class="tmr-ticker-in">${NEWS.concat(NEWS).map(n=>'<span>📰 '+n+'</span>').join("")}</div></div>
 
@@ -196,14 +198,10 @@ ${VIDEOS.length?`<div class="tmr-card">
   <script type="application/json" id="tmrVideoData">${JSON.stringify(VIDEOS).replace(/<\//g,"<\\/")}</script>
 </div>`:""}
 
-<div class="sg-card">
-  <div class="sg-ph"><img src="${IMG}" alt="${NAME}"></div>
+<div class="tmr-close">
+  <p class="tmr-close-t">Статус: Listed · котировки только вверх 📈</p>
   <p>Ты тот, у кого требования понятны, шутки вовремя, а котировка настроения не падает даже с гипсом на ноге. Пусть год торгуется в плюс по всем инструментам: здоровью, деньгам, песням и раундам. С днём рождения!</p>
-</div>
-
-<div class="sg-toast">
-  <p class="sg-cheers">Статус: Listed · Котировки только вверх 📈</p>
-  <p>Ожидаемый результат — счастливый год. Фактический совпал.</p>
+  <p class="tmr-close-s">Ожидаемый результат — счастливый год. Фактический совпал.</p>
 </div>
 `;
 

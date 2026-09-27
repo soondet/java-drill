@@ -1583,14 +1583,30 @@
     .sg-bars i,.sg-hero .sg-em,.sg-stage,.sg-card,.sg-toast{animation:none}
     .sg-syl.now{animation:none}
   }
-  /* комната Тамира: биржа */
-  .tmr-room .tmr-hero{text-align:center;padding:18px 0 26px}
-  .tmr-room .tmr-hero h1{margin:14px 0 6px;font-size:clamp(26px,5vw,40px);letter-spacing:-.5px}
-  .tmr-room .tmr-sub{color:var(--mut);margin:0}
-  .tmr-tk{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;padding:8px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(10,12,20,.55);font:600 14px var(--mono)}
-  .tmr-sym{color:#6ea8fe;letter-spacing:2px} .tmr-px{color:var(--txt)} .tmr-chg{color:#46d6a0}
-  .tmr-card{border:1px solid var(--line);border-radius:18px;background:rgba(14,16,28,.72);padding:16px 18px;margin:14px 0;backdrop-filter:blur(10px)}
-  .tmr-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px} .tmr-h b{font-size:17px} .tmr-h span{font-size:12px;color:var(--mut)}
+  /* комната Тамира: биржа. Фон — терминал: зелёно-синие свечения и сетка вместо розового из комнаты Лауры */
+  .hb-wrap.tmr-room{background:
+      radial-gradient(900px 520px at 50% -6%,rgba(70,214,160,.22),transparent 62%),
+      radial-gradient(700px 480px at 92% 30%,rgba(110,168,254,.16),transparent 60%),
+      radial-gradient(600px 420px at 6% 70%,rgba(70,214,160,.1),transparent 60%),
+      linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),#080a12;
+    background-size:auto,auto,auto,44px 44px,44px 44px,auto}
+  .tmr-room .tmr-hero{text-align:center;padding:10px 0 22px;animation:hbUp .6s ease both}
+  .tmr-ph{position:relative;width:148px;height:148px;margin:0 auto 18px;border-radius:50%;padding:4px;background:conic-gradient(from 210deg,#46d6a0,#6ea8fe,#a98bff,#46d6a0);box-shadow:0 0 0 8px rgba(70,214,160,.08),0 24px 60px -20px rgba(70,214,160,.55)}
+  .tmr-ph img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:3px solid #080a12}
+  .tmr-ph-tag{position:absolute;right:-6px;bottom:6px;font:800 11px var(--mono);letter-spacing:2px;color:#0a0b12;background:#46d6a0;border:3px solid #080a12;border-radius:20px;padding:4px 9px}
+  .tmr-room .tmr-hero h1{margin:16px 0 8px;font-size:clamp(28px,5.4vw,44px);letter-spacing:-.6px;background:linear-gradient(90deg,#fff 0%,#c9f5e4 45%,#bcd3ff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .tmr-room .tmr-sub{color:var(--mut);margin:0 0 14px;font-size:15px}
+  .tmr-tags{display:flex;gap:8px;flex-wrap:wrap;justify-content:center} .tmr-tags span{font:600 12.5px var(--sans);color:var(--txt);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:20px;padding:6px 12px}
+  .tmr-tk{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;padding:9px 18px;border-radius:14px;border:1px solid rgba(70,214,160,.35);background:rgba(10,12,20,.7);font:600 14px var(--mono);box-shadow:0 10px 30px -18px rgba(70,214,160,.8)}
+  .tmr-sym{color:#6ea8fe;letter-spacing:2px} .tmr-px{color:var(--txt)} .tmr-chg{color:#46d6a0;display:inline-flex;align-items:center;gap:7px} .tmr-chg::before{content:"";width:7px;height:7px;border-radius:50%;background:#46d6a0;box-shadow:0 0 0 0 rgba(70,214,160,.7);animation:tmrPulse 1.6s ease-out infinite}
+  @keyframes tmrPulse{to{box-shadow:0 0 0 9px rgba(70,214,160,0)}}
+  .tmr-card{position:relative;border:1px solid rgba(255,255,255,.09);border-radius:20px;background:linear-gradient(180deg,rgba(18,21,36,.9),rgba(12,14,24,.86));padding:18px 20px;margin:16px 0;backdrop-filter:blur(12px);box-shadow:0 18px 50px -30px rgba(0,0,0,.9);animation:hbUp .6s ease both}
+  .tmr-card::before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:3px;background:linear-gradient(180deg,#46d6a0,#6ea8fe)}
+  .tmr-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 14px} .tmr-h b{font-size:18px;letter-spacing:-.2px} .tmr-h span{font:600 11px var(--mono);letter-spacing:.8px;text-transform:uppercase;color:var(--mut)}
+  .tmr-close{max-width:680px;margin:22px auto 0;padding:24px 26px;border-radius:20px;text-align:center;border:1px solid rgba(70,214,160,.35);background:linear-gradient(180deg,rgba(70,214,160,.12),rgba(110,168,254,.08));animation:hbUp .6s .2s ease both}
+  .tmr-close p{margin:0 0 10px;line-height:1.6;font-size:15.5px} .tmr-close-t{font:800 20px var(--sans);color:#46d6a0} .tmr-close-s{color:var(--mut);font-size:13.5px;margin:0}
+  @media(prefers-reduced-motion:reduce){.tmr-chg::before,.tmr-room .tmr-hero,.tmr-card,.tmr-close{animation:none}}
+  @media(max-width:560px){.tmr-hud{font-size:11.5px;gap:8px;padding:8px 10px}.tmr-hud .tm{font-size:18px}.tmr-hud b{font-size:12.5px}.tmr-ph{width:124px;height:124px}}
   .tmr-chart{width:100%;height:auto;display:block;border-radius:12px;background:rgba(0,0,0,.25);cursor:pointer}
   .tmr-ev{margin-top:10px;font-size:14px;line-height:1.5;color:var(--txt)}
   .tmr-kv{display:grid;grid-template-columns:130px 1fr;gap:8px 14px;margin:10px 0;align-items:start}
