@@ -133,16 +133,28 @@ const RISKS=[
   ["Уйдёт в CS до утра",       "средняя",  "на сон",          "рейд всей командой"],
   ["Снова баскетбол",          "низкая",   "на ногу",         "щитки, разминка, здравый смысл"]
 ];
-/* Раунд: обезвредить подарок — пять проводов, каждый — вопрос про именинника. */
-const WIRES=[
-  {q:"Что Тамир сломал, играя в баскетбол?",  a:["ногу","руку","кольцо","режим сна"],           ok:0},
-  {q:"Любимая игра Тамира",                   a:["шахматы","Counter-Strike","Dota","Excel"],      ok:1},
-  {q:"Кем работает Тамир?",                   a:["трейдер","тренер по баскетболу","бизнес-аналитик","стендапер"], ok:2},
-  {q:"Что делает Тамир, когда рынок падает?", a:["продаёт всё","плачет","звонит брокеру","шутит и докупает"], ok:3},
-  {q:"Напиток закрытия недели",               a:["пиво","чай","смузи","эспрессо"],                ok:0}
+/* Скины именинника — свои силуэты, не картинки Valve: репозиторий публичный.
+   Редкость и износ — как в игре: r = mil / restricted / classified / covert / knife. */
+const ICO={
+  rifle:'<svg viewBox="0 0 120 48"><path d="M4 22h18l3-8h10l2 8h44l2-4h14l4 4h16v8H97l-3 6H62l-4 12h-9l2-12H36l-4 10h-9l1-10H4z"/></svg>',
+  awp:'<svg viewBox="0 0 120 48"><path d="M2 27h30l4-9h8l1 9h36l6-3h18l4 3h9v6h-9l-4 3H87l-6-3H72l-6 12h-8l2-12H41l-3 10h-9l1-10H2z"/><circle cx="52" cy="12" r="5"/><path d="M47 12h-8v3h8zM57 12h8v3h-8z"/></svg>',
+  knife:'<svg viewBox="0 0 120 48"><path d="M6 30c26-24 52-24 70-20l36 10-8 6c-14-2-28 2-40 4H40l-6 8H16z"/></svg>',
+  gloves:'<svg viewBox="0 0 120 48"><path d="M30 44c-10-6-14-16-10-28l8-2 2 10 4-14 8-2 1 14 6-16 8 0-1 18 8-10 7 4-8 18c-6 8-22 12-33 8z"/><path d="M78 40l8-16 6 4-6 18c-8 4-14 2-8-6z"/></svg>',
+  pistol:'<svg viewBox="0 0 120 48"><path d="M10 14h72l6 4h20v10h-20l-6 4H50l-4 14H30l2-14H10z"/></svg>'
+};
+const SKINS=[
+  {r:"knife",     ico:"knife",  n:"★ Нож | Бизнес-требования", w:"Прямо с завода",          f:"0.003", s:"читается с первого раза"},
+  {r:"knife",     ico:"gloves", n:"★ Перчатки | Пятничные",     w:"После полевых испытаний", f:"0.21",  s:"пиво держат крепко"},
+  {r:"covert",    ico:"rifle",  n:"AK-47 | Оптимист",           w:"Прямо с завода",          f:"0.01",  s:"счётчик побед: 1 337"},
+  {r:"classified",ico:"awp",    n:"AWP | Стакан заявок",         w:"Немного поношенное",      f:"0.09",  s:"один выстрел — одна сделка"},
+  {r:"restricted",ico:"pistol", n:"P250 | Мем дня",              w:"Закалённое в чате",       f:"0.44",  s:"урон по серьёзности: критический"},
+  {r:"mil",       em:"🎤",       n:"Микрофон | Корпоратив",       w:"Немного поношенное",      f:"0.12",  s:"рейтинг вокала AAA"},
+  {r:"mil",       em:"🍺",       n:"Кружка | Пятница",            w:"Прямо с завода",          f:"0.02",  s:"дивиденды в натуре"},
+  {r:"mil",       em:"🏀",       n:"Нога | Баскетбол",            w:"Закалённое в боях",       f:"0.87",  s:"восстановлена, работает штатно"}
 ];
-/* Стакан: биды — пожелания коллег (покупают TMR), аски — то, что рынок продаёт и что
-   Тамиру не нужно. Объёмы в лотах, глубина считается накопительно, как в терминале. */
+const RAR={mil:"Армейское качество",restricted:"Запрещённое",classified:"Засекреченное",covert:"Тайное",knife:"★ Исключительное"};
+const skinIco=x=>x.em?'<span class="tmr-em">'+x.em+'</span>':ICO[x.ico];
+const skinCard=(x,i)=>'<div class="tmr-skin '+x.r+'" data-i="'+i+'"><div class="tmr-skin-i">'+skinIco(x)+'</div><b>'+x.n+'</b><span>'+RAR[x.r]+' · '+x.w+'</span><small>float '+x.f+' · '+x.s+'</small></div>';
 const STEP=11111, LAST=1000000;
 const BIDROWS=BIDS.map((b,i)=>({p:LAST-STEP*(i+1), v:[42,37,25,18,12][i]||10, n:b.n, w:b.w}));
 const ASKS=[
@@ -187,9 +199,14 @@ const HTML=`
   <div id="tmrTrade"></div>
 </div>
 
-<div class="tmr-card tmr-round">
-  <div class="tmr-h"><b>Раунд: обезвредь подарок</b><span>Counter-Strike · 40 секунд</span></div>
-  <div id="tmrGame" data-w='${JSON.stringify(WIRES).replace(/'/g,"&#39;")}'></div>
+<div class="tmr-card">
+  <div class="tmr-h"><b>Инвентарь</b><span>скины именинника · редкость как в CS</span></div>
+  <div class="tmr-inv">${SKINS.map(skinCard).join("")}</div>
+</div>
+
+<div class="tmr-card">
+  <div class="tmr-h"><b>Кейс именинника</b><span>открой · на бирже Тамира выпадает только лучшее</span></div>
+  <div class="tmr-case" id="tmrCase" data-skins='${JSON.stringify(SKINS.map(x=>({r:x.r,n:x.n,w:x.w,f:x.f,s:x.s,h:skinIco(x)}))).replace(/'/g,"&#39;")}'></div>
 </div>
 
 ${VIDEOS.length?`<div class="tmr-card">

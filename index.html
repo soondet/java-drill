@@ -1617,12 +1617,22 @@
   .tmr-note{margin:10px 0 0;font-size:12.5px;color:var(--mut)}
   .tmr-div{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px} .tmr-dv{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px} .tmr-dv b{font-size:16px} .tmr-dv span{font-size:11.5px;color:var(--mut)} .tmr-dv i{font-style:normal;margin-top:4px}
   .tmr-hud{display:flex;justify-content:space-between;align-items:center;font:700 14px var(--mono);padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.35);margin-bottom:12px} .tmr-hud .ct{color:#6ea8fe} .tmr-hud .t{color:#ffb86b} .tmr-hud .tm{font-size:22px;color:#ff7a90}
-  .tmr-bomb{line-height:1.55;margin-bottom:12px} .tmr-q{margin-bottom:12px} .tmr-q span{display:block;font:700 11px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-bottom:4px} .tmr-q b{font-size:17px}
-  .tmr-wires{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
-  .tmr-wire{display:flex;align-items:center;gap:10px;text-align:left;font:inherit;color:var(--txt);background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:12px;padding:11px 13px;cursor:pointer} .tmr-wire i{flex:none;width:34px;height:6px;border-radius:3px}
-  .tmr-wire.c0 i{background:#ff7a90} .tmr-wire.c1 i{background:#6ea8fe} .tmr-wire.c2 i{background:#ffd166} .tmr-wire.c3 i{background:#46d6a0}
-  .tmr-wire.cut{border-color:#46d6a0;background:rgba(70,214,160,.15)} .tmr-wire.cut i{background:repeating-linear-gradient(90deg,#46d6a0 0 10px,transparent 10px 16px)} .tmr-wire.boom{border-color:#ff7a90;background:rgba(255,122,144,.15)}
-  .tmr-verd{min-height:20px;margin-top:10px;font-size:13.5px;color:var(--mut)}
+  .tmr-bomb{line-height:1.55;margin-bottom:12px}
+  /* скины: цвета редкости как в игре — синий, фиолетовый, розовый, красный, золото */
+  .tmr-inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .tmr-skin,.tmr-cell,.tmr-drop{--rc:#4b69ff;position:relative;border:1px solid rgba(255,255,255,.08);border-bottom:3px solid var(--rc);border-radius:10px;background:radial-gradient(120% 80% at 50% 110%,color-mix(in srgb,var(--rc) 28%,transparent),transparent 60%),linear-gradient(180deg,#171a2a,#0e1019);overflow:hidden}
+  .restricted{--rc:#8847ff} .classified{--rc:#d32ce6} .covert{--rc:#eb4b4b} .knife{--rc:#ffd700} .mil{--rc:#4b69ff}
+  .tmr-skin{padding:12px 12px 10px;display:flex;flex-direction:column;gap:3px;transition:transform .2s} .tmr-skin:hover{transform:translateY(-3px)}
+  .tmr-skin-i{height:54px;display:flex;align-items:center;justify-content:center} .tmr-skin-i svg{width:100%;height:100%;fill:#e8ecf5;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))} .tmr-em{font-size:46px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+  .tmr-skin b{font-size:13px;line-height:1.3;margin-top:4px} .tmr-skin span{font:600 10.5px var(--mono);color:var(--rc);letter-spacing:.3px} .tmr-skin small{font-size:11px;color:var(--mut);line-height:1.4}
+  .knife.tmr-skin b,.knife.tmr-drop b{color:#ffd700}
+  .tmr-roul{position:relative;overflow:hidden;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);padding:12px 0;mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+  .tmr-mark{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#ffd166;box-shadow:0 0 12px #ffd166;z-index:2}
+  .tmr-strip{display:flex;gap:8px;will-change:transform;padding-left:0}
+  .tmr-cell{flex:none;width:116px;padding:8px 8px 6px;text-align:center} .tmr-cell .tmr-skin-i{height:44px} .tmr-cell .tmr-em{font-size:34px} .tmr-cell b{display:block;font-size:10.5px;line-height:1.25;height:27px;overflow:hidden}
+  .tmr-cell.win{box-shadow:0 0 0 2px var(--rc),0 0 24px var(--rc)}
+  .tmr-drop{margin:0 auto 12px;max-width:340px;padding:18px 16px 14px;text-align:center;display:flex;flex-direction:column;gap:4px;box-shadow:0 0 40px -8px var(--rc);animation:tmrPop .4s ease-out}
+  .tmr-drop .tmr-skin-i{height:70px} .tmr-drop .tmr-em{font-size:50px} .tmr-drop b{font-size:16px;margin-top:6px} .tmr-drop span{font:600 11px var(--mono);color:var(--rc)} .tmr-drop small{color:var(--mut);font-size:12px}
   .tmr-end{padding:16px;border-radius:12px;text-align:center;margin-bottom:12px} .tmr-end b{display:block;font-size:22px;margin-bottom:6px} .tmr-end span{color:var(--mut)} .tmr-end.win{background:rgba(110,168,254,.14);border:1px solid #6ea8fe} .tmr-end.lose{background:rgba(255,184,107,.12);border:1px solid #ffb86b}
   .tmr-ticker{overflow:hidden;white-space:nowrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px 0;margin:0 0 6px;font:600 12.5px var(--mono);color:var(--mut)}
   .tmr-ticker-in{display:inline-block;animation:tmrTick 60s linear infinite} .tmr-ticker span{margin-right:48px} .tmr-ticker:hover .tmr-ticker-in{animation-play-state:paused}
@@ -12784,7 +12794,7 @@ function tmrIntro(done){
 }
 let TMR_ANIM=null;
 function tmrWire(){
-  tmrChart(); tmrBook(); tmrGame(); tmrTrade(); tmrVideos();
+  tmrChart(); tmrBook(); tmrCase(); tmrTrade(); tmrVideos();
 }
 /* График, который растёт всегда: детерминированный шум, события с провалом и отскоком.
    Рисуется постепенно слева направо, значки событий — кнопки по тапу. */
@@ -12844,40 +12854,37 @@ function tmrBook(){                                  /* биржевой ста�
     if(filled===bids.length)for(let k=0;k<3;k++)setTimeout(()=>hbBurst(innerWidth*(.25+Math.random()*.5),innerHeight*.35,60),k*220);
   });
 }
-/* Раунд: пять «проводов» — вопросов про именинника, таймер 40 секунд, ошибка стоит пять. */
-function tmrGame(){
-  const box=$("#tmrGame"); if(!box)return;
-  let W=[]; try{ W=JSON.parse(box.getAttribute("data-w")||"[]"); }catch(e){}
-  if(!W.length)return;
-  let i=0, left=40, timer=null, busy=false, won=0;
-  const hud=()=>'<div class="tmr-hud"><span class="ct">CT <b id="tmrWon">'+won+'</b></span><span class="tm" id="tmrTime">0:'+String(left).padStart(2,"0")+'</span><span class="t">T <b>'+(W.length-won)+'</b></span></div>';
-  const start=()=>{
-    box.innerHTML=hud()+'<div class="tmr-bomb">💣 Подарок заминирован. Пять проводов — пять фактов про именинника. Перережь верные.</div>'
-      +'<button type="button" class="sg-btn" id="tmrGo">начать раунд</button>';
-    $("#tmrGo").onclick=()=>{ i=0; left=40; won=0; busy=false; clearInterval(timer);
-      timer=setInterval(()=>{ left--; const t=$("#tmrTime"); if(t)t.textContent="0:"+String(Math.max(0,left)).padStart(2,"0"); if(left<=0){ clearInterval(timer); lose(); } },1000);
-      q(); };
+/* Кейс: рулетка, как при открытии кейса — полоса скинов уезжает влево и замедляется до
+   выигрыша. Выпадает всегда ★ или тайное: на этой бирже иначе не бывает. Тики — тем же
+   синтезатором, что и мелодии; частота тиков падает вместе со скоростью полосы. */
+let TMR_CASE_T=[];
+function tmrCase(){
+  const box=$("#tmrCase"); if(!box)return;
+  let S=[]; try{ S=JSON.parse(box.getAttribute("data-skins")||"[]"); }catch(e){}
+  if(!S.length)return;
+  const cell=x=>'<div class="tmr-cell '+x.r+'"><div class="tmr-skin-i">'+x.h+'</div><b>'+esc(x.n)+'</b></div>';
+  const idle=won=>{ box.innerHTML=(won?'<div class="tmr-drop '+won.r+'"><div class="tmr-skin-i">'+won.h+'</div><b>'+esc(won.n)+'</b><span>'+esc(won.w)+' · float '+esc(won.f)+'</span><small>'+esc(won.s)+'</small></div>':'')
+      +'<button type="button" class="sg-btn" id="tmrOpen">'+(won?"открыть ещё один":"🔑 открыть кейс")+'</button>';
+    $("#tmrOpen").onclick=spin; };
+  const spin=()=>{
+    TMR_CASE_T.forEach(clearTimeout); TMR_CASE_T=[];
+    const top=S.filter(x=>x.r==="knife"||x.r==="covert"), win=top[(Math.random()*top.length)|0];
+    const N=46, WIN=40, strip=[]; for(let i=0;i<N;i++)strip.push(i===WIN?win:S[(Math.random()*S.length)|0]);
+    box.innerHTML='<div class="tmr-roul"><i class="tmr-mark"></i><div class="tmr-strip" id="tmrStrip">'+strip.map(cell).join("")+'</div></div>'
+      +'<p class="tmr-note">крутится…</p>';
+    const el=$("#tmrStrip"), roul=box.querySelector(".tmr-roul");
+    const cw=el.firstElementChild.getBoundingClientRect().width+8, W=roul.getBoundingClientRect().width;
+    const target=WIN*cw+cw/2-W/2+(Math.random()-.5)*cw*.6, DUR=5600;
+    requestAnimationFrame(()=>{ el.style.transition="transform "+DUR+"ms cubic-bezier(.08,.72,.12,1)"; el.style.transform="translateX("+(-target)+"px)"; });
+    /* тики: полоса проходит клетку k в момент, когда доля пути равна k·cw/target; кривая — кубическая, обращаем её */
+    const ac=(typeof sgAudio==="function")?sgAudio():null;
+    if(ac){ if(ac.state==="suspended")ac.resume(); const t0=ac.currentTime+.05;
+      for(let k=1;k*cw<target;k++){ const p=k*cw/target, tt=1-Math.cbrt(1-p); if(tt>1)break; sgTone(ac,1400-p*700,t0+tt*DUR/1000,.025,.08,"square"); } }
+    TMR_CASE_T.push(setTimeout(()=>{ box.querySelector(".tmr-note").textContent=""; el.querySelectorAll(".tmr-cell")[WIN].classList.add("win");
+      hbBurst(innerWidth/2,innerHeight*.5,win.r==="knife"?120:70); for(let k=0;k<3;k++)TMR_CASE_T.push(setTimeout(()=>hbBurst(innerWidth*(.25+Math.random()*.5),innerHeight*.4,50),300+k*220));
+      TMR_CASE_T.push(setTimeout(()=>idle(win),1400)); },DUR+150));
   };
-  const q=()=>{
-    if(i>=W.length){ clearInterval(timer); return win(); }
-    const w=W[i];
-    box.innerHTML=hud()+'<div class="tmr-q"><span>провод '+(i+1)+' из '+W.length+'</span><b>'+esc(w.q)+'</b></div>'
-      +'<div class="tmr-wires">'+w.a.map((a,k)=>'<button type="button" class="tmr-wire c'+k+'" data-k="'+k+'"><i></i>'+esc(a)+'</button>').join("")+'</div>'
-      +'<div class="tmr-verd" id="tmrVerd"></div>';
-    [...box.querySelectorAll(".tmr-wire")].forEach(b=>b.onclick=()=>{
-      if(busy)return; busy=true; const k=+b.dataset.k, ok=k===w.ok;
-      b.classList.add(ok?"cut":"boom"); const v=$("#tmrVerd");
-      if(ok){ won++; v.textContent="есть! провод перерезан"; hbBurst(innerWidth/2,innerHeight*.5,30); }
-      else { left=Math.max(0,left-5); v.textContent="не тот провод: −5 секунд. Верный — «"+w.a[w.ok]+"»"; }
-      setTimeout(()=>{ busy=false; i++; if(left>0)q(); },ok?700:1300);
-    });
-  };
-  const win=()=>{ box.innerHTML=hud()+'<div class="tmr-end win"><b>Bomb has been defused</b><span>Counter-Terrorists win · '+won+' из '+W.length+' проводов · осталось 0:'+String(left).padStart(2,"0")+'</span></div>'
-      +'<button type="button" class="sg-btn ghost" id="tmrAgain">ещё раунд</button>'; $("#tmrAgain").onclick=start;
-    for(let k=0;k<4;k++)setTimeout(()=>hbBurst(innerWidth*(.2+Math.random()*.6),innerHeight*.35,70),k*200); };
-  const lose=()=>{ box.innerHTML=hud()+'<div class="tmr-end lose"><b>Время вышло</b><span>Terrorists win · но подарок всё равно твой</span></div>'
-      +'<button type="button" class="sg-btn ghost" id="tmrAgain">ещё раунд</button>'; $("#tmrAgain").onclick=start; };
-  start();
+  idle(null);
 }
 /* Купи на дне: 45 секунд торгов свечами, капитал миллион, комиссия за сделку, новости по ходу
    двигают цену, в конце — сравнение с «купил и держал» и звание. Тренд вверх, как у всего TMR. */
@@ -12999,6 +13006,7 @@ function hbClose(){
   if(typeof TMR_ANIM!=="undefined"&&TMR_ANIM)cancelAnimationFrame(TMR_ANIM);
   if(typeof TMR_TRADE!=="undefined"&&TMR_TRADE)cancelAnimationFrame(TMR_TRADE);
   if(typeof TMR_TRADE_KEY!=="undefined"&&TMR_TRADE_KEY)removeEventListener("keydown",TMR_TRADE_KEY);
+  if(typeof TMR_CASE_T!=="undefined"){ TMR_CASE_T.forEach(clearTimeout); TMR_CASE_T=[]; }
   if(HB){ cancelAnimationFrame(HB.raf); removeEventListener("resize",HB.fit); HB=null; }
   if(Object.keys(HB_ROOMS).some(k=>location.hash==="#"+k))   /* иначе повторный вход в ту же комнату не срабатывает */
     history.replaceState(null,"",location.pathname+location.search);
