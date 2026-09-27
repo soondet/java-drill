@@ -24,7 +24,7 @@ const BIDS=[
 /* --------------------------- */
 
 const PASS=process.argv[2];
-const BANNED=["tmr","tamir","тамир","birthday","hb","password","123456"];
+const BANNED=["tmr","birthday","hb","password","123456"];      /* имя разрешено: пароль в чате всё равно уходит открыто, как у Лауры */
 if(!PASS||PASS.length<4||BANNED.includes(PASS.toLowerCase())){
   console.error("Нужен пароль: node "+path.basename(__filename)+' "пароль"\n(не короче 4 символов и не имя именинника)');
   process.exit(1);
