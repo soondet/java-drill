@@ -22,12 +22,20 @@ self.addEventListener("fetch",e=>{
      захода: первый отдавал старую копию и лишь фоном клал новую. no-cache — это
      не «качать заново», а «переспросить»: не изменилось — придёт 304 без тела. */
   if(r.mode==="navigate"){
+    /* Сеть сначала, но не бесконечно: на слабой мобильной сети запрос страницы может
+       висеть десятки секунд, и всё это время экран пустой, хотя копия лежит в кэше.
+       Через 2,5 с отдаём кэш, если он есть; сетевой ответ всё равно дойдёт и ляжет в
+       кэш к следующему входу. Нет копии — ждём сеть, как раньше. */
+    const net=fetch(new Request(r.url,{cache:"no-cache",credentials:"same-origin"})).then(res=>{
+      if(res&&res.ok){ const copy=res.clone(); e.waitUntil(caches.open(CACHE).then(c=>c.put(r,copy))); }
+      return res;
+    });
+    const cached=()=>caches.match(r,{ignoreSearch:true}).then(hit=>hit||caches.match("index.html"));
+    const slow=new Promise(res=>setTimeout(()=>cached().then(hit=>res(hit||null)),2500));
     e.respondWith(
-      fetch(new Request(r.url,{cache:"no-cache",credentials:"same-origin"})).then(res=>{
-        if(res&&res.ok){ const copy=res.clone(); e.waitUntil(caches.open(CACHE).then(c=>c.put(r,copy))); }
-        return res;
-      }).catch(()=>caches.match(r,{ignoreSearch:true}).then(hit=>hit||caches.match("index.html")))
+      Promise.race([net.catch(()=>null),slow]).then(res=>res||net.catch(()=>cached()))
     );
+    e.waitUntil(net.catch(()=>{}));
     return;
   }
 
