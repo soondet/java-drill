@@ -9126,7 +9126,28 @@ window.I18N = {
   "Увеличить срок жизни токена: тогда разница в несколько секунд перестанет попадать на границу": "Increase the token lifetime: then a difference of a few seconds no longer lands on the boundary",
   "Отключить проверку времени выдачи в валидаторе: iat не влияет на безопасность, важен только exp": "Disable the issued-at check in the validator: iat has no bearing on security, only exp matters",
   "Перевыпускать токен при каждом 401 на фронте": "Reissue the token on every 401 on the frontend",
-  "Улики — почти готовый диагноз: ошибка про время, один узел, часы отстают на 40 секунд. Токен выпущен в 12:00:00 по часам Keycloak, а под проверяет его в 11:59:25 по своим и считает ещё не действующим.\n\nЛечится на узле: NTP или chrony, проверка дрейфа мониторингом. Допуск в несколько секунд в валидаторе — нормальная практика, но 40 секунд — не допуск, а поломка. Срок жизни токена про другую границу, exp, а не iat. Отключить проверку — оставить дыру и дрейф. Перевыпуск на фронте маскирует ошибку, которую через месяц даст уже exp.": "The clues are nearly a finished diagnosis: an error about time, one node, a clock 40 seconds behind. The token is issued at 12:00:00 by Keycloak's clock, while the pod checks it at 11:59:25 by its own and deems it not yet valid.\n\nThe fix is on the node: NTP or chrony, with drift monitored. A few seconds of leeway in the validator is normal practice, but 40 seconds is not leeway, it is breakage. The token lifetime is about the other boundary, exp, not iat. Disabling the check keeps both the hole and the drift. Reissuing on the frontend masks an error that exp will raise in a month."
+  "Улики — почти готовый диагноз: ошибка про время, один узел, часы отстают на 40 секунд. Токен выпущен в 12:00:00 по часам Keycloak, а под проверяет его в 11:59:25 по своим и считает ещё не действующим.\n\nЛечится на узле: NTP или chrony, проверка дрейфа мониторингом. Допуск в несколько секунд в валидаторе — нормальная практика, но 40 секунд — не допуск, а поломка. Срок жизни токена про другую границу, exp, а не iat. Отключить проверку — оставить дыру и дрейф. Перевыпуск на фронте маскирует ошибку, которую через месяц даст уже exp.": "The clues are nearly a finished diagnosis: an error about time, one node, a clock 40 seconds behind. The token is issued at 12:00:00 by Keycloak's clock, while the pod checks it at 11:59:25 by its own and deems it not yet valid.\n\nThe fix is on the node: NTP or chrony, with drift monitored. A few seconds of leeway in the validator is normal practice, but 40 seconds is not leeway, it is breakage. The token lifetime is about the other boundary, exp, not iat. Disabling the check keeps both the hole and the drift. Reissuing on the frontend masks an error that exp will raise in a month.",
+  "метод": "method",
+  "fork: профиль": "fork: profile",
+  "fork: лимиты": "fork: limits",
+  "join → выход: незавершённое отменено": "join → exit: unfinished work cancelled",
+  "подзадача 1: ошибка, 10 мс": "subtask 1: fails at 10 ms",
+  "подзадача 2: 5 с": "subtask 2: 5 s",
+  "interrupt → join сразу": "interrupt → join at once",
+  "ждём только того, кто не слушает": "we wait only for one that does not listen",
+  "2 упала": "2 failed",
+  "1 и 3 крутятся дальше": "1 and 3 keep running",
+  "1 и 3 отменены": "1 and 3 cancelled",
+  "ожидание против владения": "waiting versus owning",
+  "тесты упали → убит": "tests failed → killed",
+  "тесты зелёные → выжил": "tests green → survived",
+  "выжил = строка прогнана, но не проверена": "survived = the line ran but was not checked",
+  "было: 10 и 1000 → мутант жив": "before: 10 and 1000 → mutant alive",
+  "стало: ровно лимит → мутант убит": "after: exactly the limit → mutant killed",
+  "PR: только диф": "PR: the diff only",
+  "ночь: весь проект": "nightly: whole project",
+  "спринт: разбор выживших": "sprint: survivor review",
+  "мутировать логику, не DTO": "mutate logic, not DTOs"
  },
  "cards": {
   "jc-eqhash": {
@@ -21778,6 +21799,90 @@ window.I18N = {
    ],
    "more": "Spring AI is built into the Spring ecosystem: a fluent ChatClient, vendor auto-configuration via properties, tools through a method annotation, conversation memory, connectors to pgvector and other stores, observability through Micrometer. LangChain4j is framework-independent, has a Quarkus extension, \"AI services\" are described as Java interfaces with annotations and the library generates the implementation.\n\nWhat the wrappers do not give: masking personal data, an evaluation set, budget limits, degradation design. That remains engineering work. And be careful with the abstraction \"we will switch vendors via configuration\": prompts tuned for one model behave differently on another, and the evaluation set has to be rerun.",
    "picCap": "One API over vendors; limits, personal data and evaluation are your part"
+  },
+  "co-sc-scope": {
+   "q": "Why is StructuredTaskScope better than a thread pool when the task is the same — call two services in parallel?",
+   "a": "Subtasks live exactly as long as the method: fork inside try, join, and on leaving the block anything unfinished is cancelled. One subtask's failure cancels the rest and surfaces as an ordinary exception. Leaked threads and forgotten Futures cannot happen by construction.",
+   "d": "In JDK 25 it is still a preview, and the API has changed between versions — in production only with the flag and deliberately. A thread pool solves a different problem: reuse, not ownership and lifetime.",
+   "hook": "The children do not leave the house until the parent is back: whoever is unfinished is told \"enough\".",
+   "more": "The classic pool pain: a method submitted three tasks, the second failed, the method threw, and the first and third keep running in the pool, burning connections and logging things nobody needs any more. Cancelling them is separate code with Future.cancel that everyone forgets.\n\nStructured concurrency introduces ownership: the scope is created in the method, subtasks are its children, leaving the try-with-resources waits for or cancels them. The ShutdownOnFailure policy cancels everyone at the first error, ShutdownOnSuccess at the first result. A thread dump shows the hierarchy rather than a flat list. The price is a new model and a preview flag; old ExecutorService code need not be rewritten for it.",
+   "picCap": "Subtasks are bound to the block: leave it and nothing keeps running",
+   "quizCorrect": "Subtasks live as long as the block: leaving it cancels unfinished work, a failure surfaces as an exception",
+   "quizWrong": [
+    "It is faster: subtasks run on virtual threads, while a pool creates fresh platform threads for every task and wastes time on that",
+    "It needs no exception handling at all: subtask errors are logged and swallowed inside the scope and never reach the caller",
+    "It is the same ExecutorService under a new name with try-with-resources"
+   ]
+  },
+  "co-sc-cancel": {
+   "q": "Two subtasks in StructuredTaskScope.ShutdownOnFailure, the first fails after 10 ms, the second takes 5 seconds. What happens?",
+   "a": "The scope shuts down at the first failure: the second subtask is interrupted, join returns at once, and throwIfFailed throws the first one's exception. No five-second wait — provided the second subtask responds to interrupt.",
+   "d": "If the second subtask ignores interruption — spins in a loop or sits in a blocking call without checking the flag — the scope waits for it on close. Cancellation in Java is cooperative; structure does not change that.",
+   "hook": "A fire alarm: the signal goes to everyone at once, but only those who listen leave the building.",
+   "more": "The order inside a scope: fork starts subtasks, join waits until all finish or the policy fires, throwIfFailed turns the first error into the caller's exception. ShutdownOnFailure calls shutdown at the first error — interrupting everything unfinished and letting join return. Results of failed and cancelled subtasks are unavailable; a Subtask has a state.\n\nA deadline is set with joinUntil(Instant): when it passes, shutdown as well. That is the answer to \"how not to wait five seconds when a service hangs\": not a separate timer per call but one deadline for the whole block. What remains is a requirement on subtask code — handle InterruptedException honestly and never swallow it.",
+   "picCap": "The first failure shuts the scope: the rest are interrupted, join does not wait",
+   "quizCorrect": "The second is interrupted, join returns at once, throwIfFailed throws the first one's error",
+   "quizWrong": [
+    "join waits the full five seconds: a scope completes only when every subtask has finished, and the first error is remembered until then",
+    "The first one's exception is swallowed and the result is the second one's value",
+    "The scope throws right in fork without waiting for join"
+   ]
+  },
+  "co-sc-vs-allof": {
+   "q": "CompletableFuture.allOf also waits for several tasks. What does it not do that a structured scope does?",
+   "a": "It does not cancel the others when one fails, does not tie them to the calling method, gives no shared deadline and shows no hierarchy in a dump. allOf is waiting for results; a scope is owning the tasks.",
+   "d": "allOf also wraps errors in CompletionException and loses which subtask failed first. For pipelines with thenCompose and no cancellation CompletableFuture remains the right tool.",
+   "hook": "allOf is an arrivals board: it shows who has landed. A scope is the dispatcher: it can turn the planes around too.",
+   "more": "Typical allOf code: three supplyAsync, allOf(f1, f2, f3).join(), then f1.join() and so on. The second call fails — allOf completes exceptionally, but the first and third keep running in the shared pool, holding connections and possibly finishing long after the method returned an error. To fix that, people write cancel on every Future by hand, and usually forget.\n\nA scope makes cancellation part of the model, adds joinUntil for a shared deadline and gives observability: in a thread dump subtasks nest under their parent. That does not make CompletableFuture obsolete: it is good for transformation chains without cancellation and for code that must run on a JDK without preview.",
+   "picCap": "allOf waits, a scope owns: cancellation, deadline, hierarchy",
+   "quizCorrect": "Cancelling the rest on failure, binding to the method, a shared deadline, a hierarchy in the dump",
+   "quizWrong": [
+    "Parallel execution: allOf runs the tasks one after another, while a scope runs them at once on virtual threads",
+    "Waiting for results: allOf returns immediately without waiting for the tasks, and the waiting has to be done separately with join",
+    "Nothing: they are the same thing, a scope is a wrapper over allOf with new syntax and the same guarantees"
+   ]
+  },
+  "ts-mut-why": {
+   "q": "Coverage is 90% and bugs still get through. What does mutation testing show that coverage cannot?",
+   "a": "Coverage says a line was executed; a mutation test says an error in it would be noticed. A tool like PIT breaks the code one spot at a time — flips a condition, changes a constant, removes a call — and runs the tests. If none fails, the mutant survived: the code was run but not checked.",
+   "d": "A surviving mutant almost always means a test without an assertion or with the wrong one: the method was called and \"did not crash\". The share of killed mutants is an honest replacement for coverage when judging how well tests protect.",
+   "hook": "Coverage is how many doors you opened. Mutants are how many of them you locked.",
+   "more": "PIT mutations are standard: negating a condition, shifting a boundary (< to <=), returning null or zero instead of a value, removing a call to a void method, swapping arithmetic. Each is a plausible bug a human could introduce. The tests run on every mutant separately, and the report shows per line: killed, survived, not covered.\n\nThe report is easy to read: a survivor on a boundary line means the test does not check the boundary; a survivor on a removed call means nobody checked the side effect. That is a concrete pointer to which assert to add, unlike \"85% coverage\", which says nothing about the quality of assertions.",
+   "picCap": "A mutant breaks one spot; if the tests do not notice, the line is unprotected",
+   "quizCorrect": "Whether the tests would notice an error in a line, not just whether it ran: a surviving mutant is code executed but unchecked",
+   "quizWrong": [
+    "Which lines the tests never execute at all — the same data that coverage already gives, only broken down per branch and more precise",
+    "How many tests can be deleted without losing coverage",
+    "Where the code is slow: mutants time every test"
+   ]
+  },
+  "ts-mut-kill": {
+   "q": "PIT shows a surviving mutant: in the limit check \">=\" was replaced with \">\" and the tests stay green. What is wrong with the tests, and how do you kill the mutant?",
+   "a": "The tests do not check the boundary: there are cases \"well below\" and \"well above\", but none exactly at the limit. The mutant is killed by a test with the sum equal to the limit and an assertion about the result at precisely that point.",
+   "d": "The rule: for every condition, tests on both sides of the boundary and on it. And an assertion about the result, not \"did not throw\": a mutant that changes the return value survives a check that only looks for the absence of an error.",
+   "hook": "You test a fence at the gate, not a metre away from it.",
+   "more": "Surviving mutants fall into three kinds. Boundary: a condition changed and the tests never go to the edge — fixed with limit, limit−1, limit+1 values. Side effect: a repository call or event publication removed while the test checked only the return — fixed with verify on a mock or a state check. Return: the method returned zero or null instead of the computed value while the test only checked it did not crash — fixed with an assertion about the value.\n\nNot every mutant must be killed. An equivalent mutant behaves like the original — say, replacing \"i < n\" with \"i != n\" in a loop with step one; no test can tell them apart, and that is fine. The goal is not 100% but no survivors where the business logic lives.",
+   "picCap": "A boundary is tested at the boundary, not far from it",
+   "quizCorrect": "There is no test at the boundary itself: add a case with the sum equal to the limit and an assertion on the result",
+   "quizWrong": [
+    "The tests are right and the mutant is equivalent: with integer sums \">=\" and \">\" are indistinguishable, so it should be excluded from the report",
+    "Add more tests with large sums and different limit values so that the branch coverage of this check reaches 100% and the report is closed",
+    "Replace \">=\" in the code with \">\", since the tests agree with it"
+   ]
+  },
+  "ts-mut-ci": {
+   "q": "PIT on the whole project takes forty minutes. How do you put mutation testing into CI without it becoming the bottleneck?",
+   "a": "Do not run everything on every commit: mutate only the changed classes and run only the tests that cover them, leaving the full run for nightly or the release branch. Limit mutators and target packages to business logic, and set the mutation-score threshold on the delta, not the whole project.",
+   "d": "PIT supports incremental analysis and git integration: it mutates only the diff. Mutating controllers, DTOs and mappers is pointless — there is no logic worth protecting there, and the mutants are many.",
+   "hook": "Airport security checks your bag, not everyone's luggage all over again.",
+   "more": "Why it is slow: for every mutant PIT runs the tests that reach the mutated line by coverage. A thousand mutants times seconds of tests. Three levers: fewer mutants (target classes, the DEFAULTS mutator set instead of ALL), fewer tests per mutant (coverage is computed up front, which already happens), fewer runs (only what changed).\n\nA working scheme: on a pull request, PIT on the changed classes with the threshold \"the mutation score of what changed is not below the previous one\"; nightly, a full report into an artifact; once a sprint, a review of survivors in the modules with money and permissions. A full run on every commit is for small projects only.",
+   "picCap": "Three modes instead of one forty-minute run",
+   "quizCorrect": "Mutate only changed classes on a PR, full run nightly, targets limited to business logic, threshold on the delta",
+   "quizWrong": [
+    "Parallelise PIT across all runner cores and give the runner more memory: forty minutes become ten, and the run can stay on every commit",
+    "Replace PIT with JaCoCo branch coverage: it gives the same information about the tests in a minute instead of forty, and the plugin is already configured",
+    "Run PIT only before a release, once a quarter, as a manual job that the release manager starts by hand and reads through the full report"
+   ]
   }
  },
  "terms": {
