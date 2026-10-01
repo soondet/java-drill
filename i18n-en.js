@@ -29214,6 +29214,186 @@ window.I18N = {
     "The browser will take the name from the URL itself, the header is redundant here",
     "HTTP headers are Latin (ISO-8859-1): Cyrillic arrives as mojibake, without quotes the name is cut at the first space, and a name taken from user data allows header injection; you need filename*=UTF-8''… per RFC 5987"
    ]
+  },
+  "bug3-kafka-autocommit": {
+   "options": [
+    "All fine: auto-commit confirms only what poll has already returned, hence processed — and the loop processes it before the timer fires",
+    "poll with a 200 ms timeout is too frequent: the broker will ban the consumer for flooding",
+    "Auto-commit acknowledges the offset before processing ends: fail in execute and the payout is lost",
+    "A 5000 ms interval is too long: after a crash 5 seconds of messages repeat; it should be 100 ms"
+   ],
+   "why": "Auto-commit fires on a timer inside poll and acknowledges everything the previous poll returned — whether it was processed or not. Fail in execute on the last record, restart — the offset has already moved, nobody re-reads the message. For payouts that is lost money.\n\nThe fix is manual acknowledgement after processing: enable.auto.commit=false and commitSync after the batch. Repeats are then possible — handler idempotency protects against them. The poll frequency and the interval length are beside the point."
+  },
+  "bug3-kafka-no-flush": {
+   "options": [
+    "send is asynchronous: without flush or close before exit the buffer never leaves",
+    "Without a key Kafka refuses the record: a key is mandatory for every topic",
+    "The producer is created without try-with-resources, and after exit sockets stay open; the broker keeps waiting for them",
+    "System.exit(0) in main is bad form; just return from the method and everything will be sent"
+   ],
+   "why": "send puts the record in a buffer and returns at once; a background thread sends in batches per linger.ms. System.exit kills the process together with the buffer — the last records, and in a fast loop all of them, never leave. No exception, no log: as far as the code can tell, everything was sent.\n\nBefore exiting you need producer.flush() or close(), which flushes and waits for acknowledgements. A key is not mandatory. A plain return from main would not save you by contract: the process ends when non-daemon threads finish, and the producer's sender thread happens to be non-daemon — it would work by accident, not by design."
+  },
+  "bug3-kafka-retries-reorder": {
+   "options": [
+    "acks=all with ten retries slows the producer several times over: waiting for all replicas on every retry is too expensive",
+    "On a retry with five requests in flight and no idempotence, batches can swap places",
+    "retries=10 is meaningless: Kafka retries forever by itself and ignores the value",
+    "Idempotence cannot be disabled with acks=all: the producer fails at startup with ConfigException"
+   ],
+   "why": "Five batches went out one after another, the second did not arrive and went for a retry — while the third, fourth and fifth are already written. The second lands after them: events of one order change order despite the key. The idempotent producer fixes exactly this: it numbers batches, and the broker drops duplicates and keeps the order.\n\nThe right combination: enable.idempotence=true, which implies acks=all and allows up to five in flight without losing order. Turning it off for \"speed\" trades order for nothing. The other options are wrong: acks=all is not multiplied by retries, retries is a finite number, and a configuration with idempotence off is valid."
+  },
+  "bug3-kafka-consumer-threads": {
+   "options": [
+    "Two threads on one consumer double throughput, but partitions must be assigned by hand through assign",
+    "subscribe to one topic from two threads creates two groups, and each of them reads the whole topic independently",
+    "All fine: KafkaConsumer is synchronised inside; calls from threads queue up",
+    "KafkaConsumer is not thread-safe: the second thread gets ConcurrentModificationException"
+   ],
+   "why": "The javadoc says it in its first line: a consumer instance belongs to one thread. There is an owner check inside, and the second thread fails with ConcurrentModificationException \"KafkaConsumer is not safe for multi-threaded access\". Sometimes it does not fail and silently corrupts state — worse.\n\nScaling is done differently: one consumer per thread, all in one group — partitions split by themselves. Or one consumer reads and hands processing to a pool, acknowledging offsets only after completion. subscribe does not create two groups; the group is set by group.id."
+  },
+  "bug3-kafka-random-group": {
+   "options": [
+    "A random group on every start: each replica reads the whole topic from the beginning",
+    "earliest on an empty offset is dangerous: latest is better, otherwise the first run reads the history",
+    "A UUID in group.id is not allowed: the group name is limited to letters and hyphens; the broker rejects the connection",
+    "The group must match the topic name, or the broker cannot find offsets"
+   ],
+   "why": "A group is both the partition split between instances and the memory of offsets. A random name breaks both: three replicas form three groups, each gets all partitions, and with earliest each starts from the beginning of the topic. Every order is processed three times, and after a restart once more from scratch.\n\ngroup.id must be constant and shared by all instances of the service. earliest by itself is appropriate: the first run of a new service should see the history. A name with a UUID is syntactically valid and need not match the topic."
+  },
+  "bug3-k8s-no-resources": {
+   "options": [
+    "Without resources the pod will not start: Kubernetes requires at least requests for any container, else the manifest is rejected",
+    "Port 8080 must also be declared in the Service, otherwise containerPort is meaningless and traffic never reaches the pod",
+    "Without requests the scheduler places the pod anywhere; without limits it can starve its neighbours",
+    "Without limits the JVM will not see a memory limit and take the default heap, a quarter of the node's memory"
+   ],
+   "why": "requests are a promise to the scheduler: \"I need this much\". Without them the pod is BestEffort: placed on any node and killed first when memory runs short. Without limits the container is bounded by nothing, and a leak in one service squeezes its neighbours on the node. HPA on CPU does not work without requests either — there is nothing to compute percentages from.\n\nBoth should be set, usually requests from real consumption and memory limits with headroom. A pod without resources does start — that is the trouble. The fourth option is half right about the heap but describes a side issue."
+  },
+  "bug3-k8s-liveness-kills-startup": {
+   "options": [
+    "The path /actuator/health is closed by Spring Security by default; the probe always gets 401 and never a 200",
+    "A probe with no delay and a one-failure threshold kills the pod before it finishes starting",
+    "Liveness needs tcpSocket, not httpGet: an HTTP probe counts as a readiness probe",
+    "periodSeconds 5 is too frequent: the probe itself creates load and the pod degrades"
+   ],
+   "why": "The first probe fires at zero seconds, no answer — the one-failure threshold is spent, the pod is restarted. Zero seconds again, no answer again. A service that needs forty seconds never starts: an endless CrashLoopBackOff with perfectly healthy code.\n\nThe fix is a startupProbe with generous headroom, after which liveness begins, or initialDelaySeconds above the startup time and failureThreshold of three. And the general rule: liveness must not depend on the database or external services — that is readiness's job. An HTTP probe for liveness is fine, a five-second period is normal."
+  },
+  "bug3-k8s-latest-tag": {
+   "options": [
+    "All fine: latest always points to the newest build, and IfNotPresent saves traffic on every node",
+    "The latest tag is forbidden in production by Kubernetes policy; the manifest fails validation",
+    "IfNotPresent does not work with a private registry; Always is required",
+    "latest with IfNotPresent: nodes run different versions, and a rollout changes nothing"
+   ],
+   "why": "Two defects in two lines. latest is not a version but a moving label: on one node the image was pulled a week ago, on another yesterday, and different code runs under one tag. IfNotPresent finishes it off: since an image with that tag exists on the node, the new one is not pulled. And kubectl apply with the same manifest performs no rollout — nothing changed.\n\nImages are tagged with an immutable version or digest, and every release changes the manifest. Kubernetes has no ban on latest; a private registry works with IfNotPresent."
+  },
+  "bug3-k8s-secret-in-configmap": {
+   "options": [
+    "A ConfigMap is readable by anyone with namespace access and sits in git; a password belongs in a Secret",
+    "A ConfigMap cannot hold values with special characters: the exclamation mark breaks YAML parsing at deploy time",
+    "A Secret changes nothing: it is stored in base64 too, which is equivalent to plain text for anyone who can read it",
+    "ConfigMap keys must be lowercase with dots, otherwise they do not become environment variables"
+   ],
+   "why": "A ConfigMap is the public part of configuration: anyone granted get on the namespace reads it, it lands in git and in kubectl describe output. Putting a password there hands it to everyone. A Secret differs beyond base64: separate RBAC permissions, encryption in etcd when encryption at rest is on, and no exposure in describe.\n\nSecrets come from an external store such as Vault or sealed-secrets, with manifests holding only a reference. Special characters in ConfigMap values are allowed; key case is free."
+  },
+  "bug3-k8s-single-replica-rollout": {
+   "options": [
+    "maxSurge: 0 is forbidden together with maxUnavailable: 1 — Kubernetes rejects the manifest",
+    "All fine: RollingUpdate by definition rolls out without downtime; the defaults need no change for a small service",
+    "The only pod is stopped before the new one starts: every release is downtime for the startup duration",
+    "The Recreate strategy is needed: for a single replica RollingUpdate makes no sense and is slower"
+   ],
+   "why": "maxUnavailable: 1 with one replica lets the rollout kill the only pod, and maxSurge: 0 forbids starting a new one alongside in advance. The result is Recreate under the name RollingUpdate: the old pod is stopped, the new one takes forty seconds to start, and the service is down all that time.\n\nZero downtime is maxSurge: 1 and maxUnavailable: 0: the new pod comes up alongside, passes readiness, and only then the old one goes. Better still, two replicas: one is not fault tolerance. The combination in the manifest is valid; Recreate does not solve the downtime, it legalises it."
+  },
+  "bug3-docker-shell-entrypoint": {
+   "options": [
+    "A jre image has no compiler, so Spring Boot cannot build proxies at startup: a jdk image is needed",
+    "Shell-form ENTRYPOINT: PID 1 is sh, SIGTERM never reaches Java, no graceful shutdown",
+    "COPY from target pulls the whole build directory into the image, classes and tests included, doubling its size",
+    "WORKDIR /app is required, otherwise java cannot find the jar by its absolute path and exits at once"
+   ],
+   "why": "Shell-form ENTRYPOINT runs /bin/sh -c \"java …\": sh becomes the first process and Java its child. On pod shutdown Kubernetes sends SIGTERM to the first process; sh does not forward it. Java lives until terminationGracePeriodSeconds expires and gets SIGKILL: in-flight requests are cut, connections are not closed, Spring gets no graceful shutdown.\n\nUse the exec form: ENTRYPOINT [\"java\", \"-jar\", \"/app/app.jar\"] — then Java is PID 1. Spring proxies need no compiler, COPY copies only the named file, an absolute path needs no WORKDIR."
+  },
+  "bug3-docker-javaopts-ignored": {
+   "options": [
+    "The variable is set before COPY but should be after: instruction order in a Dockerfile matters for ENV",
+    "JAVA_OPTS applies, but -Xmx512m is too little for Spring Boot; at least 2g is needed",
+    "G1 is on by default, the flag is redundant, and duplicate GC flags produce a startup error",
+    "Nobody reads JAVA_OPTS: the exec form does not expand variables, Java starts without these flags"
+   ],
+   "why": "JAVA_OPTS is merely a convention of launch scripts; the JVM itself knows nothing of it. In the exec form of ENTRYPOINT there is no shell, no $JAVA_OPTS expansion, and even if there were — nobody wrote it here. The flags silently vanish, the heap is taken by default, and at the container limit that becomes OOMKilled.\n\nTwo honest paths: the JAVA_TOOL_OPTIONS variable, which the JVM reads by itself, or flags right in ENTRYPOINT. The order of ENV relative to COPY is irrelevant; heap size is a conversation for after the flag actually applies."
+  },
+  "bug3-docker-secret-layer": {
+   "options": [
+    "rm in a separate RUN creates an extra layer and bloats the image; the commands should be joined with &&",
+    "All fine: after rm the file is gone; docker history will not show it",
+    "The file remains in the COPY layer: removing it in a later layer does not erase it",
+    ".env cannot be copied as a file; it must be passed through ENV, otherwise build.sh cannot read it"
+   ],
+   "why": "An image is a stack of layers, and each layer is stored whole. COPY put .env into its layer for good; RUN rm added a \"file absent\" marker on top. Whoever pulls the image unpacks the layers and reads the secrets — ordinary tools do it in a minute.\n\nBuild secrets go through BuildKit: RUN --mount=type=secret, which mounts the file only for that command and leaves no trace in layers. Or a multi-stage build where only the result is copied into the final image. Joining RUN with && does not help: COPY is already a separate layer."
+  },
+  "bug3-liquibase-edited-changeset": {
+   "options": [
+    "An applied changeset must not be edited: the checksum will not match in production",
+    "All fine: Liquibase compares the schema with the description and widens the column to 100 itself",
+    "varchar(100) is excessive for a national id: char(12) is needed, otherwise the index on the column bloats",
+    "The author in the changeset id must match the database user, otherwise Liquibase cannot find the journal entry"
+   ],
+   "why": "Liquibase stores a checksum of every applied changeset in databasechangelog. Editing the text changes the sum, and the next run fails with \"checksum validation failed\" — in production, where the changeset is already applied. On a developer's empty database everything passes, so the error is seen last.\n\nApplied changesets are left alone: write a new one with modifyDataType. Liquibase does not compare the schema with the description; it is not a declarative tool. The column type and the author in the id are not what this is about."
+  },
+  "bug3-liquibase-notnull-no-default": {
+   "options": [
+    "addNotNullConstraint on a large table locks it for hours; NOT VALID with later validation is the only safe way",
+    "columnDataType must be given, otherwise Liquibase cannot generate the ALTER",
+    "All fine: empty values become an empty string when the constraint is applied",
+    "A third of the rows are NULL: the constraint will not apply; the migration fails in production"
+   ],
+   "why": "NOT NULL is checked against existing data at the moment it is applied. Two million rows, seven hundred thousand with an empty segment — the ALTER fails, the migration rolls back, the release stalls. On a dev database with no data the same migration passes, the classic trap: a test on an empty database checks nothing.\n\nThe right order: fill first — defaultNullValue in the same changeSet or a separate UPDATE — then the constraint. On Postgres ALTER TABLE SET NOT NULL does a full scan under a lock; at this size that is seconds to minutes, not hours. columnDataType is not needed by every database."
+  },
+  "bug3-flyway-out-of-order": {
+   "options": [
+    "Three files with a gap in numbering: Flyway requires continuous numbers and stops at V4",
+    "V4 is below the already applied V5: Flyway silently ignores it; the index never reaches production",
+    "Flyway applies V4 after V5 and the index is created: file order within the directory does not matter at all",
+    "Rename V5 to V6, then V4 takes its place before it"
+   ],
+   "why": "Flyway applies versions strictly ascending and remembers the highest applied one. A file numbered below it is considered \"late\" with out-of-order=false and skipped without an error; the log holds only a warning nobody reads. Production has no index, and the application that expects it slows down several times over.\n\nThe honest path is renaming V4 to V6 and merging it as a new migration, or enabling out-of-order deliberately, accepting that order is no longer guaranteed. Renaming the applied V5 is not allowed: its history record already exists. Gaps in numbering are fine."
+  },
+  "bug3-quarkus-static-config": {
+   "options": [
+    "A @ConfigProperty field must be final, otherwise Quarkus cannot guarantee the value stays constant",
+    "The property rates.url must be declared with the quarkus. prefix, otherwise it is not read from application.properties",
+    "Injection into a static field does not work: CDI fills only instance fields; url stays null",
+    "For strings @ConfigProperty requires defaultValue: without it the build fails configuration validation"
+   ],
+   "why": "CDI injects into a bean instance when it is created; a static field belongs to the class, not the instance, and the container leaves it alone. url stays null, and the first fetch fails with a NullPointerException whose message says nothing about configuration. Quarkus warns at build time, but warnings drown.\n\nMake it an ordinary instance field, usually final with constructor injection. The quarkus. prefix is only for the framework's own settings, defaultValue is optional, and final combined with field injection is exactly what does not work."
+  },
+  "bug3-quarkus-panache-no-tx": {
+   "options": [
+    "Without @Transactional the change is not saved: the entity is managed only inside a transaction",
+    "o.persist() must be called: Panache tracks no field changes, only explicit persist and flush calls",
+    "findById returns Optional; assigning it to Order will not compile",
+    "Direct access to the status field bypasses the setter, so Hibernate does not notice the change at all"
+   ],
+   "why": "The comment is half right: a managed entity is indeed saved without save — but it is managed only inside a transaction. Without @Transactional, findById runs in a short auto-transaction for the read, after which the entity is detached; the status change stays in memory and vanishes with the object. No error, no log, the order is not paid.\n\n@Transactional on the method — and dirty checking at commit writes the UPDATE. persist is needed only for new entities. Panache's findById returns the entity, and Hibernate with Quarkus bytecode enhancement sees direct field access."
+  },
+  "bug3-spring-cache-null": {
+   "options": [
+    "Optional must not be unwrapped to null inside a cacheable method; the cache cannot store Optional",
+    "null is cached too: a client absent at the first call stays \"missing\" in the cache",
+    "The default cache key is all arguments, and a national id as a string collides in ConcurrentMapCache",
+    "All fine: save automatically invalidates the clients cache because the entity is the same"
+   ],
+   "why": "Spring's cache stores null by default: it is a valid result, and ConcurrentMapCache has allowNullValues on. Registration: find returned null and cached it, save created the client, the second find pulled null from the cache. The client exists in the database and is \"missing\" to the application until the entry expires — never, in a cache without a TTL.\n\nThe fix is unless = \"#result == null\" on @Cacheable, or @CachePut on save, or @CacheEvict. save invalidates nothing by itself: the cache and the repository know nothing of each other. Optional and the string key are beside the point."
+  },
+  "bug3-spring-event-before-commit": {
+   "options": [
+    "publishEvent inside @Transactional is forbidden: Spring throws an exception",
+    "The listener runs in another thread, and the email leaves before save reaches the database",
+    "All fine: Spring delivers events after the method completes, when the transaction is already closed and committed",
+    "The listener fires synchronously before the commit: the email goes out even if reserve rolls back"
+   ],
+   "why": "@EventListener is invoked straight from publishEvent, in the same thread, in the middle of the transaction. The \"your order is created\" email goes out, then reserve throws, the transaction rolls back — no order, but an email. The client calls support with the number of an order that does not exist.\n\nFor side effects there is @TransactionalEventListener with the AFTER_COMMIT phase: the listener runs only if the transaction committed. Publishing inside a transaction is allowed, events do not move to another thread without @Async, and they are not deferred past the method by themselves."
   }
  }
 };
