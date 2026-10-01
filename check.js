@@ -237,7 +237,7 @@ const check = (name, ok, detail) => {
     });
     return JSON.stringify({n:D.length,pct:Math.round(win/D.length*100),bad:bad});
   })()`));
-  check("сценариев диагностики загружено", dg.n >= 20, dg.n + "");
+  check("сценариев диагностики загружено", dg.n >= 40, dg.n + "");
   check("у сценариев по три неверных варианта", dg.bad.length === 0, dg.bad.join(", "));
   check("диагностику не пройти «выбирай самый длинный»", dg.pct <= 40,
     "стратегия даёт " + dg.pct + "%, потолок 40%, случайный тык 25%");
