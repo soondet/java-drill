@@ -3639,9 +3639,9 @@ function srcOf(c){
 function srcLine(c){
   const s=srcOf(c);
   if(!s)return "";
-  return '<div class="src" id="srcLine"><span>📖</span><b>'+esc(s.b.title)+"</b>"
-    +(s.b.author?"<i>"+esc(s.b.author.split(",")[0])+"</i>":"")
-    +(s.why?"<em>"+esc(s.why)+"</em>":"")+"</div>";
+  return '<div class="src" id="srcLine"><span>📖</span><b>'+esc(tr(s.b.title))+"</b>"
+    +(s.b.author?"<i>"+esc(tr(s.b.author.split(",")[0]))+"</i>":"")
+    +(s.why?"<em>"+esc(tr(s.why))+"</em>":"")+"</div>";
 }
 /* Пять точек — это «до освоено». Дальше ступени показываем плюсами, иначе шестая
    и седьмая просто не отображались бы и выглядело бы, что прогресс встал. */

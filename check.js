@@ -383,6 +383,17 @@ const check = (name, ok, detail) => {
     dsen.язык !== "en" ? "язык не переключился, замер недействителен"
       : dsen.без.length ? "без перевода " + dsen.без.length + " сценариев: " + dsen.без.slice(0, 5).join(", ")
                         : "проверено " + dsen.всего + " строк, все переводятся");
+
+  /* ---- строка «откуда это знание» переводится ----
+     📖 книга · автор · причина привязки шла по-русски в английском режиме у всех
+     карточек: в словаре было 3 строки из 360. Проверка литералов tr("…") этого не
+     видит — строка собирается из данных книг. Считаем по карте книг, пока EN загружен. */
+  const src = JSON.parse(await A.ev(`(function(){ var B=window.BOOKS||{map:{},books:[]}, кир=/[А-Яа-яЁё]/, без=[], n=0;
+    Object.keys(B.map).forEach(function(k){ var w=B.map[k].why; if(!w||!кир.test(w)) return; n++; if(tr(w)===w) без.push(w); });
+    (B.books||[]).forEach(function(b){ [b.title,(b.author||"").split(",")[0]].forEach(function(s){ if(s&&кир.test(s)){ n++; if(tr(s)===s) без.push(s); } }); });
+    return JSON.stringify({n:n, без:без.slice(0,5), всего:без.length}); })()`));
+  check("строка «откуда это знание» переводится", src.всего === 0 && src.n >= 300,
+    src.всего ? "без перевода " + src.всего + " из " + src.n + ": " + src.без.join(" · ") : "проверено " + src.n + " строк");
   await A.ev(`try{ setLang(${JSON.stringify(язык0)}) }catch(e){}`); await sleep(900);
 
   /* ---- книга по музыке ----
