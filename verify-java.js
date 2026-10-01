@@ -12,6 +12,8 @@
  *
  *     node verify-java.js
  *
+ * SQL-задачи (lang:"sql") этот скрипт пропускает — для них verify-sql.js и Postgres в Docker.
+ *
  * Java берётся из JAVA_HOME, иначе из PATH. Обёртка минимальная, чтобы проверять
  * задачу, а не обёртку: сниппет целиком становится телом класса с именем задачи
  * (T19 создаёт new T19()), импорты уезжают наверх, pr() добавляется, если не
@@ -19,7 +21,7 @@
  */
 const fs = require("fs"), os = require("os"), path = require("path"), { spawnSync } = require("child_process");
 global.window = {}; require(path.join(__dirname, "wp-new.js"));
-const W = window.WP || [];
+const W = (window.WP || []).filter(x => x.lang !== "sql");   /* SQL-задачи — в verify-sql.js */
 const JAVA = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, "bin", "java") : "java";
 const ver = spawnSync(JAVA, ["-version"], { encoding: "utf8" });
 if (ver.error) { console.error("java не найдена — задай JAVA_HOME или добавь java в PATH"); process.exit(2); }
@@ -28,7 +30,8 @@ console.log("  " + (ver.stderr || ver.stdout).split("\n")[0]);
 const wrap = x => {
   const lines = x.code.split("\n");
   const imp = lines.filter(l => /^\s*import\s/.test(l)), rest = lines.filter(l => !/^\s*import\s/.test(l)).join("\n");
-  let body = rest.replace(/(^|[\n}]\s*)main\(\)\s*\{/, (m, p) => p + (p.trim() === "}" ? "\n" : "") + "public static void main(String[] args) throws Exception {");
+  /* «main() {» и «main() throws Exception {» — обе формы встречаются в задачах */
+  let body = rest.replace(/(^|[\n}]\s*)main\(\)(\s*throws\s+[\w.]+)?\s*\{/, (m, p) => p + (p.trim() === "}" ? "\n" : "") + "public static void main(String[] args) throws Exception {");
   if (!/void\s+pr\s*\(/.test(body)) body = "static void pr(Object o){ System.out.println(o); }\n" + body;
   return imp.join("\n") + "\npublic class " + x.id + " {\n" + body + "\n}\n";
 };
