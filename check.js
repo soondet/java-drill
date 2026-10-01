@@ -348,7 +348,7 @@ const check = (name, ok, detail) => {
     });
     return JSON.stringify({n:all.length,pct:Math.round(win/all.length*100),bad:bad});
   })()`));
-  check("этапов проектирования загружено", ds.n >= 15, ds.n + "");
+  check("этапов проектирования загружено", ds.n >= 90, ds.n + "");
   check("у каждой задачи пять этапов", ds.bad.length === 0, ds.bad.join(", "));
   check("«спроектируй» не пройти «выбирай самый длинный»", ds.pct <= 40,
     "стратегия даёт " + ds.pct + "%, потолок 40%, случайный тык 25%");
@@ -665,7 +665,7 @@ const check = (name, ok, detail) => {
       return JSON.stringify({строк:rows.length, фразы:txt("eng-phrases"), книга:txt("mus-book"), спроектируй:txt("design"), обрезано:обрезано}); })()`));
     await A.ev(`(function(){ var b=document.querySelector('#progStage [data-go="mus-book"]'); if(b)b.click(); })()`); await sleep(500);
     const ушёл = await A.ev(`mode==="mus" && MUS_MODE==="book" && !!document.getElementById("bkR")`);
-    check("прогресс знает про суждение и бонусы", пр.строк >= 7 && /^2\//.test(пр.фразы) && /^3\//.test(пр.книга) && /\/60$/.test(пр.спроектируй) && пр.обрезано === 0 && ушёл === true,
+    check("прогресс знает про суждение и бонусы", пр.строк >= 7 && /^2\//.test(пр.фразы) && /^3\//.test(пр.книга) && /\/90$/.test(пр.спроектируй) && пр.обрезано === 0 && ушёл === true,
       пр.строк + " строк · фразы " + пр.фразы + " · книга " + пр.книга + " · спроектируй " + пр.спроектируй + " · обрезанных подписей " + пр.обрезано + " · клик ведёт в книгу: " + ушёл);
     await A.ev(`["jdEngKnown","jdMusBookDone","jdMusBook"].forEach(function(k){localStorage.removeItem(k)}); document.getElementById("tabDrill").click()`); await sleep(200);
 

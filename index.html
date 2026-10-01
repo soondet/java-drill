@@ -11007,14 +11007,14 @@ function dsOver(){
   DS=null;
   gameStage.innerHTML=`<div class="game-play">
     <div class="game-top"><div class="gscore">${g.t.ico}</div>
-      <div class="q-pill">${esc(g.t.name)}</div>
+      <div class="q-pill">${esc(tr(g.t.name))}</div>
       <div class="gscore mut">${g.ok}/${g.t.steps.length}</div></div>
     <div class="dg-sym">${tr("Каркас ответа, который у тебя получился — проговори его вслух целиком.")}</div>
     <div class="ds-sum">${g.picked.map((p,k)=>`<div class="ds-sum-i">
       <span class="ds-sum-n">${esc(tr(names[k]||("шаг "+(k+1))))}</span>
       <span>${esc(p)}</span></div>`).join("")}</div>
     <div class="dg-why" style="margin-top:14px">
-      <div class="dg-why-t">${g.ok===g.t.steps.length?tr("Все пять этапов взяты"):tr("Верных этапов")+": "+g.ok+" из "+g.t.steps.length}</div>
+      <div class="dg-why-t">${g.ok===g.t.steps.length?tr("Все пять этапов взяты"):tr("Верных этапов")+": "+g.ok+" "+tr("из")+" "+g.t.steps.length}</div>
       <p>${tr("На собеседовании оценивают не столько попадание, сколько порядок: сначала требования, потом числа, и только потом технологии.")}</p>
       <div class="exam-row">
         <button class="btn primary" id="dsAgain" style="flex:none">${tr("↻ Ещё раз")}</button>
