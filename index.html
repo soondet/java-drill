@@ -725,6 +725,21 @@
   .zv .fp-box{font-size:11.5px;padding:5px 8px}
   .zv .fp-tag{font-size:9.5px}
   body.no-anim .zv *{animation:none!important;transition:none!important}
+  /* детский кадр: наклейка из учебника — тёплая бумага в обеих темах */
+  @media(min-width:1241px){ .zero-step.has-viz .zv:has(.zk){flex-basis:262px;max-width:262px} }   /* только на широком: ниже свои правила колонки */
+  .zk{background:#fff6dc;color:#3a2e1c;border-radius:12px;padding:9px 8px 8px;border:2px dashed #e8c873}
+  .zk-row{display:flex;align-items:flex-start;justify-content:center;gap:2px}
+  .zk-f{flex:1 1 0;min-width:0;text-align:center}
+  .zk-e{height:34px;display:flex;align-items:center;justify-content:center;white-space:nowrap;letter-spacing:-1px}
+  .zk-e.n1{font-size:28px} .zk-e.n2{font-size:22px} .zk-e.n3{font-size:17px} .zk-e.n4{font-size:13px}   /* размер по числу рисунков: три в треть колонки не влезали */
+  .zk-l{font:600 10.5px/1.25 var(--sans);margin-top:3px;overflow-wrap:break-word;hyphens:auto}
+  .zk-ar{flex:none;align-self:center;margin-top:-14px;font:800 14px var(--sans);color:#c79a2e}
+  .zk-c{font:500 12px/1.4 var(--sans);margin-top:7px;padding-top:6px;border-top:1px dashed #e8c873;text-align:center}
+  .zk-sep{height:10px}
+  body.no-kid .zk, body.no-kid .zk-sep, body.no-kid .zero-step.kid-only .zv{display:none}
+  @media(prefers-reduced-motion:no-preference){ body:not(.no-anim) .zk-e{animation:zkBob 3.2s ease-in-out infinite}
+    body:not(.no-anim) .zk-f:nth-child(3) .zk-e{animation-delay:.5s} body:not(.no-anim) .zk-f:nth-child(5) .zk-e{animation-delay:1s} }
+  @keyframes zkBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
   /* Сам чекбокс — 13×13, пальцем не попасть. Тапаем по всей подписи: она и так
      срабатывает как label, ей нужна только высота под палец. */
   .zv-off{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--mut);cursor:pointer;user-select:none;
@@ -745,6 +760,7 @@
   .zero-bar{flex:1;height:8px;border-radius:5px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
   .zero-bar span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--good));transition:width .3s var(--ease)}
   .zero-top b{font:800 13px var(--mono);color:var(--good);min-width:38px;text-align:right}
+  @media(max-width:620px){ .zero-top{flex-wrap:wrap;gap:4px 8px} .zero-bar{flex:1 1 70%} }   /* третий переключатель не влезал в строку */
   .zero-g{margin:26px 0 10px;display:flex;align-items:center;gap:10px}
   .zero-g span{font:800 12px var(--mono);letter-spacing:1.4px;text-transform:uppercase;color:var(--mut)}
   .zero-g::after{content:"";flex:1;height:1px;background:var(--line)}
@@ -2599,6 +2615,7 @@
   <div class="terms-wrap">
     <div class="bas-intro">🌱 <b>С нуля.</b> <span id="zeroIntro">Как код вообще превращается в работу — от транзистора до твоей программы. Читается сверху вниз, каждый шаг опирается на предыдущий.</span></div>
     <div class="zero-top"><div class="zero-bar"><span id="zeroBar"></span></div><b id="zeroPct">0%</b>
+      <label class="zv-off"><input type="checkbox" id="zeroKid" checked> <span id="zeroKidLbl">🧸 для детей</span></label>
       <label class="zv-off"><input type="checkbox" id="zeroAnim" checked> <span id="zeroAnimLbl">схемы</span></label>
       <button class="btn" id="zeroReset" style="flex:none;padding:6px 12px;font-size:12px">↻ сбросить</button></div>
     <div class="zero-wrap">
@@ -2707,6 +2724,7 @@
 <script src="behav.js"></script>
 <script src="take.js"></script>
 <script src="viz-zero.js"></script>
+<script src="kid-zero.js"></script>
 <script src="zdrill.js"></script>
 <script src="tricky.js"></script>
 <script src="hacks.js"></script>
@@ -4273,6 +4291,22 @@ const ZERO=(()=>{
 })();
 function zeroSave(){ try{localStorage.setItem("jdZero",JSON.stringify([...ZDONE]))}catch(e){} }
 function zDone(i){ const z=ZERO[i]; return !!z&&ZDONE.has(zeroKey(z)); }
+/* Детский кадр к шагу «С нуля»: два-три эмодзи-рисунка с подписью, как в учебнике
+   для младших классов. Ключ — тема|заголовок (один заголовок есть в двух темах).
+   Английский лежит рядом в тех же данных, а не в общем словаре: подписи короткие
+   («горит», «склад») и столкнулись бы с готовыми переводами интерфейса.
+   Прячется классом на body, без перерисовки — переключатель мгновенный. */
+function zeroKidOn(v){ if(v!=null){try{localStorage.setItem("jdZeroKid",v?"1":"0")}catch(e){}}
+  try{ return localStorage.getItem("jdZeroKid")!=="0"; }catch(e){ return true; } }
+/* четыре-пять рисунков в кадре (очередь, толпа) не влезают в треть колонки — мельчим */
+function zkLen(s){ try{ return [...new Intl.Segmenter().segment(s)].filter(x=>x.segment.trim()).length; }catch(e){ return [...s].length; } }
+function zeroKid(z){
+  const k=(window.ZKID||{})[z.g+"|"+z.t]; if(!k||!k.f)return "";
+  const en=LANG==="en", L=x=>esc(en&&x[2]?x[2]:x[1]);
+  return '<div class="zk"><div class="zk-row">'
+    +k.f.map((f,j)=>(j?'<span class="zk-ar">→</span>':"")+'<div class="zk-f"><div class="zk-e n'+Math.min(zkLen(f[0]),4)+'">'+esc(f[0])+'</div><div class="zk-l">'+L(f)+"</div></div>").join("")
+    +'</div><div class="zk-c">'+esc(en&&k.c[1]?k.c[1]:k.c[0])+"</div></div>";
+}
 function zeroAnimOn(v){ if(v!=null){try{localStorage.setItem("jdZeroAnim",v?"1":"0")}catch(e){}}
   const s=localStorage.getItem("jdZeroAnim");
   if(s!=null)return s==="1";
@@ -4458,15 +4492,15 @@ function buildZero(){
     if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
     n++;
     const done=zDone(i);
-    const viz=(window.ZVIZ||{})[z.t];
-    html+=`<div class="zero-step${done?" done":""}${viz?" has-viz":""}" id="zs${i}" data-i="${i}">
+    const viz=(window.ZVIZ||{})[z.t], kid=zeroKid(z);
+    html+=`<div class="zero-step${done?" done":""}${viz||kid?" has-viz":""}${kid&&!viz?" kid-only":""}" id="zs${i}" data-i="${i}">
       <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
       <div class="zero-b">
         <div class="zero-t">${techIco(z.t,null)}${esc(tr(z.t))}</div>
         <div class="zero-p">${zeroFmt(tr(z.p))}</div>
         ${z.c?`<div class="zero-code">${esc(z.c)}</div>`:""}
         <div class="zero-an">${esc(tr(z.an))}</div>
-      </div>${viz?`<div class="zv">${viz}</div>`:""}</div>`;
+      </div>${viz||kid?`<div class="zv">${kid}${viz&&kid?'<div class="zk-sep"></div>':""}${viz||""}</div>`:""}</div>`;
     if(lastOf[i])html+=zeroTake(lastOf[i]);          /* разбор — сразу после последнего шага темы */
     else if(endOf[i]&&zdrillCount(endOf[i]))         /* у темы без разбора — хотя бы карточки */
       html+=`<div class="zt-go" style="border-top:0;margin:2px 0 18px 44px">`
@@ -4487,6 +4521,10 @@ function buildZero(){
   const nx=$("#zeroNext"); if(nx)nx.onclick=()=>setMode("basics");
   const rs=$("#zeroReset"); if(rs)rs.onclick=()=>{ ZDONE.clear(); zeroSave(); buildZero(); };
   const anl=$("#zeroAnimLbl"); if(anl)anl.textContent=tr("схемы");
+  const kdl=$("#zeroKidLbl"); if(kdl)kdl.textContent=tr("🧸 для детей");
+  const kd=$("#zeroKid");
+  if(kd){ kd.checked=zeroKidOn(); document.body.classList.toggle("no-kid",!kd.checked);
+    kd.onchange=()=>{ zeroKidOn(kd.checked); document.body.classList.toggle("no-kid",!kd.checked); }; }
   const an=$("#zeroAnim");
   if(an){ an.checked=zeroAnimOn(); document.body.classList.toggle("no-anim",!an.checked);
     an.onchange=()=>{ zeroAnimOn(an.checked); document.body.classList.toggle("no-anim",!an.checked); }; }

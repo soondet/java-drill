@@ -9699,7 +9699,8 @@ window.I18N = {
   "PostgreSQL 14 изнутри": "PostgreSQL 14 Internals",
   "Егор Рогов": "Egor Rogov",
   "нагрузка, запас мощности и поведение под пиком": "load, capacity headroom and behaviour under the peak",
-  "проверка отказов и бюджет ошибок": "failure testing and the error budget"
+  "проверка отказов и бюджет ошибок": "failure testing and the error budget",
+  "🧸 для детей": "🧸 for kids"
  },
  "cards": {
   "jc-eqhash": {

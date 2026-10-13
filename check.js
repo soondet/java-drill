@@ -1086,6 +1086,27 @@ const check = (name, ok, detail) => {
   check("переключатель выключает иконки", off.выкл === 0 && off.вкл > 0,
     "выключено " + off.выкл + " · включено " + off.вкл);
 
+  /* ---- детские кадры «С нуля» ----
+     Под каждым шагом наклейка «как в учебнике»: эмодзи-рисунки и фраза. Проверяем
+     покрытие (у каждого шага есть кадр — ключ тема|заголовок легко разъехаться при
+     правке заголовка), что переключатель прячет и возвращает, и что выбор живёт в
+     localStorage. Состояние возвращаем в finally. */
+  const kid = JSON.parse(await A.ev(`(async function(){ var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+    var было=localStorage.getItem("jdZeroKid");
+    try{
+      var K=window.ZKID||{}, без=ZERO.filter(function(z){ return !K[z.g+"|"+z.t]; }).map(function(z){ return z.t; });
+      localStorage.removeItem("jdZeroKid"); setMode("zero"); await ж(250);
+      var видно=function(){ return [].slice.call(document.querySelectorAll("#viewZero .zk")).filter(function(e){ return e.offsetParent!==null; }).length; };
+      var шагов=document.querySelectorAll("#viewZero .zero-step").length, кадров=document.querySelectorAll("#viewZero .zk").length, вкл=видно();
+      var cb=document.getElementById("zeroKid"); cb.click(); await ж(60);
+      var выкл=видно(), запомнил=localStorage.getItem("jdZeroKid");
+      cb.click(); await ж(60);
+      return JSON.stringify({без:без.slice(0,3), всегоБез:без.length, шагов:шагов, кадров:кадров, вкл:вкл, выкл:выкл, запомнил:запомнил, снова:видно()});
+    } finally { if(было==null) localStorage.removeItem("jdZeroKid"); else localStorage.setItem("jdZeroKid",было); document.body.classList.remove("no-kid"); }
+  })()`));
+  check("детские кадры «С нуля»: у каждого шага, переключатель прячет", kid.всегоБез === 0 && kid.шагов > 300 && kid.кадров === kid.шагов && kid.вкл > 0 && kid.выкл === 0 && kid.запомнил === "0" && kid.снова === kid.вкл,
+    kid.всегоБез ? "без кадра " + kid.всегоБез + ": " + kid.без.join(" · ") : "шагов " + kid.шагов + " · кадров " + kid.кадров + " · видно " + kid.вкл + " → выкл " + kid.выкл + " → снова " + kid.снова);
+
   /* ---- дневной бюджет ----
      Раньше норма новых прибавлялась к повторам вслепую: по замеру лестницы
      на сороковой день набегало 144 карточки за раз. Теперь новые уступают
