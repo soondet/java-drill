@@ -740,6 +740,11 @@
   .zk-strip{display:flex;align-items:flex-start;gap:1px}
   .zk-p{flex:1 1 0;min-width:0;margin:0;text-align:center}
   .zk-p svg{display:block;width:100%;height:auto;border-radius:9px}
+  .zk-strip.many{display:grid;grid-template-columns:repeat(2,1fr);gap:7px 6px;counter-reset:zkp}
+  .zk-strip.many.n5,.zk-strip.many.n6{grid-template-columns:repeat(3,1fr)}
+  .zk-strip.many .zk-p{position:relative;counter-increment:zkp}
+  .zk-strip.many .zk-p::before{content:counter(zkp);position:absolute;left:3px;top:3px;width:15px;height:15px;border-radius:50%;
+    background:#d6a43c;color:#fff;font:800 9.5px/15px var(--sans);text-align:center;z-index:1}
   .zk-p figcaption{font:700 10px/1.25 var(--sans);margin-top:4px;color:#5b4a2c;hyphens:auto;overflow-wrap:break-word}
   .zk-svg .zk-ar{margin-top:16%;font:900 16px var(--sans);color:#d6a43c}
   .zk-say{display:flex;align-items:flex-end;gap:7px;margin-top:8px}
@@ -2742,6 +2747,7 @@
 <script src="viz-zero.js"></script>
 <script src="kid-zero.js"></script>
 <script src="kid-svg.js"></script>
+<script src="kid-scenes.js"></script>
 <script src="zdrill.js"></script>
 <script src="tricky.js"></script>
 <script src="hacks.js"></script>
@@ -4321,8 +4327,9 @@ function zeroKidOn(v){ if(v!=null){try{localStorage.setItem("jdZeroKid",v?"1":"0
 function zeroKidSvg(sv){
   const en=LANG==="en", T=p=>esc(en&&p[1]?p[1]:p[0]);
   const ava=window.ZKSVG_KIT?'<svg class="zk-ava" viewBox="-16 -62 32 66" aria-hidden="true">'+ZKSVG_KIT.bot(0,0,1,{mood:"smile",arms:"up"})+"</svg>":"";
-  return '<div class="zk zk-svg"><div class="zk-strip">'
-    +sv.p.map((p,j)=>(j?'<span class="zk-ar">›</span>':"")+'<figure class="zk-p" style="--d:'+(j*.35)+'s"><svg viewBox="0 0 120 90" role="img" aria-label="'+T(sv.l[j])+'">'+p+'</svg><figcaption>'+T(sv.l[j])+"</figcaption></figure>").join("")
+  const many=sv.p.length>3;   /* четыре и больше — сеткой с номерами, стрелки в ряд не влезают */
+  return '<div class="zk zk-svg"><div class="zk-strip'+(many?" many n"+sv.p.length:"")+'">'
+    +sv.p.map((p,j)=>(j&&!many?'<span class="zk-ar">›</span>':"")+'<figure class="zk-p" style="--d:'+(j*.35)+'s"><svg viewBox="0 0 120 90" role="img" aria-label="'+T(sv.l[j])+'">'+p+'</svg><figcaption>'+T(sv.l[j])+"</figcaption></figure>").join("")
     +'</div><div class="zk-say">'+ava+'<span>'+T(sv.c)+"</span></div></div>";
 }
 function zkObserve(root){
