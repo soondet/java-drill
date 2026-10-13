@@ -1099,14 +1099,18 @@ const check = (name, ok, detail) => {
       var видно=function(){ return [].slice.call(document.querySelectorAll("#viewZero .zk")).filter(function(e){ return e.offsetParent!==null; }).length; };
       var шагов=document.querySelectorAll("#viewZero .zero-step").length, кадров=document.querySelectorAll("#viewZero .zk").length, рисованных=document.querySelectorAll("#viewZero .zk-svg").length, вкл=видно();
       var S=window.ZKSVG||{}, безРисунка=ZERO.filter(function(z){ return !S[z.g+"|"+z.t]; }).map(function(z){ return z.t; });
+      /* Бит — главный герой: пользователь забраковал сцены-схемы, где робота нет или он в углу.
+         Бит узнаётся по антенне и экрану-лицу; нужен минимум в двух панелях. */
+      var бит=function(s){ return s.indexOf("#ff7a59")>=0&&s.indexOf("#e3ebff")>=0; };
+      var безБита=ZERO.filter(function(z){ var x=S[z.g+"|"+z.t]; return x&&x.p.filter(бит).length<Math.min(2,x.p.length); }).map(function(z){ return z.t; });
       var cb=document.getElementById("zeroKid"); cb.click(); await ж(60);
       var выкл=видно(), запомнил=localStorage.getItem("jdZeroKid");
       cb.click(); await ж(60);
-      return JSON.stringify({без:без.slice(0,3), всегоБез:без.length, безРисунка:безРисунка.slice(0,3), всегоБезРисунка:безРисунка.length, рисованных:рисованных, шагов:шагов, кадров:кадров, вкл:вкл, выкл:выкл, запомнил:запомнил, снова:видно()});
+      return JSON.stringify({без:без.slice(0,3), всегоБез:без.length, безРисунка:безРисунка.slice(0,3), всегоБезРисунка:безРисунка.length, безБита:безБита.slice(0,3), всегоБезБита:безБита.length, рисованных:рисованных, шагов:шагов, кадров:кадров, вкл:вкл, выкл:выкл, запомнил:запомнил, снова:видно()});
     } finally { if(было==null) localStorage.removeItem("jdZeroKid"); else localStorage.setItem("jdZeroKid",было); document.body.classList.remove("no-kid"); }
   })()`));
-  check("детские кадры «С нуля»: у каждого шага, переключатель прячет", kid.всегоБез === 0 && kid.всегоБезРисунка === 0 && kid.рисованных === kid.шагов && kid.шагов > 300 && kid.кадров === kid.шагов && kid.вкл > 0 && kid.выкл === 0 && kid.запомнил === "0" && kid.снова === kid.вкл,
-    kid.всегоБез ? "без кадра " + kid.всегоБез + ": " + kid.без.join(" · ") : kid.всегоБезРисунка ? "без рисованной сценки " + kid.всегоБезРисунка + ": " + kid.безРисунка.join(" · ") : "рисованных " + kid.рисованных + " · шагов " + kid.шагов + " · кадров " + kid.кадров + " · видно " + kid.вкл + " → выкл " + kid.выкл + " → снова " + kid.снова);
+  check("детские кадры «С нуля»: у каждого шага, переключатель прячет", kid.всегоБез === 0 && kid.всегоБезРисунка === 0 && kid.всегоБезБита === 0 && kid.рисованных === kid.шагов && kid.шагов > 300 && kid.кадров === kid.шагов && kid.вкл > 0 && kid.выкл === 0 && kid.запомнил === "0" && kid.снова === kid.вкл,
+    kid.всегоБез ? "без кадра " + kid.всегоБез + ": " + kid.без.join(" · ") : kid.всегоБезБита ? "Бит меньше чем в двух панелях: " + kid.всегоБезБита + " — " + kid.безБита.join(" · ") : kid.всегоБезРисунка ? "без рисованной сценки " + kid.всегоБезРисунка + ": " + kid.безРисунка.join(" · ") : "рисованных " + kid.рисованных + " · шагов " + kid.шагов + " · кадров " + kid.кадров + " · видно " + kid.вкл + " → выкл " + kid.выкл + " → снова " + kid.снова);
 
   /* ---- дневной бюджет ----
      Раньше норма новых прибавлялась к повторам вслепую: по замеру лестницы

@@ -11,33 +11,62 @@
   const bg=k=>`<rect x="1" y="1" width="118" height="88" rx="10" fill="${C.sky[k%5]}"/><path d="M1 74 H119 V79 a10 10 0 0 1 -10 10 H11 a10 10 0 0 1 -10 -10 Z" fill="${["#f3dcae","#cfe2f7","#cbe8cd","#f6cad8","#ddd0fb"][k%5]}"/>`;
   const txt=(x,y,s,sz,col,w)=>`<text x="${x}" y="${y}" font-size="${sz||10}" font-weight="${w||800}" fill="${col||C.ink}" text-anchor="middle" font-family="ui-rounded,system-ui,sans-serif">${s}</text>`;
   /* Бит: x,y — центр ног на земле; s — масштаб. mood: smile|wow|think|sad; arms: down|up|reach|hold */
-  function bot(x,y,s,o){ o=o||{}; const m=o.mood||"smile", a=o.arms||"down";
-    const eyes = m==="wow" ? `<circle cx="-5" cy="-37" r="2.6" fill="${C.ink}"/><circle cx="5" cy="-37" r="2.6" fill="${C.ink}"/>`
-      : m==="think" ? `<path d="M-7.5 -37 h5 M2.5 -37 h5" stroke="${C.ink}" stroke-width="2" stroke-linecap="round"/>`
-      : `<circle cx="-5" cy="-37" r="2" fill="${C.ink}"/><circle cx="5" cy="-37" r="2" fill="${C.ink}"/>`;
-    const mouth = m==="wow" ? `<ellipse cx="0" cy="-31" rx="2.4" ry="2.8" fill="${C.ink}"/>`
-      : m==="sad" ? `<path d="M-4 -30 q4 -4 8 0" stroke="${C.ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
-      : m==="think" ? `<path d="M-3 -31 h6" stroke="${C.ink}" stroke-width="1.8" stroke-linecap="round"/>`
-      : `<path d="M-4 -32 q4 4 8 0" stroke="${C.ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
-    const arm=(side)=>{ const sx=side*11; let d;
-      if(a==="up") d=`M${sx} -20 l${side*7} -11`;
-      else if(a==="reach"&&side===1) d=`M${sx} -20 l10 -3`;
-      else if(a==="hold") d=`M${sx} -20 l${-side*3} 7`;
-      else d=`M${sx} -20 l${side*4} 9`;
-      return `<path d="${d}" stroke="${C.bot2}" stroke-width="3.4" stroke-linecap="round"/>`; };
-    return `<g transform="translate(${x} ${y}) scale(${s||1})">
-      <ellipse cx="0" cy="0" rx="12" ry="2.6" fill="#000" opacity=".12"/>
-      <path d="M-5 -8 v7 M5 -8 v7" stroke="${C.bot2}" stroke-width="3.4" stroke-linecap="round"/>
-      ${arm(-1)}${arm(1)}
+  /* Бит: x,y — земля под ногами; s — масштаб (рост ≈ 58·s).
+     mood: smile|happy|wow|think|sad|angry|sweat|sleep|dizzy
+     arms: down|up|reach|hold|carry|point|wave|push
+     item: SVG, нарисованный вокруг (0,0) — окажется в руках (hold — у груди, carry — над головой, reach/point/push — у правой руки)
+     legs: stand|run|sit · flip: смотрит влево · hat: chef|helmet|crown|cap · glasses · blush */
+  function bot(x,y,s,o){ o=o||{}; const m=o.mood||"smile", a=o.arms||"down", lg=o.legs||"stand";
+    const ink=C.ink, e2=(r)=>`<circle cx="-5" cy="-37" r="${r}" fill="${ink}"/><circle cx="5" cy="-37" r="${r}" fill="${ink}"/>`;
+    const eyes = m==="wow" ? e2(2.6)
+      : m==="think" ? `<path d="M-7.5 -37 h5 M2.5 -37 h5" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`
+      : m==="happy" ? `<path d="M-7.5 -36 q2.5 -3.5 5 0 M2.5 -36 q2.5 -3.5 5 0" stroke="${ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
+      : m==="sleep" ? `<path d="M-7.5 -37 q2.5 2.5 5 0 M2.5 -37 q2.5 2.5 5 0" stroke="${ink}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`
+      : m==="dizzy" ? `<path d="M-7 -39 l4 4 M-3 -39 l-4 4 M3 -39 l4 4 M7 -39 l-4 4" stroke="${ink}" stroke-width="1.5" stroke-linecap="round"/>`
+      : m==="angry" ? e2(2)+`<path d="M-8 -42 l5 2 M8 -42 l-5 2" stroke="${ink}" stroke-width="1.6" stroke-linecap="round"/>`
+      : e2(2);
+    const mouth = m==="wow"||m==="dizzy" ? `<ellipse cx="0" cy="-31" rx="2.4" ry="2.8" fill="${ink}"/>`
+      : m==="sad"||m==="angry" ? `<path d="M-4 -30 q4 -4 8 0" stroke="${ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`
+      : m==="think"||m==="sleep" ? `<path d="M-3 -31 h6" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`
+      : m==="happy" ? `<path d="M-5 -33 q5 6 10 0 z" fill="${ink}"/>`
+      : m==="sweat" ? `<path d="M-4 -31 q2 -1.5 4 0 t4 0" stroke="${ink}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`
+      : `<path d="M-4 -32 q4 4 8 0" stroke="${ink}" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    const extra = (m==="sweat"?`<path d="M15 -46 q3 5 0 7 q-3 -2 0 -7" fill="#7cc4ff" stroke="${ink}" stroke-width=".8"/>`:"")
+      +(m==="sleep"?`<text x="15" y="-50" font-size="9" font-weight="900" fill="${C.blue}" font-family="system-ui">z</text><text x="21" y="-57" font-size="7" font-weight="900" fill="${C.blue}" font-family="system-ui">z</text>`:"")
+      +(m==="angry"?`<path d="M15 -52 l3 3 M19 -53 l-1 4 M21 -49 l-4 1" stroke="${C.red}" stroke-width="1.5" stroke-linecap="round"/>`:"")
+      +(o.blush||m==="happy"?`<ellipse cx="-8" cy="-32" rx="2" ry="1.2" fill="#ff9fb0"/><ellipse cx="8" cy="-32" rx="2" ry="1.2" fill="#ff9fb0"/>`:"");
+    const A=(d)=>`<path d="${d}" stroke="${C.bot2}" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+    const arm=(side)=>{ const sx=side*11;
+      if(a==="up") return A(`M${sx} -20 l${side*7} -11`);
+      if(a==="carry") return A(`M${sx} -21 l${side*3} -14 l${-side*3} -10`);
+      if(a==="hold") return A(`M${sx} -20 l${side*1} 6 l${-side*6} 0`);
+      if(a==="push") return A(`M${sx} -20 l${side===1?13:4} ${side===1?-2:7}`)+(side===1?A(`M-11 -20 l17 1`):"");
+      if(side===1&&a==="reach") return A(`M${sx} -20 l10 -3`);
+      if(side===1&&a==="point") return A(`M${sx} -21 l15 -4`)+`<circle cx="${sx+16}" cy="-25.3" r="2" fill="${C.bot2}"/>`;
+      if(side===1&&a==="wave") return A(`M${sx} -21 l7 -6 l1 -10`)+`<path d="M${sx+12} -40 q3 2 3 5 M${sx+14} -44 q4 3 4 7" stroke="${C.grey}" stroke-width="1" fill="none"/>`;
+      return A(`M${sx} -20 l${side*4} 9`); };
+    const legs = lg==="run" ? A("M-4 -8 l-6 6 l-3 -1")+A("M4 -8 l5 5 l4 -2")+`<path d="M-22 -24 h-8 M-20 -18 h-10 M-22 -12 h-6" stroke="${C.grey}" stroke-width="1.4" stroke-linecap="round"/>`
+      : lg==="sit" ? A("M-6 -8 h10 v7")+A("M4 -8 h10 v7")
+      : A("M-5 -8 v7 M5 -8 v7");
+    const itemAt = a==="carry"?[0,-62]:a==="hold"?[0,-12]:(a==="reach"||a==="point"||a==="push")?[26,-22]:[18,-18];
+    const hat = o.hat==="helmet" ? `<path d="M-14 -46 h28 M-12 -46 q0 -12 12 -12 q12 0 12 12 z" fill="${C.yel}" stroke="${ink}" stroke-width="1.2"/>`
+      : o.hat==="crown" ? `<path d="M-10 -49 l2 -10 l5 6 l3 -8 l3 8 l5 -6 l2 10 z" fill="${C.yel}" stroke="${ink}" stroke-width="1.1"/>`
+      : o.hat==="cap" ? `<path d="M-13 -47 q0 -10 13 -10 q13 0 13 10 z M10 -48 h9" fill="${C.red}" stroke="${C.red}" stroke-width="2" stroke-linecap="round"/>`
+      : o.hat ? `<path d="M-11 -50 h22 v-3 q-2 -10 -11 -10 q-9 0 -11 10 z" fill="#fff" stroke="${C.grey}"/>` : "";
+    const body=`<ellipse cx="0" cy="0" rx="12" ry="2.6" fill="#000" opacity=".12"/>${legs}
+      ${a==="carry"&&o.item?`<g transform="translate(${itemAt[0]} ${itemAt[1]})">${o.item}</g>`:""}
+      ${arm(-1)}
       <rect x="-11" y="-25" width="22" height="18" rx="5" fill="${C.bot}"/>
       <circle cx="0" cy="-16" r="3" fill="${C.yel}"/>
       <path d="M0 -49 v-6" stroke="${C.bot2}" stroke-width="2"/><circle cx="0" cy="-56.5" r="3" fill="${C.ant}"/>
       <rect x="-13" y="-49" width="26" height="22" rx="7" fill="${C.bot}"/>
       <rect x="-10" y="-45" width="20" height="15" rx="5" fill="${C.face}"/>
-      ${eyes}${mouth}
-      ${o.glasses?`<circle cx="-5" cy="-37" r="4" fill="none" stroke="${C.ink}" stroke-width="1.3"/><circle cx="5" cy="-37" r="4" fill="none" stroke="${C.ink}" stroke-width="1.3"/><path d="M-1 -37 h2" stroke="${C.ink}" stroke-width="1.3"/>`:""}
-      ${o.hat?`<path d="M-11 -50 h22 v-3 q-2 -10 -11 -10 q-9 0 -11 10 z" fill="#fff" stroke="${C.grey}"/>`:""}
-    </g>`; }
+      ${eyes}${mouth}${extra}
+      ${o.glasses?`<circle cx="-5" cy="-37" r="4" fill="none" stroke="${ink}" stroke-width="1.3"/><circle cx="5" cy="-37" r="4" fill="none" stroke="${ink}" stroke-width="1.3"/><path d="M-1 -37 h2" stroke="${ink}" stroke-width="1.3"/>`:""}
+      ${hat}
+      ${o.item&&a!=="carry"?`<g transform="translate(${itemAt[0]} ${itemAt[1]})">${o.item}</g>`:""}
+      ${arm(1)}`;
+    return `<g transform="translate(${x} ${y}) scale(${(o.flip?-1:1)*(s||1)} ${s||1})">${body}</g>`; }
   const bulb=(x,y,on,r)=>{ r=r||9; return `<g transform="translate(${x} ${y})">
     ${on?`<circle r="${r*1.9}" fill="${C.yel}" opacity=".28"/>${[0,45,90,135,180,225,270,315].map(d=>`<path d="M0 ${-r*1.35} v${-r*.45}" stroke="${C.yel}" stroke-width="2" stroke-linecap="round" transform="rotate(${d})"/>`).join("")}`:""}
     <circle r="${r}" fill="${on?C.yel:"#8a90a0"}" stroke="${C.ink}" stroke-width="1.3"/>
@@ -87,28 +116,28 @@
     l:[["щёлк — горит","click — on"],["щёлк — погасла","click — off"],["миллиард лампочек — узор","a billion bulbs — a pattern"]],
     c:["Я умею только зажигать и гасить. Зато миллиард раз и очень быстро!","I can only switch things on and off. But a billion of them, really fast!"] };
   Z[K+"Один переключатель — это бит, восемь — байт"]={
-    p:[ bg(0)+sw(60,36,true,1.7)+txt(60,68,"1",14,C.grn)+txt(36,40,"0/1",10,C.ink),
+    p:[ bg(0)+sw(80,38,true,1.7)+txt(80,68,"1",14,C.grn)+bot(38,82,.9,{arms:"reach",mood:"happy"}),
         bg(1)+[1,0,0,1,0,0,0,1].map((v,i)=>sw(18+i*12,34,!!v,.75)).join("")+`<path d="M12 50 q48 14 96 0" stroke="${C.ink}" stroke-width="1.4" fill="none"/>`+txt(60,68,"8",14,C.blue),
         bg(2)+card(80,34,32,36,"#fff",txt(0,7,"A",22,C.red))+txt(80,66,"256",11,C.ink)+bot(32,84,.75,{arms:"up",mood:"wow"}) ],
     l:[["один — это бит","one is a bit"],["восемь в ряд — байт","eight in a row — a byte"],["256 вариантов — хватит на букву","256 options — enough for a letter"]],
     c:["Один рычажок говорит «да» или «нет». Восемь вместе — уже целую букву.","One lever says yes or no. Eight together can spell a whole letter."] };
   Z[K+"Текст, картинки и звук — тоже числа"]={
-    p:[ bg(0)+card(34,40,30,34,"#fff",txt(0,8,"A",22,C.red))+arrowR(54,40,72)+card(92,40,34,22,"#fff",txt(0,4,"1040",11,C.ink)),
+    p:[ bg(0)+bot(36,82,.9,{arms:"hold",mood:"think",item:card(0,4,22,22,"#fff",txt(0,6,"A",16,C.red))})+bubble(88,28,40,txt(0,4,"1040",10,C.ink)),
         bg(1)+`<g transform="translate(30 40)"><rect x="-16" y="-16" width="32" height="32" fill="#c86bfa" stroke="${C.ink}" stroke-width="1.3"/>${[0,1,2,3].map(i=>`<path d="M${-16+i*8} -16 v32 M-16 ${-16+i*8} h32" stroke="#fff" stroke-width=".6" opacity=".7"/>`).join("")}</g>`+arrowR(52,40,64)+
           [["#ef5b5b","200"],["#4cb963","100"],["#5aa9e6","250"]].map((c,i)=>`<rect x="70" y="${22+i*13}" width="${12+i*4}" height="10" rx="2" fill="${c[0]}"/>`+txt(106,30+i*13,c[1],8)).join(""),
-        bg(2)+`<path d="M10 44 q8 -22 16 0 t16 0 t16 0 t16 0 t16 0 t16 0" stroke="${C.blue}" stroke-width="3" fill="none" stroke-linecap="round"/>`+[18,34,50,66,82,98].map((x,i)=>`<circle cx="${x}" cy="${i%2?55:33}" r="2.4" fill="${C.ink}"/>`).join("")+txt(60,68,"7 · 3 · 9 · 2 …",9) ],
+        bg(2)+bot(100,82,.8,{mood:"happy",arms:"up"})+`<path d="M8 44 q8 -22 16 0 t16 0 t16 0 t16 0" stroke="${C.blue}" stroke-width="3" fill="none" stroke-linecap="round"/>`+[16,32,48,64].map((x,i)=>`<circle cx="${x}" cy="${i%2?55:33}" r="2.4" fill="${C.ink}"/>`).join("")+txt(40,68,"7 · 3 · 9 · 2",9) ],
     l:[["буква — это номер","a letter is a number"],["точка — три краски","a dot is three paints"],["звук — числа волны","sound is wave numbers"]],
     c:["Я храню не буквы и не звуки, а номера. Что они значат — договорились люди.","I keep numbers, not letters or sounds. People agreed what each number means."] };
   Z[P+"Процессор умеет до смешного мало"]={
     p:[ bg(0)+`<rect x="70" y="20" width="44" height="52" fill="${C.wood2}" rx="2"/><path d="M70 46 h44" stroke="${C.wood}" stroke-width="3"/>`+box(82,44,14,14,"2")+box(102,44,14,14,"5")+box(92,70,14,14,"3")+bot(36,82,.85,{arms:"reach"}),
-        bg(1)+box(30,58,20,20,"2")+txt(52,52,"+",16)+box(74,58,20,20,"2")+txt(94,52,"=",14)+`<circle cx="108" cy="47" r="9" fill="${C.grn}"/>`+txt(108,51,"4",11,"#fff"),
+        bg(1)+box(18,72,16,16,"2")+txt(36,66,"+",13)+box(54,72,16,16,"2")+txt(70,66,"=",12)+bot(96,82,.85,{mood:"happy",arms:"carry",item:box(0,-2,16,14,"4",C.grn)}),
         bg(2)+box(28,60,20,20,"4")+txt(52,54,"<",16)+box(74,60,20,20,"5")+`<path d="M86 34 q14 -18 26 4" stroke="${C.red}" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M108 30 l4 8 l-8 -2" fill="${C.red}"/>`+txt(52,24,"?",14,C.blue) ],
     l:[["взять с полки","take from the shelf"],["сложить","add up"],["сравнить и прыгнуть","compare and jump"]],
     c:["Я знаю всего несколько команд. Игры и сайты — это миллиарды таких шажков.","I know only a few commands. Games and websites are billions of these little steps."] };
   Z[P+"Такт — это шаг сердца процессора"]={
     p:[ bg(0)+`<path d="M44 76 L60 18 L76 76 Z" fill="${C.wood}" stroke="${C.wood2}" stroke-width="1.5"/><path d="M60 68 L74 26" stroke="${C.ink}" stroke-width="2.4" stroke-linecap="round"/><circle cx="70" cy="38" r="4" fill="${C.red}"/>`+txt(92,32,"♪",14,C.ink),
         bg(1)+[0,1,2].map(i=>`<ellipse cx="${30+i*26}" cy="${70-i*2}" rx="5" ry="3" fill="${C.bot2}" opacity="${.35+i*.25}"/>`+txt(30+i*26,56-i*2,String(i+1),10,C.blue)).join("")+bot(98,82,.7,{mood:"smile"}),
-        bg(2)+[0,1,2,3,4].map(i=>`<path d="M${16+i*20} 30 v26" stroke="${C.blue}" stroke-width="${3-i*.3}" opacity="${1-i*.15}" stroke-linecap="round"/>`).join("")+txt(60,72,"3 GHz",12,C.ink)+spark(104,22) ],
+        bg(2)+[0,1,2,3,4].map(i=>`<path d="M${10+i*11} 26 v26" stroke="${C.blue}" stroke-width="${3-i*.3}" opacity="${1-i*.15}" stroke-linecap="round"/>`).join("")+txt(32,68,"3 GHz",11,C.ink)+bot(94,82,.85,{legs:"run",mood:"wow"})+spark(110,20) ],
     l:[["тик — шаг","tick — a step"],["за шаг одно дело","one job per step"],["3 миллиарда в секунду","3 billion a second"]],
     c:["Каждый «тик» я успеваю сделать одно маленькое дело. Тиков — миллиарды в секунду.","On every tick I do one tiny job. And there are billions of ticks a second."] };
   Z[P+"Регистры — карманы, память — склад"]={
@@ -125,7 +154,7 @@
     c:["Рецепт и продукты лежат на одном столе, и оба записаны цифрами. Я читаю и делаю.","Recipe and food share one table, both written in digits. I read a line and do it."] };
   Z[R+"Код — это текст ДЛЯ ЧЕЛОВЕКА"]={
     p:[ bg(0)+paper(76,38,["int x =","2 + 2;"])+bot(30,82,.85,{mood:"smile"}),
-        bg(1)+paper(38,38,["int x =","2 + 2;"])+chip(88,40,txt(0,5,"?",16,C.yel)),
+        bg(1)+bot(30,82,.85,{mood:"sweat",arms:"reach",item:card(4,-6,26,18,"#fff",txt(0,-1,"int x",6.5,C.ink,700)+txt(0,6,"2+2",6.5,C.ink,700))})+chip(94,42,txt(0,5,"?",16,C.yel)),
         bg(2)+card(36,38,34,26,"#fff",txt(0,-2,"1011",8,C.ink,700)+txt(0,8,"0010",8,C.ink,700))+arrowR(56,38,68)+chip(92,40,`<path d="M-5 0 l4 4 l7 -8" stroke="${C.grn}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`) ],
     l:[["человеку понятно","clear to a human"],["машине — просто буквы","to the machine — just letters"],["ей нужны числа","it needs numbers"]],
     c:["Код пишут для людей. Машина понимает только числа, поэтому нужен переводчик.","Code is written for people. The machine only reads numbers, so it needs a translator."] };
@@ -136,9 +165,9 @@
     l:[["нашёл опечатку","found a typo"],["всё сошлось","all checks out"],["перевёл в числа","turned into numbers"]],
     c:["Переводчик ловит опечатки до запуска. А что программа глупая — не скажет.","The translator catches typos before running. Silly logic it won't notice."] };
   Z[R+"Как из текста получается работа: пять шагов"]={
-    p:[ bg(0)+["x","=","2","+","2"].map((s,i)=>card(18+i*21,40+(i%2?8:-6),16,18,"#fff",txt(0,4,s,10),i%2?8:-8)).join(""),
+    p:[ bg(0)+["x","=","2","+","2"].map((s,i)=>card(12+i*15,36+(i%2?7:-5),13,15,"#fff",txt(0,4,s,9),i%2?8:-8)).join("")+bot(98,82,.85,{mood:"think",arms:"point"}),
         bg(1)+`<path d="M60 24 L36 48 M60 24 L84 48 M84 48 L70 70 M84 48 L98 70" stroke="${C.ink}" stroke-width="1.6"/>`+[[60,24,"="],[36,48,"x"],[84,48,"+"],[70,70,"2"],[98,70,"2"]].map(n=>`<circle cx="${n[0]}" cy="${n[1]}" r="9" fill="${C.grn}" stroke="${C.ink}" stroke-width="1.2"/>`+txt(n[0],n[1]+3.5,n[2],10,"#fff")).join(""),
-        bg(2)+`<g transform="translate(44 42)"><circle r="16" fill="${C.grey}" stroke="${C.ink}" stroke-width="1.3"/>${[0,45,90,135,180,225,270,315].map(d=>`<rect x="-3" y="-21" width="6" height="7" fill="${C.grey}" stroke="${C.ink}" transform="rotate(${d})"/>`).join("")}<circle r="5" fill="#fff" stroke="${C.ink}"/></g>`+arrowR(66,42,80)+`<circle cx="98" cy="42" r="12" fill="${C.grn}"/>`+txt(98,46,"4",12,"#fff") ],
+        bg(2)+`<g transform="translate(44 42)"><circle r="16" fill="${C.grey}" stroke="${C.ink}" stroke-width="1.3"/>${[0,45,90,135,180,225,270,315].map(d=>`<rect x="-3" y="-21" width="6" height="7" fill="${C.grey}" stroke="${C.ink}" transform="rotate(${d})"/>`).join("")}<circle r="5" fill="#fff" stroke="${C.ink}"/></g>`.replace("translate(44 42)","translate(30 40)")+arrowR(50,40,62)+bot(92,82,.9,{mood:"happy",arms:"carry",item:`<circle cy="-6" r="9" fill="${C.grn}"/>`+txt(0,-2,"4",11,"#fff")}) ],
     l:[["режем на слова","cut into words"],["строим дерево","build a tree"],["дерево работает","the tree runs"]],
     c:["Как ты читаешь: буквы, слова, смысл. Я делаю то же самое, только по правилам.","Like you read: letters, words, meaning. I do the same, just strictly by the rules."] };
 
