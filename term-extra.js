@@ -337,7 +337,7 @@ window.TERM_EXTRA = {
  },
  "DB|Serializable": {
   "icon": "🚦",
-  "hook": "Очередь на кассе строго по одному: будто параллельных вообще нет, конфликтов ноль.",
+  "hook": "Очередь на кассе строго по одному: будто параллельных нет; кто помешал — переигрывает с начала.",
   "pic": "<div class=\"fp-row\"><div class=\"fp-box acc\">T1</div><div class=\"fp-arrow\">→</div><div class=\"fp-box acc\">T2</div><div class=\"fp-arrow\">→</div><div class=\"fp-box acc\">T3</div></div>"
  },
  "DB|MVCC": {
@@ -397,7 +397,7 @@ window.TERM_EXTRA = {
  },
  "Distributed|acks": {
   "icon": "✅",
-  "hook": "Отправил посылку: 0 — пофиг, 1 — курьер кивнул, all — все склады расписались.",
+  "hook": "Отправил посылку: 0 — пофиг, 1 — курьер кивнул, all — расписались все склады в строю (ISR).",
   "pic": "<div class=\"fp-row\"><div class=\"fp-box mut\">0</div><div class=\"fp-box acc\">1</div><div class=\"fp-box good\">all</div></div>"
  },
  "Distributed|Replication factor": {
@@ -762,7 +762,7 @@ window.TERM_EXTRA = {
  },
  "Algorithms|O(n^2)": {
   "icon": "🐢",
-  "hook": "Знакомить каждого гостя с каждым: 10 человек — 100 рукопожатий, толпа — катастрофа.",
+  "hook": "Знакомить каждого гостя с каждым: 10 человек — 45 рукопожатий, 100 — уже 4950, катастрофа.",
   "pic": "<div class=\"fp-grid\"><div class=\"fp-cell on\"></div><div class=\"fp-cell on\"></div><div class=\"fp-cell on\"></div><div class=\"fp-cell bad\"></div></div>"
  },
  "Algorithms|Time complexity": {
@@ -1189,7 +1189,7 @@ window.TERM_EXTRA = {
  },
  "Concurrency|Pinning": {
   "icon": "📌",
-  "hook": "Лёгкий поток обычно спрыгивает с носильщика при блокировке, но в synchronized он к нему пришпилен.",
+  "hook": "Лёгкий поток спрыгивает с носильщика при блокировке, но в synchronized до Java 24 был к нему пришпилен.",
   "pic": "<div class=\"fp-row\"><div class=\"fp-box mut\">virtual</div><div class=\"fp-conn fp-blink\">📌 pinned</div><div class=\"fp-box bad\">carrier busy</div></div>"
  },
  "Concurrency|ThreadLocal": {
@@ -1274,7 +1274,7 @@ window.TERM_EXTRA = {
  },
  "Distributed|Rebalance": {
   "icon": "🔄",
-  "hook": "Официантам переназначают столики — пока делят зоны, никто не обслуживает гостей.",
+  "hook": "Официантам переназначают столики — в eager-режиме, пока делят зоны, не обслуживают никого.",
   "pic": "<div class=\"fp-col\" style=\"gap:4px\"><div class=\"fp-row\" style=\"gap:6px\"><div class=\"fp-node acc\">C1</div><div class=\"fp-node acc\">C2</div><div class=\"fp-node fp-blink\">C3 new</div></div><div class=\"fp-row\" style=\"gap:4px\"><div class=\"fp-cell acc\">P0</div><div class=\"fp-cell acc\">P1</div><div class=\"fp-cell fp-pulse-r\">P2</div></div></div>"
  },
  "Distributed|ISR": {
@@ -2266,11 +2266,11 @@ window.TERM_EXTRA = {
  },
  "Spring|@Transactional(readOnly=true)": {
   "icon": "📖",
-  "hook": "readOnly = MANUAL flush (CPU&darr;), а не read-only сущности; snapshot остаётся."
+  "hook": "readOnly = MANUAL flush + read-only сущности (Spring 5.1+): snapshot не хранится."
  },
  "Spring|Detached entity": {
   "icon": "🔗",
-  "hook": "managed-призрак: id есть, но изменения уже никто не отслеживает."
+  "hook": "бывший managed: id есть, но изменения уже никто не отслеживает."
  },
  "Spring|flush vs commit": {
   "icon": "💧",
@@ -2290,7 +2290,7 @@ window.TERM_EXTRA = {
  },
  "DevOps|p99 (99-й перцентиль)": {
   "icon": "📊",
-  "hook": "Худший из ста. Среднее его прячет, а усреднить два p99 нельзя."
+  "hook": "1 из 100 медленнее. Среднее его прячет, а усреднить два p99 нельзя."
  },
  "Java|SIZED short-circuit в count()": {
   "icon": "🔢",

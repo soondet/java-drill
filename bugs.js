@@ -372,7 +372,7 @@ window.BUGS = [
   "options": [
    "producer.send асинхронный — без .get() сообщение не отправится",
    "AccountEvent должен быть Serializable, иначе сериализатор упадёт",
-   "Конструктор без ключа партиции => события одного счёта рассыпаются по разным партициям round-robin'ом и читаются параллельно: порядок (open->deposit->close) нарушается. Ключом должен быть accountId",
+   "Конструктор без ключа партиции => события одного счёта рассыпаются по разным партициям пачками (sticky) и читаются параллельно: порядок (open->deposit->close) нарушается. Ключом должен быть accountId",
    "Всё корректно: Kafka сохраняет глобальный порядок внутри топика"
   ],
   "why": "Без ключа партиции записи распределяются по всем 6 партициям, и события одного счёта теряют порядок при параллельном чтении. Нужно new ProducerRecord<>(topic, e.getAccountId(), e) — тогда все события счёта попадут в одну партицию."
@@ -536,7 +536,7 @@ window.BUGS = [
  {
   "id": "bug2-transactional-self",
   "t": "Quarkus",
-  "correct": 1,
+  "correct": 3,
   "code": "@ApplicationScoped\npublic class OrderService {\n\n    public void importAll(List<OrderDto> dtos) {\n        for (OrderDto d : dtos) {\n            saveOne(d); // <-- ?\n        }\n    }\n\n    @Transactional(Transactional.TxType.REQUIRES_NEW)\n    void saveOne(OrderDto d) {\n        Order o = new Order(d);\n        o.persist();\n    }\n}",
   "options": [
    "REQUIRES_NEW нельзя применять к void-методу — транзакция не закоммитится без явного flush",
@@ -544,7 +544,7 @@ window.BUGS = [
    "o.persist() требует, чтобы importAll сам был @Transactional, иначе PersistenceException — а REQUIRES_NEW тут лишний",
    "Всё корректно: каждый saveOne открывает новую транзакцию и коммитит свою сущность независимо"
   ],
-  "why": "saveOne вызывается напрямую через this, минуя CDI/interceptor-прокси, поэтому @Transactional не срабатывает вовсе. Нужно вызывать метод через инжектированный бин-прокси (self-inject) или вынести saveOne в отдельный бин."
+  "why": "Ловушка для тех, кто пришёл из Spring. В Spring вызов через this идёт мимо прокси, и @Transactional молчит. А Quarkus (ArC) по умолчанию перехватывает и self-invocation для не-private методов — каждый saveOne действительно откроет свою транзакцию REQUIRES_NEW. Сломается, только если сделать saveOne private: тогда сборка упадёт (quarkus.arc.fail-on-intercepted-private-method)."
  },
  {
   "id": "bug2-buildtime-env",
@@ -596,7 +596,7 @@ window.BUGS = [
    "@Transactional на private-методе игнорируется: прокси его не переопределит",
    "Всё корректно: Spring проксирует private-методы внутри бина, транзакция отрабатывает штатно"
   ],
-  "why": "Spring AOP-прокси работают только с public-методами (CGLIB не может переопределить private), поэтому @Transactional на private-методе молча игнорируется. Метод нужно сделать public и вызывать снаружи."
+  "why": "Spring AOP-прокси не перехватывают private (CGLIB их не переопределит; protected — можно с Spring 6), поэтому @Transactional на private-методе молча игнорируется. Метод нужно сделать public и вызывать снаружи."
  },
  {
   "id": "bug2-readonly-write",
@@ -648,7 +648,7 @@ window.BUGS = [
    "Тест упадёт с UnnecessaryStubbingException из-за неиспользованного when(...)",
    "Optional.of(user) бросит NPE, нужно Optional.ofNullable"
   ],
-  "why": "verify(mock) без вызова метода — это незавершённый verify, он не проверяет отсутствие взаимодействий и проходит всегда. Корректно: verify(emailSender, never()).send(any())."
+  "why": "verify(mock) без вызова метода — незавершённый verify: взаимодействия он не проверяет, ловит его лишь MockitoExtension (UnfinishedVerification). Корректно: verify(emailSender, never()).send(any())."
  },
  {
   "id": "bug2-float-equals-assert",

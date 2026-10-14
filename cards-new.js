@@ -199,7 +199,7 @@ window.CARDS_NEW=[
   "t": "JVM",
   "s": "containers",
   "q": "Дали поду CPU limit 1 и 512 Мб. Сервис поднялся, но всё стало медленнее: parallelStream еле ползёт, GC-паузы выросли. Что JVM «увидела» в контейнере?",
-  "a": "JVM читает cgroup-квоту (UseContainerSupport): availableProcessors стал 1, и у common ForkJoinPool не осталось воркеров — parallelStream считает прямо в вызывающем потоке. А эргономика «не server-class» машины (меньше 2 CPU или ~1792 Мб) молча выбрала SerialGC вместо G1.",
+  "a": "JVM читает cgroup-квоту (UseContainerSupport): availableProcessors стал 1, и у common ForkJoinPool остался один воркер — parallelStream почти не параллелится. А эргономика «не server-class» машины (меньше 2 CPU или ~1792 Мб) молча выбрала SerialGC вместо G1.",
   "d": "Проверять надо не docker inspect, а саму JVM: java -XX:+PrintFlagsFinal -version | grep -E 'UseSerialGC|UseG1GC|MaxHeapSize' и Runtime.getRuntime().availableProcessors() прямо в поде."
  },
  {

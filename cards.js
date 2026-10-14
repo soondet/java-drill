@@ -343,7 +343,7 @@ window.CARDS = [
   "t": "DB",
   "s": "index",
   "q": "Поможет ли индекс (client_id, date) запросу WHERE date = ?",
-  "a": "Нет. B-tree отсортирован сначала по client_id, и только внутри одинаковых client_id — по date. Без условия на client_id строки по date разбросаны — нужен либо индекс начинающийся с date, либо добавить client_id в условие.",
+  "a": "Как правило, нет. B-tree отсортирован сначала по client_id, и только внутри одинаковых client_id — по date. Без условия на client_id строки по date разбросаны — нужен либо индекс начинающийся с date, либо добавить client_id в условие.",
   "d": "Правило leftmost prefix: индекс работает слева направо по колонкам.",
   "viz": "<div class=\"vz\"><div class=\"vz-cap\">индекс (client_id, date) — что лежит рядом</div><div class=\"vz-cols\">\n<div class=\"vz-col\"><h4 class=\"ok\">WHERE client_id = 2 ✓</h4>\n<div class=\"ix\">(1, 03)</div><div class=\"ix\">(1, 07)</div>\n<div class=\"ix\" style=\"animation:vzPulseG 2s infinite\">(2, 05)</div>\n<div class=\"ix\" style=\"animation:vzPulseG 2s infinite\">(2, 09)</div>\n<div class=\"ix\">(3, 07)</div><div class=\"ix\">(3, 11)</div>\n<div class=\"cap-s\">рядом → один диапазон</div></div>\n<div class=\"vz-col\"><h4 class=\"no\">WHERE date = 07 ✗</h4>\n<div class=\"ix\">(1, 03)</div>\n<div class=\"ix\" style=\"animation:vzPulseR 2s infinite\">(1, 07)</div>\n<div class=\"ix\">(2, 05)</div><div class=\"ix\">(2, 09)</div>\n<div class=\"ix\" style=\"animation:vzPulseR 2s infinite\">(3, 07)</div>\n<div class=\"ix\">(3, 11)</div>\n<div class=\"cap-s\">разбросано → индекс бесполезен</div></div>\n</div></div>"
  },
@@ -505,7 +505,7 @@ window.CARDS = [
   "t": "Distributed",
   "s": "kafka",
   "q": "Что происходит при добавлении инстанса в consumer group?",
-  "a": "Запускается rebalance: партиции перераспределяются между консьюмерами, на время паузы обработка останавливается (stop-the-world группы). Каждую партицию в группе читает ровно один консьюмер.",
+  "a": "Запускается rebalance: партиции перераспределяются между консьюмерами, обработка встаёт (в eager-протоколе — stop-the-world всей группы). Каждую партицию в группе читает ровно один консьюмер.",
   "d": "Поэтому параллелизм ограничен числом партиций. Частые ребалансы = боль; cooperative rebalancing смягчает."
  },
  {
@@ -871,7 +871,7 @@ window.CARDS = [
   "s": "complexity",
   "q": "Чем опасна глубокая рекурсия в Java?",
   "a": "Каждый вызов — фрейм в стеке; слишком глубоко → StackOverflowError. В JVM нет оптимизации хвостовой рекурсии (TCO), так что большие глубины делают итеративно или с явным стеком.",
-  "d": "Дефолтный стек ~512 КБ; глубина в десятки тысяч уже рискованна."
+  "d": "Дефолтный стек ~1 МБ (64-бит); глубина в десятки тысяч уже рискованна."
  },
  {
   "id": "web-tls",
@@ -1019,7 +1019,7 @@ window.CARDS = [
   "s": "basics",
   "q": "JUnit и Mockito — кто за что отвечает?",
   "a": "JUnit — фреймворк запуска тестов и ассертов (структура теста, assertEquals и т.п.). Mockito — создаёт моки/стабы зависимостей (when/verify), чтобы изолировать тестируемый класс от БД/сети.",
-  "d": "JUnit без Mockito — можно; Mockito без раннера (JUnit/TestNG) — нет."
+  "d": "JUnit без Mockito — можно; Mockito обычно живёт внутри раннера (JUnit/TestNG)."
  },
  {
   "id": "jc-funciface",
@@ -1059,7 +1059,7 @@ window.CARDS = [
   "t": "Java",
   "s": "oop",
   "q": "Что значит static?",
-  "a": "Принадлежит КЛАССУ, а не экземпляру — одно на всех. static-поле общее, static-метод без this (вызов через класс), static-блок выполняется один раз при загрузке класса.",
+  "a": "Принадлежит КЛАССУ, а не экземпляру — одно на всех. static-поле общее, static-метод без this (вызов через класс), static-блок выполняется один раз при инициализации класса.",
   "d": "static-поля — частый источник утечек и гонок в многопотоке."
  },
  {

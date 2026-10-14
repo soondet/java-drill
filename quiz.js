@@ -371,7 +371,7 @@ window.QUIZ = {
  },
  "db-leftmost": {
   "q": "Поможет ли индекс (client_id, date) запросу WHERE date = ?",
-  "correct": "Нет: B-tree сортирован сначала по client_id, по date строки разбросаны",
+  "correct": "Обычно нет: B-tree сортирован сначала по client_id, по date строки разбросаны",
   "wrong": [
    "Да, B-tree использует любую колонку индекса независимо от порядка",
    "Да, планировщик сам переставит колонки индекса под запрос",
@@ -551,7 +551,7 @@ window.QUIZ = {
  },
  "ds-rebalance": {
   "q": "Что происходит при добавлении инстанса в consumer group Kafka?",
-  "correct": "Запускается rebalance: партиции перераспределяются, обработка на время паузы останавливается",
+  "correct": "Запускается rebalance: партиции перераспределяются, обработка затронутых партиций прерывается",
   "wrong": [
    "Новый инстанс начинает читать те же партиции параллельно со старыми",
    "Сообщения дублируются всем консьюмерам группы для надёжности",
@@ -1514,9 +1514,9 @@ window.QUIZ = {
  },
  "x-db-sql-injection": {
   "q": "Почему PreparedStatement защищает от SQL-инъекции?",
-  "correct": "Шлёт текст запроса и параметры отдельно",
+  "correct": "Держит параметры отдельно от текста SQL",
   "wrong": [
-   "Экранирует кавычки в строке запроса",
+   "Удаляет кавычки из введённой строки",
    "Шифрует пользовательский ввод",
    "Проверяет ввод регулярным выражением"
   ]
@@ -1532,7 +1532,7 @@ window.QUIZ = {
  },
  "x-ds-rebalance": {
   "q": "Чем опасен ребаланс в consumer group?",
-  "correct": "Вся группа на паузе (stop-the-world), обработка стоит",
+  "correct": "Обработка стоит (в eager-протоколе — вся группа)",
   "wrong": [
    "Теряются все сообщения в партициях",
    "Дублируются продюсеры в группе",
@@ -1730,7 +1730,7 @@ window.QUIZ = {
  },
  "x-alg-stream-overhead": {
   "q": "Почему Java Stream бывает медленнее for при одинаковом O(n)?",
-  "correct": "Big-O прячет константу: лямбды, боксинг, цепочки объектов на каждом элементе",
+  "correct": "Big-O прячет константу: вызовы лямбд, боксинг, проход стадий на каждом элементе",
   "wrong": [
    "У стрима на самом деле сложность O(n log n), а не O(n)",
    "Стрим всегда работает в один поток без параллелизма",
@@ -1892,7 +1892,7 @@ window.QUIZ = {
  },
  "p-domain-vs-jpa-entity": {
   "q": "Почему @Entity с бизнес-логикой внутри — это проблема?",
-  "correct": "Домен зависит от JPA: не протестировать без БД, схема диктует структуру",
+  "correct": "Домен зависит от JPA: lazy-логику не проверить без БД, схема диктует структуру",
   "wrong": [
    "@Entity не может содержать методы кроме геттеров и сеттеров",
    "Бизнес-логика в @Entity замедляет загрузку из БД",
@@ -2108,7 +2108,7 @@ window.QUIZ = {
  },
  "p-tx-repeatable-read-name-trap": {
   "q": "От чего НЕ спасает REPEATABLE READ в Postgres?",
-  "correct": "От write skew: две транзакции читают одно, пишут в разные строки, конфликта строк нет — спасает только SERIALIZABLE",
+  "correct": "От write skew: две транзакции читают одно, пишут в разные строки, конфликта строк нет — спасает SERIALIZABLE или FOR UPDATE",
   "wrong": [
    "От lost update на одной строке — для этого нужен SERIALIZABLE",
    "От грязного чтения (dirty read) — REPEATABLE READ его допускает",
@@ -4277,7 +4277,7 @@ window.QUIZ = {
  },
  "web-graphql-deep": {
   "q": "Почему с GraphQL сложнее HTTP-кэширование?",
-  "correct": "Все запросы — POST на один URL, кэш по URL не различает их",
+  "correct": "Обычно всё — POST на один URL, кэш по URL их не различает",
   "wrong": [
    "GraphQL запрещает заголовок Cache-Control",
    "Ответы всегда зашифрованы и некэшируемы",
@@ -5672,7 +5672,7 @@ window.QUIZ = {
  },
  "gap-sc-structured-task-scope": {
   "q": "Запустил 3 параллельные задачи через ExecutorService, одна упала — две других продолжают молотить впустую. Как Structured Concurrency (Java 21 preview) решает этот «утечный» сценарий?",
-  "correct": "ShutdownOnFailure отменяет оставшиеся задачи и пробрасывает ошибку; ShutdownOnSuccess завершает scope при первом успехе, отменяя остальные",
+  "correct": "В JDK 21–24 ShutdownOnFailure отменяет оставшиеся задачи и пробрасывает ошибку; ShutdownOnSuccess завершает scope при первом успехе, отменяя остальные",
   "wrong": [
    "ShutdownOnFailure перезапускает упавшую задачу, а ShutdownOnSuccess запускает дубликаты для надёжности",
    "Обе политики ждут завершения ВСЕХ задач и только потом решают, отменять ли что-либо",
@@ -6023,7 +6023,7 @@ window.QUIZ = {
  },
  "sp-config-props": {
   "q": "@ConfigurationProperties vs @Value: чем биндинг целого префикса лучше точечного инжекта, что такое relaxed binding и как навесить валидацию (@Validated) на конфиг?",
-  "correct": "@ConfigurationProperties биндит весь префикс на типизированный POJO с relaxed binding и поддержкой @Validated; @Value инжектит одно свойство строкой через SpEL без relaxed binding",
+  "correct": "@ConfigurationProperties биндит весь префикс на типизированный POJO с relaxed binding и поддержкой @Validated; @Value инжектит одно свойство строкой через SpEL с урезанным relaxed binding",
   "wrong": [
    "@Value поддерживает relaxed binding и валидацию через @Validated, а @ConfigurationProperties — нет; разница только в синтаксисе",
    "Оба одинаковы по возможностям, но @ConfigurationProperties работает только с .properties, а @Value — только с .yml",
@@ -6482,9 +6482,9 @@ window.QUIZ = {
  },
  "sp-tx-readonly": {
   "q": "Что на самом деле делает @Transactional(readOnly=true) в Spring + Hibernate — и какую «оптимизацию» оно НЕ даёт?",
-  "correct": "Переводит Hibernate Session в FlushMode.MANUAL — убирает авто-flush и dirty-checking (экономия CPU), но snapshot-копии сущностей остаются в памяти",
+  "correct": "Переводит Hibernate Session в FlushMode.MANUAL — убирает авто-flush и dirty-checking (экономия CPU); память на снапшотах — лишь без OSIV",
   "wrong": [
-   "Вызывает session.setDefaultReadOnly(true), сущности грузятся без loadedState — экономия памяти на snapshot-копиях",
+   "Всегда, даже при OSIV, запрещает в базе INSERT/UPDATE и ставит read-only на все загруженные сущности",
    "Делает сущности immutable: любой UPDATE на managed-сущности бросит исключение во время flush",
    "Открывает соединение к read-only реплике на уровне драйвера и физически запрещает любые INSERT/UPDATE/DELETE"
   ]
@@ -6545,9 +6545,9 @@ window.QUIZ = {
  },
  "jc-stream-peek": {
   "q": "Почему `Stream.of(\"a\",\"b\",\"c\",\"d\",\"e\").peek(System.out::println).count()` в Java 9+ ничего не печатает — и какие операции «возвращают» peek к жизни?",
-  "correct": "map, limit и skip сохраняют SIZED, поэтому count() берёт размер напрямую и peek не выполняется",
+  "correct": "map и (с Java 17) limit/skip сохраняют SIZED, поэтому count() берёт размер сразу и peek не вызывается",
   "wrong": [
-   "limit делает stream unsized, поэтому после него peek снова работает перед count()",
+   "limit всегда делает stream unsized, поэтому после него peek снова работает перед count()",
    "peek вообще никогда не вызывается при count(), даже после filter",
    "это оптимизация JIT-компилятора, которая инлайнит пустой Consumer"
   ]

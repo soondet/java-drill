@@ -515,7 +515,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-col\"><div class=\"fp-bar\"><span style=\"width:95%\"></span></div><div class=\"fp-arrow\">↓</div><div class=\"fp-box bad big fp-pulse-r\">куча почти полна</div><div class=\"fp-arrow\">↓</div><div class=\"fp-box acc fp-pulse-a\">🚛 запускаем GC</div></div>"
    },
    {
-    "cap": "⏸ Stop-the-world: ВСЕ потоки замирают на время сборки.",
+    "cap": "⏸ Stop-the-world: ВСЕ потоки замирают (у ZGC — лишь на миг).",
     "html": "<div class=\"fp-col\"><div class=\"fp-box bad big fp-blink\">⏸ STOP THE WORLD</div><div class=\"fp-arrow\">↓</div><div class=\"fp-row\"><div class=\"fp-lane\"><span class=\"name\">🧵 T1</span><div class=\"fp-token mut\">⏸ заморожен</div></div><div class=\"fp-lane\"><span class=\"name\">🧵 T2</span><div class=\"fp-token mut\">⏸ заморожен</div></div></div></div>"
    },
    {
@@ -607,7 +607,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-row\"><div class=\"fp-col\"><span class=\"fp-tag\">roots</span><div class=\"fp-stack\"><div class=\"fp-slot\">🧵 main()</div><div class=\"fp-slot\">a()</div></div></div><div class=\"fp-box acc fp-pulse-a\">static refs</div><div class=\"fp-box acc fp-pulse-a\">JNI</div></div>"
    },
    {
-    "cap": "От корней GC идёт по ссылкам и метит всё достижимое; что не задето — серое.",
+    "cap": "От корней GC идёт по ссылкам и метит всё достижимое; что не задето — не помечено.",
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-node acc fp-pulse-g\">root</div><div class=\"fp-conn\"></div><div class=\"fp-node good\">A ✓</div><div class=\"fp-conn\"></div><div class=\"fp-node good\">B ✓</div><div class=\"fp-conn\"></div><div class=\"fp-node good\">C ✓</div></div><div class=\"fp-row\"><div class=\"fp-box mut\">🗑 Z</div></div></div>"
    },
    {
@@ -1075,7 +1075,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-row\"><div class=\"fp-col\"><div class=\"fp-node acc fp-pulse-a\">A</div><div class=\"fp-arrow\">→</div><div class=\"fp-tag\">нужен B</div></div><div class=\"fp-box big mut\">🔁</div><div class=\"fp-col\"><div class=\"fp-node acc fp-pulse-a\">B</div><div class=\"fp-arrow\">→</div><div class=\"fp-tag\">нужен A</div></div></div>"
    },
    {
-    "cap": "Field/setter: Spring создаёт A и кладёт раннюю ссылку в кеш.",
+    "cap": "Field/setter (Boot 2.6+ — лишь с allow-circular): ранняя ссылка A в кеш.",
     "html": "<div class=\"fp-col\"><div class=\"fp-token fp-float\">✍️ new A() — поля ещё пустые</div><div class=\"fp-arrow\">↓</div><div class=\"fp-row\"><span class=\"fp-tag\">кеш</span><div class=\"fp-box acc fp-pulse-a\">🔑 ранняя ссылка A</div></div></div>"
    },
    {
@@ -1171,7 +1171,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-row\"><div class=\"fp-box big acc fp-pulse-a\">🫘 Bean</div><div class=\"fp-arrow\">→</div><div class=\"fp-box big good fp-float\">🎭 Proxy</div></div>"
    },
    {
-    "cap": "Есть интерфейс — JDK-прокси реализует тот же интерфейс и оборачивает бин.",
+    "cap": "Есть интерфейс — JDK-прокси по интерфейсу (но Boot 2+ по умолчанию CGLIB).",
     "html": "<div class=\"fp-col\"><div class=\"fp-box mut\">interface PayService</div><div class=\"fp-row\"><div class=\"fp-arrow\">↓</div><div class=\"fp-box good fp-pulse-g\">🎭 JDK Proxy implements PayService</div><div class=\"fp-arrow\">→</div><div class=\"fp-box acc\">PayServiceImpl</div></div></div>"
    },
    {
@@ -1183,7 +1183,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-stack\"><div class=\"fp-slot good\">Report$$CGLIB.save() ✓ перехват</div><div class=\"fp-slot mut\">super.save()</div></div>"
    },
    {
-    "cap": "А final наследовать нельзя — на final-классе/методе CGLIB падает.",
+    "cap": "final не унаследуешь: final-класс — ошибка, final-метод — молча мимо.",
     "html": "<div class=\"fp-col\"><div class=\"fp-box bad big\">🔒 final class Report</div><div class=\"fp-arrow\" style=\"color:var(--bad)\">↓</div><div class=\"fp-box bad fp-pulse-r fp-blink\">✗ CGLIB не может</div></div>"
    },
    {
@@ -1563,7 +1563,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-col\"><div class=\"fp-token fp-float\" style=\"border-color:var(--bad)\">🔎 date = 07</div><div class=\"fp-arrow\">↓</div><div class=\"fp-grid\" style=\"grid-template-columns:repeat(5,1fr)\"><div class=\"fp-cell\"></div><div class=\"fp-cell bad fp-blink\"></div><div class=\"fp-cell\"></div><div class=\"fp-cell\"></div><div class=\"fp-cell\"></div></div><span class=\"fp-tag\" style=\"color:var(--bad)\">✗ сканируем всё</span></div>"
    },
    {
-    "cap": "Правило: индекс читается слева — без первого поля он не работает.",
+    "cap": "Правило: индекс читается слева — без первого поля лишь skip scan (PG 18+).",
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><span class=\"fp-tag\" style=\"color:var(--good)\">client_id ✓</span><div class=\"fp-conn\"></div><span class=\"fp-tag\" style=\"color:var(--good)\">+ date ✓</span></div><div class=\"fp-row\"><span class=\"fp-tag\" style=\"color:var(--bad)\">🗑 только date</span><div class=\"fp-arrow\">→</div><div class=\"fp-box bad fp-pulse-r\">✗ индекс мимо</div></div></div>"
    }
   ]
@@ -1779,7 +1779,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-row\"><div class=\"fp-col\"><div class=\"fp-token\">🔎 reader</div><div class=\"fp-arrow\">↓</div><div class=\"fp-ver fp-pulse-a\">v1 · 100</div></div><div class=\"fp-box mut\">⏸ не мешают</div><div class=\"fp-col\"><div class=\"fp-token\">✍️ writer</div><div class=\"fp-arrow\">↓</div><div class=\"fp-ver good fp-pulse-g\">v2 · 120</div></div></div>"
    },
    {
-    "cap": "Никто не блокирует никого: чтение и запись идут параллельно.",
+    "cap": "Чтение и запись не блокируют друг друга (запись с записью — блокирует).",
     "html": "<div class=\"fp-col\"><div class=\"fp-lane\"><span class=\"name\">🔎 reader</span><div class=\"fp-token good\">✓ читает v1</div></div><div class=\"fp-lane\"><span class=\"name\">✍️ writer</span><div class=\"fp-token good\">✓ пишет v2</div></div><div class=\"fp-box good fp-pulse-g\">🔓 0 locks</div></div>"
    },
    {
@@ -2027,7 +2027,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-node good\">C1</div><div class=\"fp-node good\">C2</div><div class=\"fp-node bad fp-blink\">C3 ✗</div></div><div class=\"fp-arrow\">↓</div><div class=\"fp-token fp-pulse-r\">🔔 состав группы поменялся</div></div>"
    },
    {
-    "cap": "Идёт rebalance: на это время обработка в группе замирает.",
+    "cap": "Eager-rebalance: группа замирает (cooperative/KIP-848 — лишь часть).",
     "html": "<div class=\"fp-col\"><div class=\"fp-box big bad fp-pulse-r\">⏸ REBALANCE</div><div class=\"fp-row\"><div class=\"fp-node mut\">C1 ⏸</div><div class=\"fp-node mut\">C2 ⏸</div><div class=\"fp-node mut\">C4 ⏸</div></div><div class=\"fp-bar\"><span style=\"width:50%\"></span></div></div>"
    },
    {
@@ -2291,7 +2291,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-node good fp-pulse-g\">120</div><div class=\"fp-node good fp-pulse-g\">120</div><div class=\"fp-node good fp-pulse-g\">120</div></div><div class=\"fp-token\">🔎 reader → 120 ✓</div></div>"
    },
    {
-    "cap": "Цена сходимости — доступность: отвечаем всегда, иногда устаревшим.",
+    "cap": "Плата за доступность — свежесть: отвечаем всегда, иногда устаревшим.",
     "html": "<div class=\"fp-row\"><div class=\"fp-col\"><div class=\"fp-box good big\">✓ всегда отвечаем</div><div class=\"fp-tag\">availability</div></div><div class=\"fp-arrow\">⇄</div><div class=\"fp-col\"><div class=\"fp-box bad\">✗ иногда старое</div><div class=\"fp-tag\">stale read</div></div></div>"
    }
   ]
@@ -2799,7 +2799,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-col\"><div class=\"fp-lane\"><span class=\"name\">лог</span><div class=\"fp-token good\">0</div><div class=\"fp-token good\">1</div><div class=\"fp-token good\">2</div><div class=\"fp-token\">3</div></div><div class=\"fp-row\"><div class=\"fp-box acc fp-pulse-a fp-travel\">⏮ offset назад</div><div class=\"fp-arrow\">→</div><div class=\"fp-box good\">🔁 перечитал</div></div></div>"
    },
    {
-    "cap": "Итог: Rabbit доставил и забыл. Kafka хранит лог и даёт перечитать.",
+    "cap": "Итог: Rabbit-очередь доставила и забыла (не Streams). Kafka даёт перечитать.",
     "html": "<div class=\"fp-row\"><div class=\"fp-col\"><span class=\"fp-tag\">RabbitMQ</span><div class=\"fp-box bad\">📨→🗑 один раз</div></div><div class=\"fp-conn\"></div><div class=\"fp-col\"><span class=\"fp-tag\">Kafka</span><div class=\"fp-box good\">📦 лог · 🔁 много раз</div></div></div>"
    }
   ]
@@ -3163,7 +3163,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-row\"><div class=\"fp-box big\">🖥 Сервер</div><div class=\"fp-arrow\">→</div><div class=\"fp-box acc fp-float\">📦 Сертификат<br>✍️ печать CA</div><div class=\"fp-arrow\">→</div><div class=\"fp-box big acc\">🧑 Клиент</div></div>"
    },
    {
-    "cap": "Клиент проверяет печать у CA — паспорт настоящий ✓",
+    "cap": "Клиент сверяет печать с CA из своего хранилища ✓",
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-box\">📦 Сертификат</div><div class=\"fp-arrow\">→</div><div class=\"fp-node acc fp-spin\">🔎</div><div class=\"fp-arrow\">→</div><div class=\"fp-box\">🏛 CA</div></div><div class=\"fp-box good big fp-pulse-g\">✓ Печать верна</div></div>"
    },
    {
@@ -3959,7 +3959,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-node acc pr-bob\">клиенты</div><div class=\"fp-conn\"></div><div class=\"fp-token acc fp-travel\">req</div><div class=\"fp-conn\"></div><div class=\"fp-box acc big fp-pulse-a\">Pod</div></div><div class=\"fp-tag\" style=\"color:var(--good);border-color:var(--good)\">обрабатывает живые запросы</div><div class=\"fp-arrow pr-fade\">&darr;</div><div class=\"fp-box fp-pulse-r\" style=\"color:var(--warn);border-color:var(--warn)\">kubectl delete / rolling update</div><div class=\"fp-token pr-blink\" style=\"color:var(--mut)\">старт завершения...</div></div>"
    },
    {
-    "cap": "Шаг 1: под убирают из endpoints Service — он перестаёт получать НОВЫЙ трафик. Но старые запросы ещё в полёте.",
+    "cap": "Шаг 1: под убирают из endpoints Service (параллельно с preStop, с задержкой). Но старые запросы ещё в полёте.",
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-box acc big fp-pulse-a\">Service</div><div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-conn\"></div><div class=\"fp-token acc fp-travel\">req</div><div class=\"fp-box good fp-pulse-g\">Pod</div></div><div class=\"fp-row\"><div class=\"fp-conn\"></div><div class=\"fp-token acc fp-travel\" style=\"animation-delay:.9s\">req</div><div class=\"fp-box good fp-pulse-g\" style=\"animation-delay:.9s\">Pod</div></div><div class=\"fp-row\"><div class=\"fp-ver dead\">endpoint</div><div class=\"fp-arrow\" style=\"color:var(--bad)\">&times;</div><div class=\"fp-box bad fp-pulse-r\">Pod (убран)</div></div></div></div><div class=\"fp-row\"><div class=\"fp-tag\">новый трафик сюда больше не идёт</div><div class=\"fp-token pr-fade\" style=\"color:var(--warn);border-color:var(--warn)\">старые запросы ещё в полёте</div></div></div>"
    },
    {
@@ -4527,7 +4527,7 @@ window.EXPLAINERS = [
   "title": "Event-loop vs @Blocking: на каком потоке бежит endpoint",
   "frames": [
    {
-    "cap": "Запросы обслуживает маленький пул event-loop потоков — их примерно по числу ядер.",
+    "cap": "Запросы обслуживает маленький пул event-loop потоков — по умолчанию 2× числа ядер.",
     "html": "<div class=\"fp-col\"><div class=\"fp-lane name\">event-loop</div><div class=\"fp-row\"><div class=\"fp-node acc fp-spin\">L1</div><div class=\"fp-node acc fp-spin\">L2</div></div><div class=\"fp-val\">их мало — они должны крутиться без остановки</div></div>"
    },
    {
@@ -4547,7 +4547,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-node acc fp-spin\">L1 свободен</div><div class=\"fp-arrow fp-travel\">отдал</div><div class=\"fp-node good fp-pulse-g\">W1 ждёт JDBC</div></div><div class=\"fp-val good\">стойка не стоит</div></div>"
    },
    {
-    "cap": "Правило: вернул Uni/Multi → event-loop; синхронно блокируешь → @Blocking на worker.",
+    "cap": "Правило: Uni/Multi → event-loop (блокируешь — @Blocking); обычный тип → worker.",
     "html": "<div class=\"fp-col\"><div class=\"fp-row\"><div class=\"fp-box acc\">Uni/Multi → event-loop</div></div><div class=\"fp-row\"><div class=\"fp-box mut\">blocking код → @Blocking → worker</div></div></div>"
    }
   ]
@@ -5075,7 +5075,7 @@ window.EXPLAINERS = [
     "html": "<div class='fp-col'><div class='fp-row'><div class='fp-box mut'>lib 2.0</div><div class='fp-arrow'></div><div class='fp-val'>глубина 2</div></div><div class='fp-row'><div class='fp-box mut'>lib 1.0</div><div class='fp-arrow'></div><div class='fp-val'>глубина 3</div></div></div>"
    },
    {
-    "cap": "Побеждает ближайшая — 1.0 проигрывает, хотя номер ниже.",
+    "cap": "Побеждает ближайшая — 2.0 проигрывает, хотя номер выше.",
     "html": "<div class='fp-row'><div class='fp-box good fp-pulse-g'>lib 2.0<br>глубина 2</div><div class='fp-arrow'></div><div class='fp-token'>WIN</div><div class='fp-box bad' style='margin-left:16px'>lib 1.0<br>глубина 3</div></div>"
    },
    {
@@ -5291,7 +5291,7 @@ window.EXPLAINERS = [
   "title": "HTTP/2 мультиплекс",
   "frames": [
    {
-    "cap": "HTTP/1.1: один запрос на соединение, очередь блокирует.",
+    "cap": "HTTP/1.1: на соединении один запрос за раз, очередь блокирует.",
     "html": "<div class='fp-row'><div class='fp-node acc'>conn</div><div class='fp-token'>req1</div><div class='fp-token mut'>req2 ждёт</div><div class='fp-token mut'>req3 ждёт</div></div>"
    },
    {
@@ -5875,7 +5875,7 @@ window.EXPLAINERS = [
     "html": "<div class=\"fp-row\"><div class=\"fp-box mut\">договор.pdf</div><div class=\"fp-arrow\">→</div><div class=\"fp-node acc\">hash</div><div class=\"fp-arrow\">→</div><div class=\"fp-token\">H</div></div>"
    },
    {
-    "cap": "Хеш шифруется ПРИВАТНЫМ ключом Алисы — получается подпись.",
+    "cap": "Хеш подписывается ПРИВАТНЫМ ключом Алисы (в RSA ≈ шифрование).",
     "html": "<div class=\"fp-row\"><div class=\"fp-token\">H</div><div class=\"fp-arrow\">→</div><div class=\"fp-box bad fp-pulse-a\">enc(🔒priv Алисы)</div><div class=\"fp-arrow\">→</div><div class=\"fp-box acc\">sign</div></div>"
    },
    {
