@@ -762,6 +762,26 @@
   .zk-big .zk-say{margin-top:14px;gap:12px}
   .zk-big .zk-ava{width:46px}
   .zk-big .zk-say span{font-size:17px;padding:10px 14px}
+  .zk-big .zk-p{--d:0s!important;transition:opacity .3s ease,transform .3s ease!important}
+  .zk-big.stepping .zk-p.later{opacity:.16!important}
+  .zk-big.stepping .zk-p.now{transform:translateY(-3px) scale(1.03)!important}
+  .zk-big.stepping .zk-p.now svg{box-shadow:0 0 0 3px #d6a43c,0 8px 22px rgba(0,0,0,.18)}
+  .zk-big .zk-say span{min-height:2.9em;transition:background .2s}
+  .zk-map{margin-top:12px;padding:10px 12px;border-radius:12px;background:#fff;border:1.5px dashed #e8c873;animation:viewIn .3s ease}
+  .zk-map[hidden]{display:none}
+  .zk-map-h{font:800 11px var(--mono);letter-spacing:1.2px;text-transform:uppercase;color:#a07a22;margin-bottom:6px}
+  .zk-map-r{display:flex;align-items:baseline;gap:8px;font:600 15px/1.45 var(--sans);color:#3a2e1c;padding:3px 0}
+  .zk-map-r b{color:#d6a43c} .zk-map-e{width:24px;flex:none;text-align:center}
+  .zk-map-t{font-weight:800;color:#2d4fb8}
+  .zkb-dots{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}
+  .zkb-dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22);font:800 8px/9px var(--sans);font-style:normal;text-align:center;color:#0b0f19}
+  .zkb-dots i.was{background:rgba(214,164,60,.6)} .zkb-dots i.on{background:#ffc93c;transform:scale(1.35)}
+  .zkb-dots span{margin-left:6px;font-size:12px;color:#9aa3b8}
+  @media(max-width:620px){ .zk-map-r{font-size:13.5px}
+    /* на телефоне панели столбиком — реплика уезжала за экран; в рассказе показываем одну текущую */
+    .zk-big.stepping .zk-p:not(.now), .zk-big.stepping .zk-ar{display:none!important}
+    .zk-big.stepping .zk-strip.many{grid-template-columns:1fr}
+    .zk-big.stepping .zk-p.now{transform:none!important} }
   @media(max-width:620px){
     #zkBox{padding:10px;align-items:flex-start}
     .zkb-top b{font-size:15px}
@@ -2784,6 +2804,7 @@
 <script src="kid-zero.js"></script>
 <script src="kid-svg.js"></script>
 <script src="kid-scenes.js"></script>
+<script src="kid-say.js"></script>
 <script src="zdrill.js"></script>
 <script src="tricky.js"></script>
 <script src="hacks.js"></script>
@@ -4371,23 +4392,47 @@ function zeroKidSvg(sv){
 /* Крупный просмотр сценки: тап по сценке — окно поверх страницы, листание ← → / свайп / кнопки,
    закрытие крестиком, тапом мимо или Esc. Листает шаги «С нуля» по порядку. */
 let ZKV=null;
-function zkOpen(i){
+/* Пошаговый рассказ: состояние p = 0..P-1 — показываем панель p и что про неё говорит Бит
+   (ZKSAY[ключ].n), p = P — итог: все панели, главная фраза и «что есть что» (ZKSAY[ключ].m). */
+function zkOpen(i,p){
   if(!ZERO[i])return;
   let box=document.getElementById("zkBox");
   if(!box){ box=document.createElement("div"); box.id="zkBox"; box.setAttribute("role","dialog"); box.setAttribute("aria-modal","true"); document.body.appendChild(box);
     box.addEventListener("click",e=>{ if(e.target===box)zkClose(); });
     let x0=null; box.addEventListener("touchstart",e=>{ x0=e.touches[0].clientX; },{passive:true});
     box.addEventListener("touchend",e=>{ if(x0==null)return; const dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)>60)zkStep(dx<0?1:-1); },{passive:true}); }
-  ZKV={i}; const z=ZERO[i];
+  const z=ZERO[i], key=z.g+"|"+z.t, say=(window.ZKSAY||{})[key], sv=(window.ZKSVG||{})[key], P=sv?sv.p.length:0;
+  ZKV={i, P, say:say&&sv?say:null, p:0};
+  ZKV.p = !ZKV.say ? P : p==null ? 0 : Math.max(0,Math.min(P,p));
   box.innerHTML='<div class="zkb-card"><div class="zkb-top"><span class="zkb-g">'+esc(tr(z.g))+'</span><b>'+esc(tr(z.t))+'</b>'
     +'<button class="zkb-x" id="zkX" aria-label="close">✕</button></div>'
-    +zeroKid(z).replace('class="zk zk-svg"','class="zk zk-svg zk-big"')
-    +'<div class="zkb-nav"><button class="btn" id="zkPrev"'+(i>0?"":" disabled")+'>← '+tr("предыдущий шаг")+'</button><span class="muted2">'+(i+1)+" / "+ZERO.length+'</span><button class="btn" id="zkNext"'+(i<ZERO.length-1?"":" disabled")+'>'+tr("следующий шаг")+' →</button></div></div>';
+    +zeroKid(z).replace('class="zk zk-svg"','class="zk zk-svg zk-big in"')
+    +'<div class="zkb-nav"><button class="btn" id="zkPrev"></button><span class="zkb-dots" id="zkDots"></span><button class="btn" id="zkNext"></button></div></div>';
   box.hidden=false; document.body.classList.add("zk-open");
   $("#zkX").onclick=zkClose; $("#zkPrev").onclick=()=>zkStep(-1); $("#zkNext").onclick=()=>zkStep(1);
-  const big=box.querySelector(".zk-big"); if(big){ big.title=""; requestAnimationFrame(()=>requestAnimationFrame(()=>big.classList.add("in"))); }
+  const big=box.querySelector(".zk-big"); if(big){ big.title=""; big.onclick=null;
+    if(ZKV.say){ big.querySelectorAll(".zk-p").forEach((f,j)=>{ f.style.cursor="pointer"; f.onclick=()=>{ ZKV.p=j; zkShow(); }; });
+      const m=document.createElement("div"); m.className="zk-map"; const en=LANG==="en";
+      m.innerHTML='<div class="zk-map-h">'+tr("Что есть что")+'</div>'+ZKV.say.m.map(r=>'<div class="zk-map-r"><span class="zk-map-e">'+esc(r[0])+'</span><span>'+esc(en?r[3]:r[1])+'</span><b>=</b><span class="zk-map-t">'+esc(en?r[4]:r[2])+"</span></div>").join("");
+      big.appendChild(m); } }
+  zkShow();
 }
-function zkStep(d){ if(!ZKV)return; const j=ZKV.i+d; if(j>=0&&j<ZERO.length)zkOpen(j); }
+function zkShow(){
+  const box=document.getElementById("zkBox"); if(!box||!ZKV)return;
+  const big=box.querySelector(".zk-big"), {i,P,p,say}=ZKV, en=LANG==="en", fin=p>=P;
+  if(big){ big.classList.toggle("stepping",!!say&&!fin);
+    big.querySelectorAll(".zk-p").forEach((f,j)=>{ f.classList.toggle("now",!!say&&!fin&&j===p); f.classList.toggle("later",!!say&&!fin&&j>p); });
+    const sp=big.querySelector(".zk-say span"), sv=(window.ZKSVG||{})[ZERO[i].g+"|"+ZERO[i].t];
+    if(sp&&sv) sp.textContent = say&&!fin ? (en?say.n[p][1]:say.n[p][0]) : (en&&sv.c[1]?sv.c[1]:sv.c[0]);
+    const m=big.querySelector(".zk-map"); if(m)m.hidden=!fin; }
+  const dots=$("#zkDots"); if(dots) dots.innerHTML=(say?Array.from({length:P+1},(_,j)=>'<i class="'+(j===p?"on":j<p?"was":"")+'">'+(j===P?"✓":"")+"</i>").join(""):"")+'<span>'+(i+1)+" / "+ZERO.length+"</span>";
+  const pv=$("#zkPrev"), nx=$("#zkNext");
+  if(pv){ pv.textContent="← "+(say&&p>0?tr("назад по картинке"):tr("предыдущий шаг")); pv.disabled=!(p>0&&say)&&i===0; }
+  if(nx){ nx.textContent=(say&&!fin?tr("дальше по картинке"):tr("следующий шаг"))+" →"; nx.disabled=fin&&i>=ZERO.length-1; }
+}
+function zkStep(d){ if(!ZKV)return;
+  if(ZKV.say){ if(d>0&&ZKV.p<ZKV.P){ ZKV.p++; return zkShow(); } if(d<0&&ZKV.p>0){ ZKV.p--; return zkShow(); } }
+  const j=ZKV.i+d; if(j>=0&&j<ZERO.length) zkOpen(j, d<0?1e9:0); }
 function zkClose(){ const box=document.getElementById("zkBox"); if(box){ box.hidden=true; box.innerHTML=""; } document.body.classList.remove("zk-open");
   if(ZKV){ const s=document.getElementById("zs"+ZKV.i); ZKV=null; if(s&&mode==="zero")s.scrollIntoView({block:"center"}); } }
 document.addEventListener("keydown",e=>{ if(!ZKV)return;

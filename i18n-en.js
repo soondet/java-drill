@@ -1390,7 +1390,6 @@ window.I18N = {
   "Виртуальный поток при блокирующем вызове СНИМАЕТСЯ с несущего потока ОС и возвращается, когда ответ пришёл. Несущих остаётся горстка, виртуальных — сотни тысяч. И код при этом остаётся обычным блокирующим.": "On a blocking call a virtual thread is UNMOUNTED from its carrier OS thread and returns when the answer arrives. There remain a handful of carriers and hundreds of thousands of virtual threads. And the code stays ordinary blocking code.",
   "Курьер не стоит в очереди, а оставляет заявку и уходит на другой заказ. Вызовут — вернётся.": "The courier does not stand in the queue but leaves a request and goes off to another job. When called, they come back.",
   "synchronized убивает выигрыш": "synchronized kills the benefit",
-  "Внутри `synchronized` виртуальный поток ПРИБИВАЕТСЯ к несущему и не может сняться. Блокирующий вызов внутри такого блока занимает поток ОС целиком. Лечится заменой на `ReentrantLock`.": "Inside `synchronized` a virtual thread is PINNED to its carrier and cannot unmount. A blocking call inside such a block occupies an OS thread entirely. Cured by replacing it with a `ReentrantLock`.",
   "Курьер, которого попросили не уходить из очереди. Вся схема с заявками перестаёт работать.": "A courier who has been asked not to leave the queue. The whole request scheme stops working.",
   "Пул виртуальных потоков не нужен": "A pool of virtual threads is not needed",
   "Пул существовал, потому что поток дорогой. Виртуальные дешёвые: создавай на каждую задачу. `Executors.newVirtualThreadPerTaskExecutor()` именно так и делает. Ограничивать надо не потоки, а обращения к внешним ресурсам — семафором.": "Pools existed because a thread was expensive. Virtual ones are cheap: create one per task. `Executors.newVirtualThreadPerTaskExecutor()` does exactly that. What has to be limited is not threads but access to external resources — with a semaphore.",
@@ -9703,7 +9702,11 @@ window.I18N = {
   "🧸 для детей": "🧸 for kids",
   "Открыть крупно": "Open large",
   "следующий шаг": "next step",
-  "предыдущий шаг": "previous step"
+  "предыдущий шаг": "previous step",
+  "Что есть что": "What is what",
+  "дальше по картинке": "next picture",
+  "назад по картинке": "previous picture",
+  "Внутри `synchronized` виртуальный поток ПРИБИВАЕТСЯ к несущему и не может сняться. Блокирующий вызов внутри такого блока занимает поток ОС целиком. На Java 21–23 лечится заменой на `ReentrantLock`; с Java 24 (JEP 491) `synchronized` больше не прибивает.": "Inside `synchronized` a virtual thread is PINNED to its carrier and cannot unmount. A blocking call inside such a block occupies an OS thread entirely. On Java 21–23 the cure is a `ReentrantLock`; since Java 24 (JEP 491) `synchronized` no longer pins."
  },
  "cards": {
   "jc-eqhash": {
