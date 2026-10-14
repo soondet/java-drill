@@ -3587,3 +3587,86 @@
 
   Object.assign(window.ZKSVG, Z);
 })();
+
+/* ---- пачка j25: Java 22 → 25 ---- */
+(function(){ const {C,S,bg,txt,bot,bulb,sw,card,arrowR,box,paper,chip,spark,think,ok,no,db,server,cloud,env,lock,key,kid,gear,clock,laptop,phone,coin,mag,bubble,curve}=window.ZKKIT;
+  /* ---- свои детали ---- */
+  const P=(d,c,w,x)=>`<path d="${d}" stroke="${c||C.ink}" stroke-width="${w||2}" fill="none" stroke-linecap="round" stroke-linejoin="round"${x?" "+x:""}/>`;
+  const R=(x,y,w,h,f,rx)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx==null?3:rx}" fill="${f||"#fff"}" stroke="${C.ink}" stroke-width="1.2"/>`;
+  const O=(x,y,r,f)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" stroke="${C.ink}" stroke-width="1.2"/>`;
+  const G=(x,y,s,inner,rot)=>`<g transform="translate(${x} ${y}) scale(${s})${rot?` rotate(${rot})`:""}">${inner}</g>`;
+  const fade=(inner,o)=>`<g opacity="${o||.35}">${inner}</g>`;
+  const tag=(x,y,w,s,f,tc,sz)=>R(x-w/2,y-8,w,16,f||"#fff",6)+txt(x,y+3.5,s,sz||9,tc||C.ink);
+  const star=(x,y,r,col)=>{ r=r||6; const pts=[...Array(10)].map((_,i)=>{const a=Math.PI/5*i-Math.PI/2, q=i%2?r*.45:r; return `${(x+q*Math.cos(a)).toFixed(1)},${(y+q*Math.sin(a)).toFixed(1)}`;}).join(" "); return `<polygon points="${pts}" fill="${col||C.yel}" stroke="${C.ink}" stroke-width="1"/>`; };
+  /* табличка-остановка на столбе */
+  const stop=(x,lab,w,col,lts)=>P(`M${x} 82 V40`,C.grey,3)+R(x-w/2,18,w,24,col||"#fff",5)+txt(x,35,lab,14,col&&col!=="#fff"?"#fff":C.ink)+(lts?star(x+w/2-1,18,6):"");
+  const door=(x,col)=>R(x-12,34,24,48,col||C.wood,2)+O(x+7,60,1.6,C.yel);
+  const ball=(x,y,n,col)=>O(x,y,5,col||C.blue)+txt(x,y+3,n,7,"#fff");
+  /* конвейер: лента на ножках */
+  const belt=(x1,x2)=>P(`M${x1+6} 66 V82 M${x2-6} 66 V82`,C.grey,3)+R(x1,58,x2-x1,8,"#5f6884",4)+[...Array(Math.floor((x2-x1)/10))].map((_,i)=>O(x1+6+i*10,62,2,C.grey)).join("");
+  const mach=(x,lab,col,w)=>{ w=w||26; return R(x-w/2,34,w,24,col||C.grey,4)+R(x-w/2+4,30,w-8,5,col||C.grey,2)+txt(x,50,lab,lab.length>5?6.5:7.5,"#fff"); };
+  const fridge=(x)=>R(x-20,22,40,60,"#eef4fb",4)+P(`M${x-20} 44 h40`,C.ink,1.2)+P(`M${x+14} 28 v10 M${x+14} 50 v12`,C.grey,2);
+  const note=(x,y,inner,rot,col)=>card(x,y,14,12,col||C.yel,inner||"",rot||0);
+  const obj=(x,y,hlab,hcol,hw,bw)=>R(x-bw/2,y-22,bw,22,"#fff",3)+R(x-bw/2,y-22,hw,22,hcol,3)+txt(x-bw/2+hw/2,y-8,hlab,8,"#fff");
+
+  const T="Java 22 → 25|";
+  const Z={};
+
+  Z[T+"LTS: 17, 21, 25 — и почему важна 25"]={
+    p:[ bg(0)+[["22",68,26,-12],["23",96,30,10],["24",72,58,8],["25",102,60,-8]].map(c=>card(c[1],c[2],22,18,"#fff",txt(0,4,c[0],10),c[3])).join("")+bot(30,82,.9,{arms:"up",mood:"dizzy"}),
+        bg(1)+fade(stop(18,"17",26,C.grey,true),.5)+stop(98,"21",30,C.blue,true)+R(36,64,44,6,C.wood,2)+P("M40 70 V82 M76 70 V82",C.wood2,3)+bot(58,66,.8,{legs:"sit",arms:"down",mood:"sleep"}),
+        bg(2)+stop(98,"25",30,C.grn,true)+bot(40,82,.85,{legs:"run",arms:"carry",mood:"happy",item:box(0,6,24,16,"21")})+spark(70,22)+arrowR(64,74,82,C.grn),
+        bg(3)+kid(100,82,.95,C.red,"wow")+bubble(92,18,40,txt(0,4,"21→25 ?",9))+bot(40,82,.9,{arms:"point",mood:"think",glasses:true})+star(20,22,6) ],
+    l:[["новая — раз в полгода","a new one every 6 months"],["компании сидят на LTS","companies stay on LTS"],["переезжаем на 25","moving to 25"],["спросят: что нового?","they ask: what's new?"]],
+    c:["Новая Java каждые полгода, но живут на LTS: 17, 21, 25. Спросят, что нового от 21 до 25.","New Java every 6 months, but people live on LTS: 17, 21, 25. Expect: what's new from 21 to 25?"] };
+
+  Z[T+"main без церемоний"]={
+    p:[ bg(0)+card(84,44,56,56,"#fff",["public class A {","public static","void main(","String[] args)","{ … } }"].map((s,i)=>txt(0,-17+i*10,s,6.3,C.ink,700)).join(""))+bot(28,82,.85,{arms:"reach",mood:"sweat"}),
+        bg(1)+bot(30,82,.95,{arms:"reach",mood:"happy",item:card(23,0,40,16,"#fff",txt(0,3,"void main()",7.5,C.blue))})+bubble(84,20,48,txt(0,3.5,"IO.println",8,C.grn))+spark(108,44)+spark(96,66,C.grn),
+        bg(2)+fade([0,1,2,3,4,5].map(i=>card(14+(i%2)*14,72-Math.floor(i/2)*12,13,10,"#fff",P("M-4 0 h8",C.grey,1.4))).join(""),.6)+no(21,30,1.1)+bot(82,82,.85,{arms:"carry",mood:"smile",item:card(0,-4,46,16,C.grn,txt(0,3,"java.base",8,"#fff"))}),
+        bg(3)+card(64,38,40,26,"#fff",txt(0,-3,"public static",5.8,C.ink,700)+txt(0,7,"void main",5.8,C.ink,700))+ok(64,16,.9)+kid(102,82,.95,C.blue,"smile")+bot(28,82,.85,{arms:"wave",mood:"happy"}) ],
+    l:[["раньше: бланк из 5 полей","before: a 5-field form"],["теперь просто main","now just main"],["один импорт модуля","one module import"],["старый тоже работает","the old way still works"]],
+    c:["Пишу просто void main() и IO.println. А старый public static main тоже работает.","I just write void main() and IO.println. The old public static main still works too."] };
+
+  Z[T+"Stream Gatherers: свои шаги в стриме"]={
+    p:[ bg(0)+belt(4,80)+mach(26,"map",C.blue)+mach(58,"filter",C.grn)+bot(102,82,.8,{arms:"hold",mood:"sad",item:gear(0,-2,.6,C.yel)})+txt(102,18,"?",14,C.red),
+        bg(1)+belt(4,80)+mach(24,"map",C.blue)+mach(62,"gather",C.yel,30)+spark(62,18)+bot(102,82,.85,{flip:true,arms:"push",mood:"think"}),
+        bg(2)+belt(4,58)+ball(16,53,"4")+ball(30,53,"5")+ball(44,53,"6")+tag(36,20,68,"windowFixed(3)","#fff",C.ink,7)+bot(90,82,.85,{arms:"carry",mood:"happy",item:R(-17,-6,34,14,C.wood,3)+ball(-10,-6,"1")+ball(0,-6,"2")+ball(10,-6,"3")}),
+        bg(3)+tag(80,14,30,"scan","#fff",C.ink,8)+["1","2","3","4"].map((n,i)=>ball(62+i*14,34,n)).join("")+["1","3","6","10"].map((n,i)=>ball(62+i*14,62,n,C.grn)).join("")+[0,1,2,3].map(i=>P(`M${62+i*14} 41 v12`,C.grey,1.4)).join("")+bot(26,82,.85,{arms:"point",mood:"wow"}) ],
+    l:[["только заводские шаги","factory steps only"],["ставлю свой gather","I add my own gather"],["пачки по три","batches of three"],["бегущая сумма","a running total"]],
+    c:["Раньше на конвейере были только заводские станки. Теперь ставлю свой: пачки, суммы.","The belt used to have only factory machines. Now I add my own: batches, running sums."] };
+
+  Z[T+"ScopedValue вместо ThreadLocal"]={
+    p:[ bg(0)+fridge(94)+note(94,32,txt(0,4,"42",8)+P("M-6 3 l12 -6",C.red,1.6))+card(94,54,14,12,"#fff",txt(0,4,"7",9,C.red),8)+kid(66,82,.85,C.red,"smile")+bot(26,82,.85,{arms:"point",mood:"sweat"}),
+        bg(1)+fridge(88)+[[78,30,-8],[96,28,6],[86,52,4],[100,50,-6],[80,68,10],[98,70,-4],[88,40,-12]].map(n=>note(n[0],n[1],"",n[2],[C.yel,"#ffb3c6","#bfe3ff"][n[0]%3])).join("")+txt(42,24,"×1M",10,C.red)+bot(34,82,.9,{arms:"up",mood:"dizzy"}),
+        bg(2)+door(98,C.grn)+tag(64,16,80,"where(…).run(…)","#fff",C.ink,7)+bot(48,82,.95,{arms:"hold",mood:"happy",item:card(0,-10,18,13,"#fff",txt(0,3.5,"42",8,C.blue))})+lock(18,40,.8),
+        bg(3)+door(20,C.grn)+R(46,66,24,16,C.wood,2)+card(58,62,16,11,"#fff",txt(0,3,"42",7,C.blue),-10)+ok(58,40,.9)+bot(94,82,.9,{arms:"wave",mood:"smile"}) ],
+    l:[["записку перепишет любой","anyone can rewrite it"],["не сняли — копится","not cleared — it piles up"],["бейдж на время вызова","a badge for the call"],["вышел — бейдж сдан","left — badge returned"]],
+    c:["ScopedValue — бейдж на время вызова: выдали на входе, сдал на выходе, переписать нельзя.","ScopedValue is a badge for one call: given at the door, returned on exit, can't be rewritten."] };
+
+  Z[T+"Нативный код без JNI: FFM API"]={
+    p:[ bg(0)+card(92,42,32,36,"#fff",txt(0,-6,"JNI",9,C.red)+P("M-9 3 h18 M-9 10 h12",C.grey,1.6))+bot(40,82,.85,{arms:"carry",mood:"sweat",item:[".so",".dll",".dylib"].map((s,i)=>R(-15,-i*10-12,30,10,[C.wood,C.blue,C.grey][i],2)+txt(0,-i*10-4.5,s,6.5,"#fff")).join("")}),
+        bg(1)+chip(94,46,txt(0,5,"C",14,C.yel))+tag(54,16,40,"Linker","#fff",C.blue,8)+curve(54,48,76,42,C.blue,true)+bot(32,82,.9,{arms:"hold",mood:"happy",item:phone(0,-2,.6)}),
+        bg(2)+R(68,52,44,30,"#efe7ff",4)+tag(90,40,38,"Arena","#fff",C.ink,8)+R(74,60,10,8,C.blue,2)+R(88,60,10,8,C.blue,2)+R(80,70,10,8,C.blue,2)+bot(34,82,.9,{arms:"reach",mood:"think",item:R(-6,-5,12,10,C.blue,2)}),
+        bg(3)+R(68,52,44,30,"#efe7ff",4)+R(64,46,52,7,"#c9b8f5",3)+ok(90,26,1)+spark(110,18)+bot(38,82,.9,{arms:"push",mood:"happy"}) ],
+    l:[["JNI: клей под каждую ОС","JNI: glue for every OS"],["зову C прямо из Java","call C straight from Java"],["арена выдаёт память","the arena hands out memory"],["закрыл — всё свободно","closed — all freed"]],
+    c:["Зову функцию на C прямо из Java, без клея. А память из арены отдаю разом, когда её закрываю.","I call C right from Java, no glue. Arena memory is freed all at once when I close the arena."] };
+
+  Z[T+"JVM ускорилась сама"]={
+    p:[ bg(0)+server(98,60,1)+tag(46,16,62,"synchronized","#fff",C.ink,7.5)+P("M48 62 Q70 74 86 62",C.grey,3,'stroke-dasharray="4 2"')+bot(34,82,.9,{arms:"hold",mood:"sweat",item:lock(0,-2,.7)}),
+        bg(1)+server(98,60,1)+tag(98,18,24,"24","#fff",C.grn,9)+P("M80 64 l-5 3 M70 70 l-5 2",C.grey,3)+bot(40,82,.9,{legs:"run",arms:"hold",mood:"happy",item:lock(0,-2,.7,true)}),
+        bg(2)+R(78,50,34,32,C.wood,3)+txt(95,70,"AOT",9,"#fff")+card(90,40,16,12,"#fff",P("M-4 -1 h8 M-4 2 h5",C.grey,1.2),-12)+card(102,36,16,12,"#fff",P("M-4 -1 h8 M-4 2 h5",C.grey,1.2),10)+clock(20,22,.9,1)+bot(44,82,.9,{legs:"run",arms:"up",mood:"wow"}),
+        bg(3)+fade(obj(26,82,"12",C.red,18,30),.55)+arrowR(44,60,56)+bot(86,82,.9,{arms:"carry",mood:"happy",item:obj(0,6,"8",C.grn,13,30)}) ],
+    l:[["раньше: прибит к потоку","before: pinned to a thread"],["с 24 — поток свободен","since 24 — thread freed"],["кэш: старт быстрее","the cache: faster start"],["заголовок меньше","a smaller header"]],
+    c:["Обновил Java — и бегаю быстрее без правок: не прилипаю в synchronized, стартую из кэша.","Updated Java and I'm faster with no code changes: no pinning in synchronized, a cached start."] };
+
+  Z[T+"Мелочи, которые всё равно спросят"]={
+    p:[ bg(0)+card(60,22,100,20,"#fff",txt(-12,4,"catch (Exception",7.5,C.ink,700)+txt(28,4,"e",8,C.red)+txt(33,4,")",7.5,C.ink,700))+`<circle cx="89" cy="23" r="5" fill="none" stroke="${C.red}" stroke-width="1.6"/>`+bot(60,82,.85,{arms:"down",mood:"think"})+txt(82,48,"?",12,C.red),
+        bg(1)+card(60,22,100,20,"#fff",txt(-12,4,"catch (Exception",7.5,C.ink,700)+txt(26,4,"_",9,C.grn)+txt(31,4,")",7.5,C.ink,700))+ok(100,46,.9)+bot(48,82,.9,{arms:"point",mood:"happy"}),
+        bg(2)+door(100,C.blue)+tag(100,22,34,"super","#fff",C.ink,8)+bot(52,82,.85,{legs:"run",arms:"hold",mood:"sweat",item:card(0,-2,18,13,"#fff",txt(0,3.5,"-5",8,C.red))})+no(20,30,1),
+        bg(3)+door(102,C.blue)+tag(102,22,34,"super","#fff",C.ink,8)+card(34,44,26,18,"#fff",txt(0,4,"x<0?",8,C.red))+bot(66,82,.9,{arms:"reach",mood:"happy",glasses:true,item:mag(-4,0,.8)})+ok(34,22,.9) ],
+    l:[["имя есть, а не нужна","named but never used"],["_ — просто прочерк","_ is just a blank"],["раньше super — первым","before: super came first"],["проверка до super","check before super"]],
+    c:["Ненужную переменную зову _. А аргументы с Java 25 проверяю ещё до вызова super(...).","An unused variable I call _. And since Java 25 I check arguments before calling super(...)."] };
+
+  Object.assign(window.ZKSVG, Z);
+})();

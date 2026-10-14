@@ -7,6 +7,7 @@ window.ZDRILL = {
 "Java: исключения":["Java","исключен|exception|try|finally"],
 "Java: современное":["Java","stream|лямбд|optional|record|дженерик"],
 "Java 17 → 21":["Java","sealed|record|pattern|switch|var"],
+"Java 22 → 25":["Java","Java 2[2-5]|JEP|Gatherer|ScopedValue|FFM|AOT|compact"],
 "Java: как исполняется":["JVM","байткод|jit|компиляц|интерпрет"],
 "Память":["JVM","стек|куча|память|ссылк"],
 "Сборка мусора":["JVM","gc|сборщик|куча|heap|oom"],

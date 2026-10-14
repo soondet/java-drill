@@ -1116,6 +1116,7 @@ const check = (name, ok, detail) => {
      Тап по сценке открывает окно поверх страницы, листается стрелкой и кнопкой, Esc закрывает
      и снимает блокировку прокрутки. Иначе после закрытия страница остаётся «замороженной». */
   const zk = JSON.parse(await A.ev(`(async function(){ var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+    var было=localStorage.getItem("jdZkMiss");
     try{ setMode("zero"); await ж(200); var s=document.getElementById("zs3"); s.querySelector(".zk-svg").click(); await ж(150);
       var box=document.getElementById("zkBox"), открыто=!!box&&!box.hidden&&!!box.querySelector(".zk-big"), t1=box.querySelector(".zkb-top b").textContent;
       var фразы=[], P=ZKV.P, рассказ=!!ZKV.say;
@@ -1129,7 +1130,7 @@ const check = (name, ok, detail) => {
       document.getElementById("zkPrev").click(); await ж(60); var t3=box.querySelector(".zkb-top b").textContent, вИтоге=ZKV.p===ZKV.end;
       document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true})); await ж(80);
       return JSON.stringify({открыто:открыто, рассказ:рассказ&&разные&&тотЖе&&расшифровка, листает:t1!==t2&&t3===t1&&вИтоге, закрыто:box.hidden, прокрутка:!document.body.classList.contains("zk-open")});
-    } finally { if(typeof zkClose==="function") zkClose(); }
+    } finally { if(typeof zkClose==="function") zkClose(); try{ if(было==null) localStorage.removeItem("jdZkMiss"); else localStorage.setItem("jdZkMiss",было); }catch(e){} }
   })()`));
   /* у каждой сценки должен быть рассказ по панелям и расшифровка «что есть что» */
   const zks = JSON.parse(await A.ev(`(function(){ var S=window.ZKSAY||{}, V=window.ZKSVG||{}, bad=ZERO.filter(function(z){ var k=z.g+"|"+z.t, s=S[k], v=V[k]; return !s||!v||!s.n||s.n.length!==v.p.length||!s.m||s.m.length<2; }).map(function(z){return z.t;}); return JSON.stringify({n:bad.length, ex:bad.slice(0,3)}); })()`));

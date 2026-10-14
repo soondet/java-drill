@@ -736,6 +736,7 @@
   .zk-ar{flex:none;align-self:center;margin-top:-14px;font:800 14px var(--sans);color:#c79a2e}
   .zk-c{font:500 12px/1.4 var(--sans);margin-top:7px;padding-top:6px;border-top:1px dashed #e8c873;text-align:center}
   .zk-sep{height:10px}
+  .zero-step.zk-missed .zero-t::after{content:" 🔁";font-size:13px}
   .zk-svg{padding:8px 7px 9px;position:relative;cursor:zoom-in}
   .zk-zoom{position:absolute;right:5px;top:4px;z-index:2;width:20px;height:20px;border-radius:6px;background:#fff;border:1px solid #e8c873;
     color:#a07a22;font:800 12px/18px var(--sans);text-align:center;opacity:.75;transition:opacity .15s}
@@ -2712,6 +2713,7 @@
   <div class="terms-wrap">
     <div class="bas-intro">🌱 <b>С нуля.</b> <span id="zeroIntro">Как код вообще превращается в работу — от транзистора до твоей программы. Читается сверху вниз, каждый шаг опирается на предыдущий.</span></div>
     <div class="zero-top"><div class="zero-bar"><span id="zeroBar"></span></div><b id="zeroPct">0%</b>
+      <button class="btn" id="zeroMiss" hidden style="flex:none;padding:6px 12px;font-size:12px"></button>
       <label class="zv-off"><input type="checkbox" id="zeroKid" checked> <span id="zeroKidLbl">🧸 для детей</span></label>
       <label class="zv-off"><input type="checkbox" id="zeroAnim" checked> <span id="zeroAnimLbl">схемы</span></label>
       <button class="btn" id="zeroReset" style="flex:none;padding:6px 12px;font-size:12px">↻ сбросить</button></div>
@@ -2853,8 +2855,10 @@
 <script src="cards-fix.js"></script>
 <script src="quiz-fix.js"></script>
 <script src="zero-ai.js"></script>
+<script src="zero-j25.js"></script>
 <script src="cards-ai.js"></script>
 <script src="cards-gap3.js"></script>
+<script src="cards-j25.js"></script>
 <script src="terms-ai.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
@@ -4460,6 +4464,17 @@ function zkPlay(on){ clearInterval(ZKPLAY); ZKPLAY=null;
   const b=$("#zkPlay"); if(b){ b.textContent=ZKPLAY?"⏸":"▶"; b.title=ZKPLAY?tr("пауза"):tr("листать само"); } }
 /* «Проверь себя»: одна пара из «что есть что» — картинка спрошена, термин среди трёх чужих
    из той же темы (иначе из соседних шагов). Ответ подсвечивается, дальше — расшифровка целиком. */
+/* Промахи в «Проверь себя» → список «повторить»: ключ шага (zeroKey) в jdZkMiss. Верный ответ
+   при повторе снимает шаг из списка. В маршруте у таких шагов метка 🔁, в шапке — кнопка к ним. */
+function zkMiss(){ try{ return JSON.parse(localStorage.getItem("jdZkMiss")||"{}")||{}; }catch(e){ return {}; } }
+function zkMissSet(z,miss){ const m=zkMiss(), k=zeroKey(z); if(miss) m[k]=Date.now(); else delete m[k];
+  try{ localStorage.setItem("jdZkMiss",JSON.stringify(m)); }catch(e){}
+  const s=document.getElementById("zs"+ZERO.indexOf(z)); if(s) s.classList.toggle("zk-missed",!!miss); zkMissUI(); }
+function zkMissUI(){ const b=$("#zeroMiss"); if(!b)return; const m=zkMiss(), n=ZERO.filter(z=>m[zeroKey(z)]).length;
+  b.hidden=!n; b.textContent="🔁 "+tr("повторить")+" · "+n; }
+function zkMissNext(){ const m=zkMiss(), cur=ZKV?ZKV.i:-1; let i=ZERO.findIndex((z,j)=>j>cur&&m[zeroKey(z)]); if(i<0) i=ZERO.findIndex(z=>m[zeroKey(z)]);
+  if(i>=0){ const s=document.getElementById("zs"+i); if(s) s.scrollIntoView({block:"center"}); zkOpen(i,ZKSAY_P(i)); } }
+function ZKSAY_P(i){ const z=ZERO[i], sv=(window.ZKSVG||{})[z.g+"|"+z.t]; return sv?sv.p.length:0; }   /* сразу к вопросу */
 function zkQuizFill(q){
   const {i,say}=ZKV, en=LANG==="en", z=ZERO[i], pick=say.m[i%say.m.length], right=en?pick[4]:pick[2];
   const S=window.ZKSAY||{}, pool=[];
@@ -4471,7 +4486,8 @@ function zkQuizFill(q){
     +opts.map(o=>'<button class="zk-qb" data-ok="'+(o===right?1:0)+'">'+esc(o)+"</button>").join("")+'</div><div class="zk-qr" hidden></div>';
   q.querySelectorAll(".zk-qb").forEach(b=>b.onclick=()=>{ zkPlay(false); if(q.dataset.done)return; q.dataset.done=1;
     q.querySelectorAll(".zk-qb").forEach(x=>x.classList.add(x.dataset.ok==="1"?"ok":x===b?"bad":"off"));
-    const r=q.querySelector(".zk-qr"); r.hidden=false; r.textContent=b.dataset.ok==="1"?"✓ "+tr("верно"):"✗ "+tr("правильно")+": "+right; });
+    const r=q.querySelector(".zk-qr"); r.hidden=false; r.textContent=b.dataset.ok==="1"?"✓ "+tr("верно"):"✗ "+tr("правильно")+": "+right;
+    zkMissSet(z, b.dataset.ok!=="1"); });
 }
 function zkStep(d,auto){ if(!ZKV)return; if(!auto&&ZKPLAY) zkPlay(false);
   if(ZKV.say){ if(d>0&&ZKV.p<ZKV.end){ ZKV.p++; return zkShow(); } if(d<0&&ZKV.p>0){ ZKV.p--; return zkShow(); } }
@@ -4690,13 +4706,13 @@ function buildZero(){
   const TK=(window.ZTAKE||{}), lastOf={}, endOf={};
   gs.forEach(gr=>{ const last=gr.ids[gr.ids.length-1];
     if(TK[gr.g])lastOf[last]=gr.g; else endOf[last]=gr.g; });
-  let html="", g=null, n=0;
+  let html="", g=null, n=0; const MISS=zkMiss();
   ZERO.forEach((z,i)=>{
     if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
     n++;
     const done=zDone(i);
     const viz=(window.ZVIZ||{})[z.t], kid=zeroKid(z);
-    html+=`<div class="zero-step${done?" done":""}${viz||kid?" has-viz":""}${kid&&!viz?" kid-only":""}" id="zs${i}" data-i="${i}">
+    html+=`<div class="zero-step${done?" done":""}${viz||kid?" has-viz":""}${kid&&!viz?" kid-only":""}${MISS[zeroKey(z)]?" zk-missed":""}" id="zs${i}" data-i="${i}">
       <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
       <div class="zero-b">
         <div class="zero-t">${techIco(z.t,null)}${esc(tr(z.t))}</div>
@@ -4731,7 +4747,7 @@ function buildZero(){
   const an=$("#zeroAnim");
   if(an){ an.checked=zeroAnimOn(); document.body.classList.toggle("no-anim",!an.checked);
     an.onchange=()=>{ zeroAnimOn(an.checked); document.body.classList.toggle("no-anim",!an.checked); }; }
-  zkObserve(wrap);
+  zkObserve(wrap); zkMissUI(); const zm=$("#zeroMiss"); if(zm) zm.onclick=zkMissNext;
   wrap.querySelectorAll(".zero-step .zk-svg").forEach(k=>k.onclick=()=>zkOpen(+k.closest(".zero-step").dataset.i));
   zeroBarUI(); zeroNavUI();
   if(!buildZero._spy){ buildZero._spy=1;
