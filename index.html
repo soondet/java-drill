@@ -736,7 +736,43 @@
   .zk-ar{flex:none;align-self:center;margin-top:-14px;font:800 14px var(--sans);color:#c79a2e}
   .zk-c{font:500 12px/1.4 var(--sans);margin-top:7px;padding-top:6px;border-top:1px dashed #e8c873;text-align:center}
   .zk-sep{height:10px}
-  .zk-svg{padding:8px 7px 9px}
+  .zk-svg{padding:8px 7px 9px;position:relative;cursor:zoom-in}
+  .zk-zoom{position:absolute;right:5px;top:4px;z-index:2;width:20px;height:20px;border-radius:6px;background:#fff;border:1px solid #e8c873;
+    color:#a07a22;font:800 12px/18px var(--sans);text-align:center;opacity:.75;transition:opacity .15s}
+  .zk-svg:hover .zk-zoom{opacity:1}
+  #zkBox{position:fixed;inset:0;z-index:9000;background:rgba(9,11,18,.84);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;animation:viewIn .2s ease}
+  #zkBox[hidden]{display:none}
+  body.zk-open{overflow:hidden}
+  .zkb-card{width:min(1040px,100%);margin:auto}
+  .zkb-top{display:flex;align-items:baseline;gap:10px;color:#e8ecf6;margin:0 2px 10px}
+  .zkb-top b{flex:1;font:800 18px/1.3 var(--sans)}
+  .zkb-g{font:800 11px var(--mono);letter-spacing:1.2px;text-transform:uppercase;color:#9aa3b8}
+  .zkb-x{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font-size:17px;cursor:pointer}
+  .zkb-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;color:#c9d0e0}
+  .zkb-nav .btn{flex:none}
+  .zk-big{cursor:default;padding:16px 14px 16px;border-width:3px}
+  .zk-big .zk-zoom{display:none}
+  .zk-big .zk-strip{gap:4px}
+  .zk-big .zk-p svg{border-radius:14px}
+  .zk-big .zk-p figcaption{font-size:15px;margin-top:8px}
+  .zk-big.zk-svg .zk-ar{font-size:28px}
+  .zk-big .zk-strip.many{gap:14px 12px}
+  .zk-big .zk-strip.many .zk-p::before{width:24px;height:24px;font-size:13px;line-height:24px;left:6px;top:6px}
+  .zk-big .zk-say{margin-top:14px;gap:12px}
+  .zk-big .zk-ava{width:46px}
+  .zk-big .zk-say span{font-size:17px;padding:10px 14px}
+  @media(max-width:620px){
+    #zkBox{padding:10px;align-items:flex-start}
+    .zkb-top b{font-size:15px}
+    .zkb-nav{gap:6px} .zkb-nav .btn{flex:1 1 0;min-width:0;padding:9px 8px;font-size:12.5px;white-space:normal}   /* «предыдущий шаг» не влезал в 390px */
+    .zk-big .zk-strip:not(.many){flex-direction:column;align-items:center}
+    .zk-big .zk-strip:not(.many) .zk-p{width:100%;max-width:440px}
+    .zk-big .zk-strip:not(.many) .zk-ar{transform:rotate(90deg);margin:0}
+    .zk-big .zk-strip.many{grid-template-columns:1fr 1fr}
+    .zk-big .zk-p figcaption{font-size:14px}
+    .zk-big .zk-say span{font-size:15px}
+  }
   .zk-strip{display:flex;align-items:flex-start;gap:1px}
   .zk-p{flex:1 1 0;min-width:0;margin:0;text-align:center}
   .zk-p svg{display:block;width:100%;height:auto;border-radius:9px}
@@ -4328,10 +4364,36 @@ function zeroKidSvg(sv){
   const en=LANG==="en", T=p=>esc(en&&p[1]?p[1]:p[0]);
   const ava=window.ZKSVG_KIT?'<svg class="zk-ava" viewBox="-16 -62 32 66" aria-hidden="true">'+ZKSVG_KIT.bot(0,0,1,{mood:"smile",arms:"up"})+"</svg>":"";
   const many=sv.p.length>3;   /* четыре и больше — сеткой с номерами, стрелки в ряд не влезают */
-  return '<div class="zk zk-svg"><div class="zk-strip'+(many?" many n"+sv.p.length:"")+'">'
+  return '<div class="zk zk-svg" title="'+tr("Открыть крупно")+'"><span class="zk-zoom" aria-hidden="true">⤢</span><div class="zk-strip'+(many?" many n"+sv.p.length:"")+'">'
     +sv.p.map((p,j)=>(j&&!many?'<span class="zk-ar">›</span>':"")+'<figure class="zk-p" style="--d:'+(j*.35)+'s"><svg viewBox="0 0 120 90" role="img" aria-label="'+T(sv.l[j])+'">'+p+'</svg><figcaption>'+T(sv.l[j])+"</figcaption></figure>").join("")
     +'</div><div class="zk-say">'+ava+'<span>'+T(sv.c)+"</span></div></div>";
 }
+/* Крупный просмотр сценки: тап по сценке — окно поверх страницы, листание ← → / свайп / кнопки,
+   закрытие крестиком, тапом мимо или Esc. Листает шаги «С нуля» по порядку. */
+let ZKV=null;
+function zkOpen(i){
+  if(!ZERO[i])return;
+  let box=document.getElementById("zkBox");
+  if(!box){ box=document.createElement("div"); box.id="zkBox"; box.setAttribute("role","dialog"); box.setAttribute("aria-modal","true"); document.body.appendChild(box);
+    box.addEventListener("click",e=>{ if(e.target===box)zkClose(); });
+    let x0=null; box.addEventListener("touchstart",e=>{ x0=e.touches[0].clientX; },{passive:true});
+    box.addEventListener("touchend",e=>{ if(x0==null)return; const dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)>60)zkStep(dx<0?1:-1); },{passive:true}); }
+  ZKV={i}; const z=ZERO[i];
+  box.innerHTML='<div class="zkb-card"><div class="zkb-top"><span class="zkb-g">'+esc(tr(z.g))+'</span><b>'+esc(tr(z.t))+'</b>'
+    +'<button class="zkb-x" id="zkX" aria-label="close">✕</button></div>'
+    +zeroKid(z).replace('class="zk zk-svg"','class="zk zk-svg zk-big"')
+    +'<div class="zkb-nav"><button class="btn" id="zkPrev"'+(i>0?"":" disabled")+'>← '+tr("предыдущий шаг")+'</button><span class="muted2">'+(i+1)+" / "+ZERO.length+'</span><button class="btn" id="zkNext"'+(i<ZERO.length-1?"":" disabled")+'>'+tr("следующий шаг")+' →</button></div></div>';
+  box.hidden=false; document.body.classList.add("zk-open");
+  $("#zkX").onclick=zkClose; $("#zkPrev").onclick=()=>zkStep(-1); $("#zkNext").onclick=()=>zkStep(1);
+  const big=box.querySelector(".zk-big"); if(big){ big.title=""; requestAnimationFrame(()=>requestAnimationFrame(()=>big.classList.add("in"))); }
+}
+function zkStep(d){ if(!ZKV)return; const j=ZKV.i+d; if(j>=0&&j<ZERO.length)zkOpen(j); }
+function zkClose(){ const box=document.getElementById("zkBox"); if(box){ box.hidden=true; box.innerHTML=""; } document.body.classList.remove("zk-open");
+  if(ZKV){ const s=document.getElementById("zs"+ZKV.i); ZKV=null; if(s&&mode==="zero")s.scrollIntoView({block:"center"}); } }
+document.addEventListener("keydown",e=>{ if(!ZKV)return;
+  if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); zkClose(); }
+  else if(e.key==="ArrowRight"){ e.preventDefault(); e.stopPropagation(); zkStep(1); }
+  else if(e.key==="ArrowLeft"){ e.preventDefault(); e.stopPropagation(); zkStep(-1); } },true);
 function zkObserve(root){
   const els=root.querySelectorAll(".zk-svg:not(.in)"); if(!els.length)return;
   if(!("IntersectionObserver" in window)){ els.forEach(e=>e.classList.add("in")); return; }
@@ -4569,6 +4631,7 @@ function buildZero(){
   if(an){ an.checked=zeroAnimOn(); document.body.classList.toggle("no-anim",!an.checked);
     an.onchange=()=>{ zeroAnimOn(an.checked); document.body.classList.toggle("no-anim",!an.checked); }; }
   zkObserve(wrap);
+  wrap.querySelectorAll(".zero-step .zk-svg").forEach(k=>k.onclick=()=>zkOpen(+k.closest(".zero-step").dataset.i));
   zeroBarUI(); zeroNavUI();
   if(!buildZero._spy){ buildZero._spy=1;
     window.addEventListener("scroll",()=>{ if(mode==="zero")zeroSpy(); },{passive:true}); }

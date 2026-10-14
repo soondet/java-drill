@@ -1112,6 +1112,21 @@ const check = (name, ok, detail) => {
   check("детские кадры «С нуля»: у каждого шага, переключатель прячет", kid.всегоБез === 0 && kid.всегоБезРисунка === 0 && kid.всегоБезБита === 0 && kid.рисованных === kid.шагов && kid.шагов > 300 && kid.кадров === kid.шагов && kid.вкл > 0 && kid.выкл === 0 && kid.запомнил === "0" && kid.снова === kid.вкл,
     kid.всегоБез ? "без кадра " + kid.всегоБез + ": " + kid.без.join(" · ") : kid.всегоБезБита ? "Бит меньше чем в двух панелях: " + kid.всегоБезБита + " — " + kid.безБита.join(" · ") : kid.всегоБезРисунка ? "без рисованной сценки " + kid.всегоБезРисунка + ": " + kid.безРисунка.join(" · ") : "рисованных " + kid.рисованных + " · шагов " + kid.шагов + " · кадров " + kid.кадров + " · видно " + kid.вкл + " → выкл " + kid.выкл + " → снова " + kid.снова);
 
+  /* ---- крупный просмотр сценки ----
+     Тап по сценке открывает окно поверх страницы, листается стрелкой и кнопкой, Esc закрывает
+     и снимает блокировку прокрутки. Иначе после закрытия страница остаётся «замороженной». */
+  const zk = JSON.parse(await A.ev(`(async function(){ var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+    try{ setMode("zero"); await ж(200); var s=document.getElementById("zs3"); s.querySelector(".zk-svg").click(); await ж(150);
+      var box=document.getElementById("zkBox"), открыто=!!box&&!box.hidden&&!!box.querySelector(".zk-big"), t1=box.querySelector(".zkb-top b").textContent;
+      document.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true})); await ж(80); var t2=box.querySelector(".zkb-top b").textContent;
+      document.getElementById("zkPrev").click(); await ж(80); var t3=box.querySelector(".zkb-top b").textContent;
+      document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true})); await ж(80);
+      return JSON.stringify({открыто:открыто, листает:t1!==t2&&t3===t1, закрыто:box.hidden, прокрутка:!document.body.classList.contains("zk-open")});
+    } finally { if(typeof zkClose==="function") zkClose(); }
+  })()`));
+  check("сценка открывается крупно, листается и закрывается", zk.открыто && zk.листает && zk.закрыто && zk.прокрутка,
+    "открыто " + zk.открыто + " · листает " + zk.листает + " · закрыто " + zk.закрыто + " · прокрутка свободна " + zk.прокрутка);
+
   /* ---- дневной бюджет ----
      Раньше норма новых прибавлялась к повторам вслепую: по замеру лестницы
      на сороковой день набегало 144 карточки за раз. Теперь новые уступают

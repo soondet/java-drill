@@ -9700,7 +9700,10 @@ window.I18N = {
   "Егор Рогов": "Egor Rogov",
   "нагрузка, запас мощности и поведение под пиком": "load, capacity headroom and behaviour under the peak",
   "проверка отказов и бюджет ошибок": "failure testing and the error budget",
-  "🧸 для детей": "🧸 for kids"
+  "🧸 для детей": "🧸 for kids",
+  "Открыть крупно": "Open large",
+  "следующий шаг": "next step",
+  "предыдущий шаг": "previous step"
  },
  "cards": {
   "jc-eqhash": {
