@@ -768,11 +768,22 @@
   .zk-big.stepping .zk-p.now svg{box-shadow:0 0 0 3px #d6a43c,0 8px 22px rgba(0,0,0,.18)}
   .zk-big .zk-say span{min-height:2.9em;transition:background .2s}
   .zk-map{margin-top:12px;padding:10px 12px;border-radius:12px;background:#fff;border:1.5px dashed #e8c873;animation:viewIn .3s ease}
-  .zk-map[hidden]{display:none}
+  .zk-big.quizing .zk-p figcaption{visibility:hidden}   /* подпись выдавала ответ */
+  .zk-map[hidden],.zk-quiz[hidden],.zk-qr[hidden]{display:none}
+  .zk-quiz{margin-top:12px;padding:12px;border-radius:12px;background:#fff;border:1.5px solid #e8c873;animation:viewIn .3s ease}
+  .zk-q{font:800 16px/1.4 var(--sans);color:#3a2e1c;margin-bottom:10px}
+  .zk-qo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .zk-qb{font:700 14px/1.3 var(--sans);text-align:left;padding:10px 12px;border-radius:10px;border:1.5px solid #e3d3a6;background:#fffaf0;color:#3a2e1c;cursor:pointer;transition:.15s}
+  .zk-qb:hover{border-color:#d6a43c}
+  .zk-qb.ok{background:#dff3e2;border-color:#4cb963} .zk-qb.bad{background:#fde2e2;border-color:#ef5b5b} .zk-qb.off{opacity:.5}
+  .zk-qr{margin-top:9px;font:800 14px var(--sans);color:#2d4fb8}
+  @media(max-width:620px){ .zk-qo{grid-template-columns:1fr} .zk-q{font-size:14.5px} }
   .zk-map-h{font:800 11px var(--mono);letter-spacing:1.2px;text-transform:uppercase;color:#a07a22;margin-bottom:6px}
   .zk-map-r{display:flex;align-items:baseline;gap:8px;font:600 15px/1.45 var(--sans);color:#3a2e1c;padding:3px 0}
   .zk-map-r b{color:#d6a43c} .zk-map-e{width:24px;flex:none;text-align:center}
   .zk-map-t{font-weight:800;color:#2d4fb8}
+  .zkb-mid{display:flex;align-items:center;gap:10px;min-width:0}
+  .zkb-play{flex:none;width:38px;height:38px;padding:0;border-radius:50%;font-size:14px}
   .zkb-dots{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:center}
   .zkb-dots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22);font:800 8px/9px var(--sans);font-style:normal;text-align:center;color:#0b0f19}
   .zkb-dots i.was{background:rgba(214,164,60,.6)} .zkb-dots i.on{background:#ffc93c;transform:scale(1.35)}
@@ -781,7 +792,13 @@
     /* на телефоне панели столбиком — реплика уезжала за экран; в рассказе показываем одну текущую */
     .zk-big.stepping .zk-p:not(.now), .zk-big.stepping .zk-ar{display:none!important}
     .zk-big.stepping .zk-strip.many{grid-template-columns:1fr}
-    .zk-big.stepping .zk-p.now{transform:none!important} }
+    .zk-big.stepping .zk-p.now{transform:none!important}
+    /* вопрос и расшифровка: картинки в ряд мелко, иначе их не видно под тремя большими */
+    .zk-big.recap .zk-strip:not(.many){flex-direction:row;align-items:flex-start}
+    .zk-big.recap .zk-strip:not(.many) .zk-ar{display:none}
+    .zk-big.recap .zk-strip.many{grid-template-columns:repeat(3,1fr);gap:6px}
+    .zk-big.recap .zk-p figcaption{font-size:10.5px;margin-top:3px}
+    .zk-big.recap .zk-strip.many .zk-p::before{width:16px;height:16px;font-size:9px;line-height:16px;left:3px;top:3px} }
   @media(max-width:620px){
     #zkBox{padding:10px;align-items:flex-start}
     .zkb-top b{font-size:15px}
@@ -2043,6 +2060,9 @@
     .game-q{font-size:18px}
     .opts{grid-template-columns:1fr}
     pre.code{font-size:11.5px}
+    /* в «Найди баг» на телефоне код шире экрана в 67 задачах из 95, и метка «<-- ?» уезжала вбок —
+       переносим строки, чтобы баг был виден без прокрутки */
+    .game-play pre.code{white-space:pre-wrap;overflow-wrap:break-word;word-break:normal}
     .more-text{font-size:calc(15px * var(--ts));max-width:none}
     .ishak{font-size:calc(16px * var(--ts));max-width:none}
     .deep{max-width:none}
@@ -2801,10 +2821,6 @@
 <script src="behav.js"></script>
 <script src="take.js"></script>
 <script src="viz-zero.js"></script>
-<script src="kid-zero.js"></script>
-<script src="kid-svg.js"></script>
-<script src="kid-scenes.js"></script>
-<script src="kid-say.js"></script>
 <script src="zdrill.js"></script>
 <script src="tricky.js"></script>
 <script src="hacks.js"></script>
@@ -4403,37 +4419,64 @@ function zkOpen(i,p){
     box.addEventListener("touchend",e=>{ if(x0==null)return; const dx=e.changedTouches[0].clientX-x0; x0=null; if(Math.abs(dx)>60)zkStep(dx<0?1:-1); },{passive:true}); }
   const z=ZERO[i], key=z.g+"|"+z.t, say=(window.ZKSAY||{})[key], sv=(window.ZKSVG||{})[key], P=sv?sv.p.length:0;
   ZKV={i, P, say:say&&sv?say:null, p:0};
-  ZKV.p = !ZKV.say ? P : p==null ? 0 : Math.max(0,Math.min(P,p));
+  ZKV.end = ZKV.say ? P+1 : P;                       /* после панелей — вопрос (P), потом итог (P+1) */
+  ZKV.p = !ZKV.say ? P : p==null ? 0 : Math.max(0,Math.min(ZKV.end,p));
   box.innerHTML='<div class="zkb-card"><div class="zkb-top"><span class="zkb-g">'+esc(tr(z.g))+'</span><b>'+esc(tr(z.t))+'</b>'
     +'<button class="zkb-x" id="zkX" aria-label="close">✕</button></div>'
     +zeroKid(z).replace('class="zk zk-svg"','class="zk zk-svg zk-big in"')
-    +'<div class="zkb-nav"><button class="btn" id="zkPrev"></button><span class="zkb-dots" id="zkDots"></span><button class="btn" id="zkNext"></button></div></div>';
+    +'<div class="zkb-nav"><button class="btn" id="zkPrev"></button><span class="zkb-mid"><button class="btn zkb-play" id="zkPlay" aria-label="play"></button><span class="zkb-dots" id="zkDots"></span></span><button class="btn" id="zkNext"></button></div></div>';
   box.hidden=false; document.body.classList.add("zk-open");
-  $("#zkX").onclick=zkClose; $("#zkPrev").onclick=()=>zkStep(-1); $("#zkNext").onclick=()=>zkStep(1);
+  $("#zkX").onclick=zkClose; $("#zkPrev").onclick=()=>{ zkPlay(false); zkStep(-1); }; $("#zkNext").onclick=()=>{ zkPlay(false); zkStep(1); };
+  $("#zkPlay").onclick=()=>zkPlay(!ZKPLAY);
   const big=box.querySelector(".zk-big"); if(big){ big.title=""; big.onclick=null;
-    if(ZKV.say){ big.querySelectorAll(".zk-p").forEach((f,j)=>{ f.style.cursor="pointer"; f.onclick=()=>{ ZKV.p=j; zkShow(); }; });
+    if(ZKV.say){ big.querySelectorAll(".zk-p").forEach((f,j)=>{ f.style.cursor="pointer"; f.onclick=()=>{ zkPlay(false); ZKV.p=j; zkShow(); }; });
       const m=document.createElement("div"); m.className="zk-map"; const en=LANG==="en";
       m.innerHTML='<div class="zk-map-h">'+tr("Что есть что")+'</div>'+ZKV.say.m.map(r=>'<div class="zk-map-r"><span class="zk-map-e">'+esc(r[0])+'</span><span>'+esc(en?r[3]:r[1])+'</span><b>=</b><span class="zk-map-t">'+esc(en?r[4]:r[2])+"</span></div>").join("");
-      big.appendChild(m); } }
+      big.appendChild(m);
+      const q=document.createElement("div"); q.className="zk-quiz"; q.hidden=true; big.appendChild(q); zkQuizFill(q); } }
   zkShow();
 }
 function zkShow(){
   const box=document.getElementById("zkBox"); if(!box||!ZKV)return;
-  const big=box.querySelector(".zk-big"), {i,P,p,say}=ZKV, en=LANG==="en", fin=p>=P;
-  if(big){ big.classList.toggle("stepping",!!say&&!fin);
+  const big=box.querySelector(".zk-big"), {i,P,p,say}=ZKV, en=LANG==="en", fin=p>=P, quiz=!!say&&p===P, done=p>=ZKV.end;
+  if(big){ big.classList.toggle("stepping",!!say&&!fin); big.classList.toggle("quizing",quiz); big.classList.toggle("recap",!!say&&fin);
     big.querySelectorAll(".zk-p").forEach((f,j)=>{ f.classList.toggle("now",!!say&&!fin&&j===p); f.classList.toggle("later",!!say&&!fin&&j>p); });
     const sp=big.querySelector(".zk-say span"), sv=(window.ZKSVG||{})[ZERO[i].g+"|"+ZERO[i].t];
     if(sp&&sv) sp.textContent = say&&!fin ? (en?say.n[p][1]:say.n[p][0]) : (en&&sv.c[1]?sv.c[1]:sv.c[0]);
-    const m=big.querySelector(".zk-map"); if(m)m.hidden=!fin; }
-  const dots=$("#zkDots"); if(dots) dots.innerHTML=(say?Array.from({length:P+1},(_,j)=>'<i class="'+(j===p?"on":j<p?"was":"")+'">'+(j===P?"✓":"")+"</i>").join(""):"")+'<span>'+(i+1)+" / "+ZERO.length+"</span>";
+    const m=big.querySelector(".zk-map"); if(m)m.hidden=!done;
+    const q=big.querySelector(".zk-quiz"); if(q)q.hidden=!quiz;
+    if(quiz&&sp) sp.textContent=tr("Проверь себя: что это на самом деле?"); }
+  const dots=$("#zkDots"); if(dots) dots.innerHTML=(say?Array.from({length:ZKV.end+1},(_,j)=>'<i class="'+(j===p?"on":j<p?"was":"")+'">'+(j===ZKV.end?"✓":j===P?"?":"")+"</i>").join(""):"")+'<span>'+(i+1)+" / "+ZERO.length+"</span>";
+  const pl=$("#zkPlay"); if(pl){ pl.textContent=ZKPLAY?"⏸":"▶"; pl.title=ZKPLAY?tr("пауза"):tr("листать само"); }
   const pv=$("#zkPrev"), nx=$("#zkNext");
   if(pv){ pv.textContent="← "+(say&&p>0?tr("назад по картинке"):tr("предыдущий шаг")); pv.disabled=!(p>0&&say)&&i===0; }
-  if(nx){ nx.textContent=(say&&!fin?tr("дальше по картинке"):tr("следующий шаг"))+" →"; nx.disabled=fin&&i>=ZERO.length-1; }
+  if(nx){ nx.textContent=(say&&!done?(quiz?tr("к ответу"):tr("дальше по картинке")):tr("следующий шаг"))+" →"; nx.disabled=done&&i>=ZERO.length-1; }
 }
-function zkStep(d){ if(!ZKV)return;
-  if(ZKV.say){ if(d>0&&ZKV.p<ZKV.P){ ZKV.p++; return zkShow(); } if(d<0&&ZKV.p>0){ ZKV.p--; return zkShow(); } }
+/* Мультик: рассказ листается сам каждые 4 с — по панелям и дальше по шагам. Любое ручное
+   действие (кнопка, стрелка, свайп, тап по панели) или закрытие окна его останавливает. */
+let ZKPLAY=null;
+function zkPlay(on){ clearInterval(ZKPLAY); ZKPLAY=null;
+  if(on) ZKPLAY=setInterval(()=>{ if(!ZKV) return zkPlay(false); if(ZKV.p>=ZKV.end&&ZKV.i>=ZERO.length-1) return zkPlay(false); zkStep(1,true); },4000);
+  const b=$("#zkPlay"); if(b){ b.textContent=ZKPLAY?"⏸":"▶"; b.title=ZKPLAY?tr("пауза"):tr("листать само"); } }
+/* «Проверь себя»: одна пара из «что есть что» — картинка спрошена, термин среди трёх чужих
+   из той же темы (иначе из соседних шагов). Ответ подсвечивается, дальше — расшифровка целиком. */
+function zkQuizFill(q){
+  const {i,say}=ZKV, en=LANG==="en", z=ZERO[i], pick=say.m[i%say.m.length], right=en?pick[4]:pick[2];
+  const S=window.ZKSAY||{}, pool=[];
+  const add=zz=>{ const s=S[zz.g+"|"+zz.t]; if(s) s.m.forEach(r=>{ const v=en?r[4]:r[2]; if(v!==right&&!pool.includes(v)&&!say.m.some(x=>(en?x[4]:x[2])===v)) pool.push(v); }); };
+  ZERO.forEach(zz=>{ if(zz.g===z.g&&zz!==z) add(zz); });
+  for(let d=1;pool.length<3&&d<40;d++){ if(ZERO[i+d])add(ZERO[i+d]); if(ZERO[i-d])add(ZERO[i-d]); }
+  const wrong=shuffle(pool).slice(0,3), opts=shuffle([right,...wrong]);
+  q.innerHTML='<div class="zk-q">'+esc(pick[0])+" «"+esc(en?pick[3]:pick[1])+"» — "+tr("это…")+'</div><div class="zk-qo">'
+    +opts.map(o=>'<button class="zk-qb" data-ok="'+(o===right?1:0)+'">'+esc(o)+"</button>").join("")+'</div><div class="zk-qr" hidden></div>';
+  q.querySelectorAll(".zk-qb").forEach(b=>b.onclick=()=>{ zkPlay(false); if(q.dataset.done)return; q.dataset.done=1;
+    q.querySelectorAll(".zk-qb").forEach(x=>x.classList.add(x.dataset.ok==="1"?"ok":x===b?"bad":"off"));
+    const r=q.querySelector(".zk-qr"); r.hidden=false; r.textContent=b.dataset.ok==="1"?"✓ "+tr("верно"):"✗ "+tr("правильно")+": "+right; });
+}
+function zkStep(d,auto){ if(!ZKV)return; if(!auto&&ZKPLAY) zkPlay(false);
+  if(ZKV.say){ if(d>0&&ZKV.p<ZKV.end){ ZKV.p++; return zkShow(); } if(d<0&&ZKV.p>0){ ZKV.p--; return zkShow(); } }
   const j=ZKV.i+d; if(j>=0&&j<ZERO.length) zkOpen(j, d<0?1e9:0); }
-function zkClose(){ const box=document.getElementById("zkBox"); if(box){ box.hidden=true; box.innerHTML=""; } document.body.classList.remove("zk-open");
+function zkClose(){ zkPlay(false); const box=document.getElementById("zkBox"); if(box){ box.hidden=true; box.innerHTML=""; } document.body.classList.remove("zk-open");
   if(ZKV){ const s=document.getElementById("zs"+ZKV.i); ZKV=null; if(s&&mode==="zero")s.scrollIntoView({block:"center"}); } }
 document.addEventListener("keydown",e=>{ if(!ZKV)return;
   if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); zkClose(); }
@@ -4627,7 +4670,20 @@ function buildMoney(){
     MDONE.clear(); moneySave(); buildMoney(); moneyBarUI(); };
   moneyBarUI();
 }
+/* Сценки «С нуля» весят ~1.1 МБ и ~40 мс разбора (на телефоне в разы дольше), а нужны только
+   в этом разделе. На сайте грузим их при первом входе сюда; в однофайловой сборке они вшиты
+   (build.js, LAZY) и уже на месте. Пока грузятся — шаги рисуются без картинок. */
+const ZK_FILES=["kid-zero.js","kid-svg.js","kid-scenes.js","kid-say.js"];
+let zkLoading=null;
+function zkLoad(){
+  if(window.ZKSAY&&window.ZKSVG&&window.ZKID) return Promise.resolve(true);
+  if(zkLoading) return zkLoading;
+  zkLoading=ZK_FILES.reduce((p,f)=>p.then(()=>new Promise(res=>{ const s=document.createElement("script"); s.src=f; s.onload=s.onerror=()=>res(); document.head.appendChild(s); })),Promise.resolve())
+    .then(()=>!!window.ZKSVG);
+  return zkLoading;
+}
 function buildZero(){
+  if(!(window.ZKSAY&&window.ZKSVG)) zkLoad().then(ok=>{ if(ok&&mode==="zero"&&!ZQ) buildZero(); });
   const wrap=$("#zeroList"); if(!wrap)return;
   if(!ZERO.length){ wrap.innerHTML='<div class="muted">раздел не загружен</div>'; return; }
   const gs=zeroGroups(); const key={}; gs.forEach(gr=>gr.ids.forEach(i=>key[i]=gr.key));

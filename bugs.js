@@ -550,7 +550,7 @@ window.BUGS = [
   "id": "bug2-buildtime-env",
   "t": "Quarkus",
   "correct": 1,
-  "code": "@ApplicationScoped\npublic class FeatureGate {\n\n    // application.properties: quarkus.hibernate-orm.database.generation=${DB_GEN:none}\n\n    @ConfigProperty(name = \"quarkus.hibernate-orm.database.generation\")\n    String dbGen; // <-- ?\n\n    public boolean isDropCreate() {\n        return \"drop-and-create\".equals(dbGen);\n    }\n}",
+  "code": "@ApplicationScoped\npublic class FeatureGate {\n\n    // application.properties:\n    // quarkus.hibernate-orm.database.generation=\n    //     ${DB_GEN:none}\n\n    @ConfigProperty(\n        name = \"quarkus.hibernate-orm.database.generation\")\n    String dbGen; // <-- ?\n\n    public boolean isDropCreate() {\n        return \"drop-and-create\".equals(dbGen);\n    }\n}",
   "options": [
    "@ConfigProperty нельзя инжектить String без Optional — при отсутствии значения будет DeploymentException на старте",
    "Это build-time свойство: оно фиксируется при сборке, и env-переменная DB_GEN в рантайме уже не подействует",
@@ -654,7 +654,7 @@ window.BUGS = [
   "id": "bug2-float-equals-assert",
   "t": "Testing",
   "correct": 1,
-  "code": "@Test\nvoid commissionIsCalculatedCorrectly() {\n    double amount = 0.1 + 0.2;\n    double commission = priceService.calcCommission(amount); // returns amount * 1.0\n\n    assertEquals(0.3, commission); // <-- ?\n}",
+  "code": "@Test\nvoid commissionIsCalculatedCorrectly() {\n    double amount = 0.1 + 0.2;\n    // calcCommission returns amount * 1.0\n    double commission =\n        priceService.calcCommission(amount);\n\n    assertEquals(0.3, commission); // <-- ?\n}",
   "options": [
    "calcCommission должен возвращать BigDecimal, иначе тест не компилируется",
    "assertEquals сравнивает double точно, а 0.1+0.2 ≠ 0.3 — нужна delta",
@@ -680,7 +680,7 @@ window.BUGS = [
   "id": "bug2-jwt-none-alg",
   "t": "Web",
   "correct": 1,
-  "code": "public Claims verify(String token) {\n    return Jwts.parser()\n        .setSigningKey(secretKey)\n        .parseClaimsJws(token)\n        .getBody();\n}\n\npublic String getUserId(String token) {\n    String[] parts = token.split(\"\\\\.\");\n    String payload = new String(Base64.getDecoder().decode(parts[1])); // <-- ?\n    return new ObjectMapper().readValue(payload, Map.class).get(\"sub\").toString();\n}",
+  "code": "public Claims verify(String token) {\n    return Jwts.parser()\n        .setSigningKey(secretKey)\n        .parseClaimsJws(token)\n        .getBody();\n}\n\npublic String getUserId(String token) {\n    String[] parts = token.split(\"\\\\.\");\n    String payload = new String(\n        Base64.getDecoder().decode(parts[1])); // <-- ?\n    return new ObjectMapper()\n        .readValue(payload, Map.class)\n        .get(\"sub\").toString();\n}",
   "options": [
    "verify() использует setSigningKey без указания требуемого алгоритма — но это не главная проблема здесь",
    "getUserId() читает sub из непроверенного payload в обход verify() — sub можно подделать",

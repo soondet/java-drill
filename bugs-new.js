@@ -95,7 +95,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "id": "bug-dw2",
   "t": "Spring",
   "correct": 3,
-  "code": "@Service\nclass ClientService {\n    @Transactional\n    public void register(ClientDto dto) {\n        Client c = repo.save(Client.from(dto));\n        welcome.sendAsync(c.getId());   // welcome — отдельный бин, прокси работает   // <-- ?\n        scoring.check(c);               // ещё ~2 секунды\n    }   // коммит здесь\n}\n\n@Service\nclass WelcomeService {\n    @Async\n    public void sendAsync(Long id) {\n        Client c = repo.findById(id).orElseThrow();   // иногда NoSuchElementException\n        mail.send(c.getEmail());\n    }\n}",
+  "code": "@Service\nclass ClientService {\n    @Transactional\n    public void register(ClientDto dto) {\n        Client c = repo.save(Client.from(dto));\n        // welcome — отдельный бин, прокси работает\n        welcome.sendAsync(c.getId());   // <-- ?\n        scoring.check(c);               // ещё ~2 секунды\n    }   // коммит здесь\n}\n\n@Service\nclass WelcomeService {\n    @Async\n    public void sendAsync(Long id) {\n        // иногда NoSuchElementException:\n        Client c = repo.findById(id).orElseThrow();\n        mail.send(c.getEmail());\n    }\n}",
   "options": [
    "Ошибка в том, что @Async-метод не может быть одновременно @Transactional",
    "findById надо заменить на getReferenceById — тогда сущность найдётся",
@@ -108,7 +108,7 @@ window.BUGS=(window.BUGS||[]).concat([
   "id": "bug-money1",
   "t": "Java",
   "correct": 1,
-  "code": "BigDecimal price = new BigDecimal(19.99);   // <-- ?\n\nBigDecimal total = price.multiply(BigDecimal.valueOf(1000))\n                        .setScale(2, RoundingMode.DOWN);   // усечение, как в биллинге\n\n// ожидали 19990.00, в отчёте 19989.99",
+  "code": "BigDecimal price = new BigDecimal(19.99);   // <-- ?\n\n// усечение, как в биллинге:\nBigDecimal total = price\n        .multiply(BigDecimal.valueOf(1000))\n        .setScale(2, RoundingMode.DOWN);\n\n// ожидали 19990.00, в отчёте 19989.99",
   "options": [
    "Ошибки нет: BigDecimal точен по определению, расхождению взяться неоткуда",
    "new BigDecimal(double) сохраняет ТОЧНОЕ двоичное значение (19.98999999999999843680…), хвост доезжает до умножения (19989.99999999999843…), и усечение даёт 19989.99; нужен new BigDecimal(\"19.99\") или BigDecimal.valueOf",

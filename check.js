@@ -1120,17 +1120,20 @@ const check = (name, ok, detail) => {
       var box=document.getElementById("zkBox"), открыто=!!box&&!box.hidden&&!!box.querySelector(".zk-big"), t1=box.querySelector(".zkb-top b").textContent;
       var фразы=[], P=ZKV.P, рассказ=!!ZKV.say;
       for(var k=0;k<P;k++){ фразы.push(box.querySelector(".zk-say span").textContent); document.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true})); await ж(40); }
-      var итог=box.querySelector(".zk-map"), расшифровка=!!итог&&!итог.hidden&&итог.querySelectorAll(".zk-map-r").length>=2;
+      var кв=box.querySelector(".zk-quiz"), вопрос=!!кв&&!кв.hidden&&кв.querySelectorAll(".zk-qb").length===4&&кв.querySelectorAll('.zk-qb[data-ok="1"]').length===1;
+      if(вопрос){ кв.querySelector(".zk-qb").click(); await ж(30); вопрос=!!кв.querySelector(".zk-qb.ok")&&!кв.querySelector(".zk-qr").hidden; }
+      document.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true})); await ж(40);
+      var итог=box.querySelector(".zk-map"), расшифровка=вопрос&&!!итог&&!итог.hidden&&итог.querySelectorAll(".zk-map-r").length>=2;
       var разные=new Set(фразы).size===P, тотЖе=box.querySelector(".zkb-top b").textContent===t1;
       document.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true})); await ж(60); var t2=box.querySelector(".zkb-top b").textContent;
-      document.getElementById("zkPrev").click(); await ж(60); var t3=box.querySelector(".zkb-top b").textContent, вИтоге=ZKV.p===ZKV.P;
+      document.getElementById("zkPrev").click(); await ж(60); var t3=box.querySelector(".zkb-top b").textContent, вИтоге=ZKV.p===ZKV.end;
       document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true})); await ж(80);
       return JSON.stringify({открыто:открыто, рассказ:рассказ&&разные&&тотЖе&&расшифровка, листает:t1!==t2&&t3===t1&&вИтоге, закрыто:box.hidden, прокрутка:!document.body.classList.contains("zk-open")});
     } finally { if(typeof zkClose==="function") zkClose(); }
   })()`));
   /* у каждой сценки должен быть рассказ по панелям и расшифровка «что есть что» */
   const zks = JSON.parse(await A.ev(`(function(){ var S=window.ZKSAY||{}, V=window.ZKSVG||{}, bad=ZERO.filter(function(z){ var k=z.g+"|"+z.t, s=S[k], v=V[k]; return !s||!v||!s.n||s.n.length!==v.p.length||!s.m||s.m.length<2; }).map(function(z){return z.t;}); return JSON.stringify({n:bad.length, ex:bad.slice(0,3)}); })()`));
-  check("сценка: крупно, рассказ по панелям, «что есть что», листается и закрывается", zk.открыто && zk.рассказ && zk.листает && zk.закрыто && zk.прокрутка && zks.n === 0,
+  check("сценка: крупно, рассказ, «проверь себя», «что есть что», листается и закрывается", zk.открыто && zk.рассказ && zk.листает && zk.закрыто && zk.прокрутка && zks.n === 0,
     zks.n ? "без рассказа " + zks.n + ": " + zks.ex.join(" · ") : "открыто " + zk.открыто + " · рассказ " + zk.рассказ + " · листает " + zk.листает + " · закрыто " + zk.закрыто + " · прокрутка свободна " + zk.прокрутка);
 
   /* ---- дневной бюджет ----
