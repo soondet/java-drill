@@ -235,7 +235,7 @@
         bg(1)+post(94,"wow")+tag(94,18,"?",12,C.red)+B(36,.95,{mood:"sad",arms:"reach",item:envT("mian",C.red)}),
         bg(2)+post(94)+ok(94,16,.8)+B(36,.95,{mood:"happy",arms:"reach",item:envT("main",C.grn)}) ],
     l:[["код живёт в классе","code lives in a class"],["mian — не найдут","mian — not found"],["ровно main — принято","exactly main — accepted"]],
-    c:["JVM ищет в классе метод main с точной подписью. Ошибёшься в имени — не запустит.","The JVM looks for main with an exact signature. Get the name wrong and it won't start."] };
+    c:["JVM ищет метод с именем main. Ошибёшься в имени — не запустит.","The JVM looks for a method named main. Misspell it and nothing runs."] };
 
   /* 29 */
   Z[F+"Что происходит при запуске, по шагам"]={
@@ -287,7 +287,7 @@
         bg(1)+[[70,82],[86,82],[102,82],[78,68],[94,68],[86,54],[110,70]].map(q=>box(q[0],q[1],14,13,"5")).join("")+tag(88,30,"×1000",9,C.red)+B(34,.95,{mood:"sweat",arms:"carry",item:box(0,8,16,14,"5")}),
         bg(2)+box(80,82,24,18,"")+txt(80,76,"1000",7,"#fff")+box(106,82,24,18,"")+txt(106,76,"1000",7,"#fff")+tag(93,48,"==",11)+no(93,32,.8)+B(34,.95,{mood:"dizzy",arms:"point"}) ],
     l:[["int сам лёг в коробку","int boxed itself"],["в цикле — гора коробок","a loop: a box pile"],["== вдруг врёт","== suddenly lies"]],
-    c:["Java сама кладёт int в коробку Integer. Удобно, но каждая коробка — новый объект.","Java quietly boxes int into Integer. Handy, but each box is a new object."] };
+    c:["Java сама кладёт int в коробку Integer. Удобно, но коробка — объект, а не число.","Java boxes an int into an Integer by itself. Handy, but a box is an object, not a number."] };
 
   /* 35 */
   const bk=(c)=>book(0,0,c||C.red,"Hi");
@@ -523,8 +523,8 @@
         bg(1)+door(106,74)+lock(106,48,.55)+kid(16,82,.7,C.red,"sad")+kid(36,82,.7,C.grn,"sad")+B(70,.85,{mood:"sweat",arms:"down"})+clock(44,18,.9,4),
         bg(2)+door(104,74)+kid(16,82,.7,C.red,"wow")+B(56,.9,{arms:"up",mood:"dizzy"})+think(82,20,key(13,-2,.6)+txt(24,3,"?",10,C.red)),
         bg(3)+card(88,40,40,30,"#fff",txt(0,-2,"@Bean",8,C.grn)+txt(0,10,"×1",9,C.ink))+B(36,.9,{arms:"point",mood:"happy"})+ok(108,66,.7) ],
-    l:[["один ключ на этаж","one key for the floor"],["один внутри — все ждут","one inside — all wait"],["у кого ключ — не помнят","who has it — no one knows"],["в Spring бины уже одни","Spring beans: one already"]],
-    c:["Один объект на всех — это общая очередь. В Spring бины и так одиночки, свой не пиши.","One object for everyone means one queue. Spring beans are singletons anyway — skip your own."] };
+    l:[["один ключ на этаж","one key for the floor"],["все трогают одно сразу","everyone touches it at once"],["у кого ключ — не помнят","who has it — no one knows"],["в Spring бины уже одни","Spring beans: one already"]],
+    c:["Один объект на всех — это глобальное состояние. В Spring бины и так одиночки, свой не пиши.","One object for everyone is global state. Spring beans are singletons already, don't write one."] };
 
   /* ===== Коллекции ===== */
   Z["Java: коллекции|Массив — жёсткая полка"]={
@@ -553,7 +553,7 @@
         bg(1)+B(36,.95,{arms:"hold",mood:"think",item:at(0,0,clip(0,0,[C.red,C.blue,C.grn]),.65)})+kid(94,82,.85,C.red,"sad")+no(94,22,.9)+txt(66,40,"×2",10,C.red),
         bg(2)+clip(84,50,[C.red,C.blue,C.grn,C.yel])+B(38,.95,{arms:"reach",mood:"happy",item:mag(14,-4,.9)})+ok(104,18,.8) ],
     l:[["новый гость — вписал","new guest — added"],["второй раз — нельзя","twice — not allowed"],["есть ли? — сразу ответ","is it in? — instant answer"]],
-    c:["В Set каждый записан один раз. Спроси «есть ли такой?» — отвечу сразу. Порядок не храню.","A Set lists each one once. Ask \"is it in?\" and I answer at once. I don't keep order."] };
+    c:["В Set каждый записан один раз. Спроси «есть ли такой?» — HashSet ответит сразу.","In a Set everyone is listed once. Ask \"is this one here?\" and a HashSet answers at once."] };
 
   Z["Java: коллекции|Как выбрать: три вопроса"]={
     p:[ bg(0)+[["List",56],["Map",80],["Set",104]].map(c=>crate(c[1],82,20,16)+txt(c[1],58,c[0],7,C.blue)).join("")+B(24,.9,{arms:"point",mood:"think"})+txt(86,24,"?",16,C.red),
@@ -561,7 +561,7 @@
         bg(2)+txt(60,14,"Map",9,C.blue)+ln("M78 20 H116",C.ink,2)+coat(98,20,C.red)+txt(98,56,"17",8,C.red)+B(36,.9,{arms:"reach",mood:"smile",item:ticket(10,0,"17",C.yel)}),
         bg(3)+txt(60,14,"Set",9,C.blue)+kid(96,82,.85,C.blue)+txt(96,26,"?",12)+B(38,.95,{arms:"hold",mood:"happy",item:at(0,0,clip(0,0,[C.red,C.blue]),.65)})+ok(66,26,.8) ],
     l:[["сначала — какая задача?","first — what's the job?"],["порядок, номер — List","order, index — List"],["поиск по ключу — Map","lookup by key — Map"],["было ли уже — Set","seen it yet? — Set"]],
-    c:["Сначала пойми задачу: очередь, гардероб или список гостей. Потом бери коллекцию.","First get the job: a queue, a cloakroom, or a guest list. Then pick the collection."] };
+    c:["Сначала пойми задачу: полка по номерам, гардероб или список гостей. Потом коллекция.","First get the task: numbered shelf, coat check or guest list. Then pick a collection."] };
 
   Z["Java: коллекции|Почему equals и hashCode всегда идут парой"]={
     p:[ bg(0)+cab(60,76,"1")+cab(82,76,"2",C.yel)+cab(104,76,"3")+B(30,.9,{arms:"carry",mood:"smile",item:card(0,0,16,14,"#fff",txt(0,4,"A",9,C.red))})+curve(42,20,82,38,C.blue,true),
@@ -1288,8 +1288,8 @@
     p:[ bg(0)+cart(46,84,44)+chainP(36,62)+chainP(56,62)+B(46,74,.9,{mood:"sad",arms:"down"})+tag(86,22,"synchronized",C.red,58),
         bg(1)+db(106,58,.8)+cart(48,84,44)+B(48,74,.9,{mood:"sleep"})+chainP(38,62)+chainP(58,62)+B2(84,82,.6,{mood:"sweat"})+clock(18,22,.9,7),
         bg(2)+cart(84,84,40)+B2(84,74,.8,{mood:"happy",arms:"up"})+B(32,82,.95,{mood:"happy",arms:"reach",item:key(0,0,.8)})+tag(60,14,"ReentrantLock",C.grn,62) ],
-    l:[["synchronized — прибит","synchronized: pinned"],["жду базу и держу поток","waiting, holding the cart"],["ReentrantLock — слез","ReentrantLock: I hop off"]],
-    c:["В synchronized я прицеплен к тележке ОС и не слезаю, даже когда жду. ReentrantLock отцепляет.","Inside synchronized I'm chained to the OS cart while I wait. ReentrantLock unchains me."] };
+    l:[["до Java 24 — прибит","before Java 24 — pinned"],["жду базу и держу поток","waiting, holding the cart"],["ReentrantLock — слез","ReentrantLock: I hop off"]],
+    c:["До Java 24 synchronized приковывал меня к тележке ОС, спасал ReentrantLock. Теперь цепи сняли.","Before Java 24 synchronized chained me to the cart; ReentrantLock helped. Now chains are off."] };
 
   /* 16 — пул не нужен */
   Z[V+"Пул виртуальных потоков не нужен"]={
@@ -1632,7 +1632,7 @@
         bg(1)+row(6,10,40,"#fff","$ 100")+lock(54,18,.8)+clock(96,26,.8,3)+kid(76,82,.6,C.blue,"sad")+kid(94,82,.6,C.yel,"sad")+kid(110,82,.6,C.grn,"sad")+B(30,.9,{mood:"sweat",arms:"reach"}),
         bg(2)+row(6,10,40,C.grn,"$ 70","#fff")+kid(98,82,.7,C.blue)+ok(98,34,.7)+B(34,.95,{mood:"happy",arms:"reach",item:lock(0,0,1,true)}) ],
     l:[["запер строку","locked the row"],["остальные ждут","everyone else waits"],["отпустил — следующий","released — next one goes"]],
-    c:["Запираю строку до конца транзакции. Никто не перепишет, но все остальные ждут.","I lock the row until the transaction ends. No one overwrites it, but everyone else waits."] };
+    c:["Запираю строку до конца транзакции. Кто хочет её менять — ждёт, а простое чтение идёт.","I lock the row until my transaction ends. Writers wait, but plain reads still go through."] };
 
   Z[DL+"Дедлок бывает и в базе"]={
     p:[ bg(0)+`<path d="M38 36 Q60 14 84 36" fill="none" stroke="${C.red}" stroke-width="1.6" stroke-dasharray="3 2"/><path d="M84 46 Q60 26 38 46" fill="none" stroke="${C.blue}" stroke-width="1.6" stroke-dasharray="3 2"/>`+clock(60,62,.7,6)+B(24,.85,{mood:"angry",arms:"hold",item:box(0,6,14,12,"A")})+B(96,.85,{mood:"angry",hat:"cap",arms:"hold",flip:true})+box(96,78,14,12,"B"),
@@ -1725,7 +1725,7 @@
         bg(1)+lane(14,20,["0","1","2","3","4","5","6","7"],"#fff")+mark(66,13)+boom(26,50,1.1)+retry(40,62,C.grn)+B(66,.85,{mood:"sweat",arms:"up"}),
         bg(2)+lane(14,20,["0","1","2","3","4","5","6","7"],"#fff")+mark(27,13)+`<path d="M70 32 Q50 44 30 32" fill="none" stroke="${C.blue}" stroke-width="1.6" stroke-dasharray="3 2"/><path d="M30 32 l2 5 M30 32 l6 0" stroke="${C.blue}" stroke-width="1.6" stroke-linecap="round"/>`+B(66,.85,{mood:"happy",flip:true,legs:"run",arms:"up"}) ],
     l:[["закладка на 4","bookmark at 4"],["упал, встал — с 4-го","crashed, up — from 4"],["отмотал назад — заново","rewound — replay"]],
-    c:["Помню номер последнего прочитанного. Упал — продолжу с него, захочу — отмотаю назад.","I remember the last offset I read. Crash — I resume there; or I rewind to replay."] };
+    c:["Помню номер следующего к чтению. Упал — продолжу с него, захочу — отмотаю назад.","I remember the next offset to read. If I crash I resume there; if I want, I rewind."] };
 
   Z[KF+"Когда Kafka лишняя"]={
     p:[ bg(0)+txt(86,18,"Kafka",8,C.bot2)+server(70,52,.7)+server(88,52,.7)+server(106,52,.7)+B(28,.9,{mood:"sweat",arms:"push",item:env(0,0,.4)}),
@@ -2336,7 +2336,7 @@
         bg(1)+blk(88,80,34,12,"FROM",C.grey)+blk(88,56,34,12,"COPY",C.grn)+`<rect x="71" y="57" width="34" height="11" fill="none" stroke="${C.ink}" stroke-dasharray="3 2"/>`+bot(36,82,.95,{arms:"carry",mood:"think",item:blk(0,6,30,12,"RUN",C.blue)}),
         bg(2)+blk(92,80,34,12,"FROM",C.grey)+blk(92,68,34,12,"RUN",C.blue)+`<rect x="75" y="45" width="34" height="11" fill="none" stroke="${C.ink}" stroke-dasharray="3 2"/>`+spark(110,40)+clock(110,64,.6,1)+bot(26,82,.95,{arms:"reach",mood:"happy",item:blk(11,6,30,12,"COPY",C.grn)}) ],
     l:[["код ниже — всё заново","code low — redo it all"],["зависимости — пониже","dependencies go lower"],["правка — только верх","an edit — just the top"]],
-    c:["Пересобирается всё выше изменённой строки. Поэтому зависимости ставлю раньше кода.","Everything above a changed line gets rebuilt. So I install deps before copying code."] };
+    c:["Пересобирается всё после изменённой строки. Поэтому зависимости ставлю раньше кода.","Everything after the changed line gets rebuilt. So I install dependencies before the code."] };
 
   const wall=`<rect x="58" y="14" width="56" height="60" rx="2" fill="#fff" fill-opacity=".8" stroke="${C.ink}" stroke-width="1.2"/>`;
   Z[D+"Всё, что контейнер записал, умрёт вместе с ним"]={
@@ -2777,7 +2777,7 @@
           b(30,.95,{arms:"point",mood:"think"}),
         bg(2)+bars(52,72,[8,7,9,8,7,8,9,7,8],4,1.5,C.grn)+`<rect x="102" y="20" width="8" height="52" rx="1.5" fill="${C.red}"/>`+pill(84,22,"p99",C.red,"#fff",7)+
           b(24,.9,{arms:"point",mood:"wow"}) ],
-    l:[["девять быстро, один ждёт","nine fast, one waits"],["средняя: «всё хорошо»","average: \"all fine\""],["p99: десятому плохо","p99: 1 in 10 suffers"]],
+    l:[["девять быстро, один ждёт","nine fast, one waits"],["средняя: «всё хорошо»","average: \"all fine\""],["p90: десятому плохо","p90: every 10th suffers"]],
     c:["Средняя прячет беду. Смотрю p95 и p99 — они показывают, как живёт самый невезучий.","The average hides trouble. I look at p95 and p99 — they show the unluckiest user."] };
 
   /* ---------------- Prometheus и Grafana ---------------- */
