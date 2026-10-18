@@ -797,6 +797,22 @@ const check = (name, ok, detail) => {
   const bad = JSON.parse(wide);
   check("на 390px ничего не вылезает вбок", bad.length === 0, bad.length ? bad.slice(0, 5).join(", ") : cards + " карточек");
 
+  /* Схема могла не вылезать за страницу, но прокручиваться вбок внутри рамки (220 из 855
+     до подгонки fitOne), уезжать за левый край при центровке, а подпись с «List<String>»
+     проглатывала остаток карточки. Сторож меряет каждую схему на 390px. */
+  const fitR = JSON.parse(await A.ev(`(function(){ var over=[], left=[], cap=[], n=0, z=0;
+    for(var i=0;i<CARDS.length;i++){ var c=CARDS[i]; if(!(window.PICS&&PICS[c.id]&&PICS[c.id].html)) continue;
+      cur=c;revealed=false;render();reveal(); var p=document.querySelector("#drillStage .pic"); if(!p) continue; fitOne(p); n++;
+      var w=p.querySelector(".fit-in"); if(w&&w.style.zoom) z++;
+      if(p.scrollWidth>p.clientWidth+2) over.push(c.id);
+      var L=p.getBoundingClientRect().left+1; if(w&&[].some.call(w.querySelectorAll("*"),function(e){ var q=e.getBoundingClientRect(); return q.width&&q.left<L&&!e.closest(".fp-travel,.pr-flow"); })) left.push(c.id);
+      var pc=p.querySelector(".pic-cap"); if(pc&&pc.children.length) cap.push(c.id); }
+    return JSON.stringify({n:n,z:z,over:over,left:left,cap:cap}); })()`));
+  check("схемы влезают в телефон: не прокручиваются вбок, не режутся слева, подпись не глотает карточку",
+    fitR.over.length <= 3 && fitR.left.length === 0 && fitR.cap.length === 0,
+    "схем " + fitR.n + " · ужато " + fitR.z + " · вбок " + fitR.over.length + (fitR.over.length ? " (" + fitR.over.slice(0, 4).join(", ") + ")" : "") +
+    " · слева " + fitR.left.length + (fitR.left.length ? " (" + fitR.left.slice(0, 3).join(", ") + ")" : "") + " · подпись с тегами " + fitR.cap.length + (fitR.cap.length ? " (" + fitR.cap.slice(0, 3).join(", ") + ")" : ""));
+
   /* ---- английский пакет ----
      Перевод — это второй шанс завезти подсказку по длине: русский вариант правилу
      подчиняется, а английский рендер тех же вариантов легко делает верный ответ

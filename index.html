@@ -425,6 +425,23 @@
   .pic,.pic *{overflow-wrap:normal;word-break:normal}
   .pic .fp-box,.pic .fp-node,.pic .fp-token,.pic .fp-slot,.pic .fp-ver,.pic .fp-tag,.pic .fp-cell{flex:none}
   .pic-cap{font-size:13px;color:var(--mut);text-align:center;max-width:92%}
+  /* Обёртка схемы для подгонки масштаба (fitOne): повторяет раскладку контейнера — колонка по центру */
+  .fit-in{display:flex;flex-direction:column;align-items:center;gap:inherit;max-width:100%;min-width:0}
+  .fit-in[style*="width"]{max-width:none;flex:none}
+  /* Широкий элемент при center вылезает в обе стороны, и левый край не прокрутить — safe прижимает к началу */
+  .fit-in,.fit-in .fp-col{align-items:safe center} .fit-in .fp-row{justify-content:safe center}
+  .pic-cap,.cap{overflow-wrap:break-word}
+  /* Крупные стили (.fp-val 30 px, .fp-box.big 24 px) задуманы под число или слово; длинной фразе — размер по длине (fitText) */
+  .fp-val.t-m{font-size:20px} .fp-val.t-s{font-size:15px;line-height:1.3}
+  .fp-box.big.t-m{font-size:17px;padding:13px 17px} .fp-box.big.t-s{font-size:14px;padding:11px 15px}
+  .fp-arrow.t-s{font:12.5px/1.3 var(--sans);text-align:center}
+  .fp-grid.g-fl{grid-template-columns:repeat(var(--n),minmax(0,26px))!important;flex:0 1 auto;min-width:0;max-width:100%} .fp-grid.g-fl .fp-cell{width:auto;height:auto;aspect-ratio:1}
+  /* Блок-строка (span) внутри блока: отступы строчного элемента не раздвигают строку, и он наезжал на заголовок */
+  .fp-box span.fp-box,.fp-box span.fp-ver,.fp-box span.fp-slot,.fp-box span.fp-token{display:inline-block;max-width:100%;margin:3px 0;vertical-align:middle}
+  /* Схема не влезает даже ужатой — дорожки и ряды переносятся целыми блоками */
+  .fit-wrap .fp-lane,.fit-wrap .fp-row{flex-wrap:wrap;justify-content:center;min-width:0}
+  .fit-wrap .fp-box,.fit-wrap .fp-tag,.fit-wrap .fp-slot,.fit-wrap .fp-token,.fit-wrap .fp-ver{flex:0 1 auto;max-width:100%;white-space:normal}
+  .guess-pic{overflow-x:auto}
   /* словарь терминов */
   .terms-wrap{width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;flex:1;min-height:0;padding:18px 22px}
   #termSearch{padding:11px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--txt);font:inherit;outline:none;margin-bottom:16px}
@@ -871,10 +888,13 @@
     .zero-nav{flex:0 0 196px}
     .zv{flex:0 0 208px;max-width:208px}
   }
+  /* Сценка в 208 px — кадры по 60 px и подписи по слогам («вернул-ся»), а текст рядом занимает
+     половину ширины. Колонке со сценкой даём 272 px — разброс размеров по экранам 250–440, а не 184–494. */
+  @media(min-width:1061px) and (max-width:1240px){ .zero-step.has-viz .zv:has(.zk-svg){flex-basis:272px;max-width:272px} }
   @media(max-width:1060px){                     /* места правда нет — схема уходит под текст */
     .zero-step.has-viz{flex-wrap:wrap}
     .zero-step.has-viz .zero-b{min-width:calc(100% - 44px)}   /* иначе текст схлопнется, а переноса не будет */
-    .zv{flex:1 1 100%;max-width:520px;margin-top:10px;margin-left:44px}
+    .zv{flex:1 1 100%;max-width:440px;margin-top:10px;margin-left:44px}
   }
   @media(max-width:620px){ .zv{margin-left:0;max-width:100%} }
   .zero-top{display:flex;align-items:center;gap:12px;margin:6px 0 16px}
@@ -2117,6 +2137,16 @@
      на бумаге их не бывает, а без движения они читаются как грязь. */
   .pr-scene.pr-still *{animation:none!important;transition:none!important}
   .pr-scene.pr-still .pr-glow,.pr-scene.pr-still .pr-dash,
+  .pr-wrap [style*="display:flex"],.pr-wrap [style*="display: flex"],.pr-wrap .fp-row,.pr-wrap .fp-lane{flex-wrap:wrap!important;justify-content:center}
+  @media(max-width:620px){ .pr-scene{min-height:220px} }   /* сцена в 70–120 px висела в рамке 330 */
+  .pr-wrap [style*="min-height"]{min-height:0!important}
+  /* Ряд клеток — это массив: не переносим (иначе 4 ячейки встают 3+1), а сжимаем сами клетки */
+  .pr-wrap .fp-grid[style*="display:flex"]{flex-wrap:nowrap!important;min-width:0;max-width:100%}
+  .pr-wrap .fp-grid[style*="display:flex"]>*{flex-shrink:1;min-width:0;height:auto!important;aspect-ratio:1}
+  /* На телефоне две плавающие кнопки шапки вклинивались в подзаголовок */
+  @media(max-width:620px){ .prin-title{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 10px}
+    .prin-title>button{float:none!important;margin:0!important} }
+  .pr-scene.pr-scroll{overflow-x:auto;justify-content:flex-start}
   .pr-scene.pr-still .fp-box.acc,.pr-scene.pr-still [class*="pulse"]{filter:none;box-shadow:none}
   .pr-scene.pr-still .pr-dash,.pr-scene.pr-still .fp-conn{background-position:0 0}
   /* Пустые кружки — это маркеры движения: они существуют, только пока летят.
@@ -2151,7 +2181,7 @@
   .pr-flow{animation:prFlow 2.8s cubic-bezier(.4,0,.6,1) infinite;filter:drop-shadow(0 0 7px rgba(110,168,254,.55))}
   @keyframes kitIn{from{opacity:0;transform:translateY(10px) scale(.96)}60%{opacity:1}to{opacity:1;transform:none}}
   @keyframes connFlow{to{background-position:-200% 0}}
-  @keyframes prFlow{0%{transform:translateX(-120px) scale(.9);opacity:0}12%{opacity:1}50%{transform:translateX(0) scale(1.06)}88%{opacity:1}100%{transform:translateX(120px) scale(.9);opacity:0}}
+  @keyframes prFlow{0%{transform:translateX(calc(-1*var(--flw,120px))) scale(.9);opacity:0}12%{opacity:1}50%{transform:translateX(0) scale(1.06)}88%{opacity:1}100%{transform:translateX(var(--flw,120px)) scale(.9);opacity:0}}
   .pr-orbit{animation:prSpin 4s linear infinite}
   .pr-spin{display:inline-block;animation:prSpin 3s linear infinite}
   @keyframes prSpin{to{transform:rotate(360deg)}}
@@ -2199,6 +2229,8 @@
   .fp-cell.dead{opacity:.3}
   .fp-stack{display:flex;flex-direction:column;gap:4px}
   .fp-slot{padding:7px 14px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);font:12px var(--mono);text-align:center;min-width:128px}
+  /* Ячейка с заданной шириной (массив в «Куче») — min-width 128 растягивал её вчетверо, ряд резался с краёв */
+  .fp-slot[style^="width:"],.fp-slot[style*=" width:"],.fp-slot[style*=";width:"]{min-width:0;padding-left:0;padding-right:0}
   .fp-node{width:48px;height:48px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel-2);display:flex;align-items:center;justify-content:center;font:11px var(--mono);text-align:center}
   .fp-node.acc{border-color:var(--acc);color:var(--acc)}
   .fp-conn{width:46px;height:2px;background:linear-gradient(90deg,var(--acc),var(--acc2),var(--acc));background-size:200% 100%;border-radius:2px;animation:connFlow 2.4s linear infinite}
@@ -2215,7 +2247,10 @@
   @keyframes fpSpin{to{transform:rotate(360deg)}}
   @keyframes fpBlink{0%,100%{opacity:1;filter:none}50%{opacity:.5;filter:drop-shadow(0 0 7px var(--acc))}}
   @keyframes fpFloat{0%,100%{transform:translateY(-6px) rotate(-1deg)}50%{transform:translateY(6px) rotate(1deg)}}
-  @keyframes fpTravel{0%{transform:translate(-62px,0) scale(.95);box-shadow:9px 0 18px -7px rgba(110,168,254,.6)}25%{transform:translate(0,-3px) scale(1)}50%{transform:translate(62px,0) scale(1.05);box-shadow:-9px 0 18px -7px rgba(110,168,254,.6)}75%{transform:translate(0,3px) scale(1)}100%{transform:translate(-62px,0) scale(.95);box-shadow:9px 0 18px -7px rgba(110,168,254,.6)}}
+  @keyframes fpTravel{0%{transform:translate(calc(-1*var(--trv,62px)),0) scale(.95);box-shadow:9px 0 18px -7px rgba(110,168,254,.6)}25%{transform:translate(0,-3px) scale(1)}50%{transform:translate(var(--trv,62px),0) scale(1.05);box-shadow:-9px 0 18px -7px rgba(110,168,254,.6)}75%{transform:translate(0,3px) scale(1)}100%{transform:translate(calc(-1*var(--trv,62px)),0) scale(.95);box-shadow:9px 0 18px -7px rgba(110,168,254,.6)}}
+  /* На узком экране токен с размахом ±62 px уезжал за край схемы, и полоса прокрутки «дышала» в такт */
+  @media(max-width:700px){ .pic,.frame,.guess-pic{--trv:24px;--flw:46px} }
+  .zv{--trv:18px;--flw:36px}
 
   /* viz внутри карточек дрила (legacy-блоки) */
   .vz{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:14px;background:rgba(0,0,0,.18)}
@@ -3462,6 +3497,79 @@ function trLook(k){
 }
 function tr(s){ if(LANG!=="en")return s; const v=trLook(s); return v==null?s:v; }
 
+/* ---------- Подгонка схем под ширину ----------
+   Схемы карточек, «на пальцах», «угадай по картинке» и «С нуля» рисовались в натуральную
+   величину. Замер на 390 px: 220 из 855 шире экрана (до 2.4×) и прокручивались вбок, 118 выше
+   полутора экранов. Подгоняем масштаб (CSS zoom меняет и раскладку, в отличие от transform):
+   шире до 0.8 — ужимаем; шире сильнее — сначала разрешаем рядам и подписям переноситься
+   (fit-wrap), потом ужимаем, но не мельче 0.62; выше 62% экрана на телефоне — до 0.8.
+   После: шире экрана 1 из 855, обрезанных нет. «Принцип» подгоняется своим fitScene. */
+const FIT_SEL=".pic,.frame,.guess-pic,.zv";
+const FIT_KEEP=".pic-tag,.pic-cap,.cap,.zk,.zk-sep,.zk-slot";
+function fitWrap(box){
+  const have=box.querySelector(":scope > .fit-in"); if(have) return have;
+  const kids=[...box.childNodes].filter(n=>!(n.nodeType===1&&n.matches(FIT_KEEP))&&!(n.nodeType===3&&!n.textContent.trim()));
+  if(!kids.some(n=>n.nodeType===1)) return null;
+  const w=document.createElement("div"); w.className="fit-in"; box.insertBefore(w,kids[0]); kids.forEach(n=>w.appendChild(n)); fitText(w); return w;
+}
+/* Подпись схемы — текст с сущностями (&rarr;), но не разметка: «List<String>» браузер читал как
+   незакрытый тег, и он проглатывал остаток карточки (кнопки оценки уезжали внутрь схемы). */
+function capEsc(s){ return String(s).replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function fitText(root){
+  const len=e=>[...e.textContent.trim()].length;
+  root.querySelectorAll(".fp-val").forEach(e=>{ const n=len(e); if(n>18) e.classList.add("t-s"); else if(n>9) e.classList.add("t-m"); });
+  root.querySelectorAll(".fp-box.big").forEach(e=>{ const n=len(e); if(n>26) e.classList.add("t-s"); else if(n>13) e.classList.add("t-m"); });
+  root.querySelectorAll(".fp-arrow").forEach(e=>{ if(/\p{L}{3}/u.test(e.textContent)) e.classList.add("t-s"); });
+  /* Сетка на 12+ клеток по 26 px шире телефона — клетки сжимаются сами, а не ужимают всю схему */
+  root.querySelectorAll(".fp-grid").forEach(g=>{ const m=/repeat\((\d+),\s*1fr\)/.exec(g.style.gridTemplateColumns); if(m&&+m[1]>=10){ g.classList.add("g-fl"); g.style.setProperty("--n",m[1]); } });
+}
+function fitOne(box){
+  if(box.matches(".zv")&&!box.querySelector(":scope > :not(.zk):not(.zk-sep):not(.zk-slot)")) return;   /* только сценка — подгонять нечего */
+  if(!box.getClientRects().length) return;   /* скрыт — подгоним при показе */
+  const w=fitWrap(box); if(!w) return;
+  w.style.zoom=""; w.style.width=""; w.classList.remove("fit-wrap");
+  const cs=getComputedStyle(box), avail=box.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+  if(avail<=40) return;
+  /* Ширину задаём явно (avail/z): иначе max-width:100% у ужатой обёртки считается в её
+     собственных единицах, и непонятно, сколько места у раскладки на самом деле. */
+  const set=z=>{ if(Math.abs(z-1)<=.02){ w.style.width=w.style.zoom=""; return; } w.style.width=Math.floor(avail/z)+"px"; w.style.zoom=z.toFixed(3); };
+  /* Ужатый текст и рамки (не тоньше 1 px) уменьшаются не строго пропорционально — дожимаем по факту */
+  const over=()=>box.scrollWidth-box.clientWidth;
+  const shrink=z=>{ z=Math.max(.62,Math.min(1,z)); set(z); for(let i=0;i<4&&over()>1&&z>.62;i++){ z=Math.max(.62,z*avail/(avail+over())-.01); set(z); } return over()<=1; };
+  const narrow=innerWidth<700; let need=w.scrollWidth;
+  if(need>avail+1){
+    /* Ужимать ниже 0.8 — текст мельче 10 px. Тогда сначала разрешаем рядам и подписям переноситься, потом ужимаем. */
+    if(avail/need<.8||!shrink(avail/need)){ set(1); w.classList.add("fit-wrap"); shrink(avail/w.scrollWidth); }
+  } else {
+    const h=w.offsetHeight;
+    /* вниз листать проще, чем читать текст мельче 10 px; но в игре под схемой варианты ответа — их должно быть видно */
+    const g=box.matches(".guess-pic"), hmax=innerHeight*(g?.48:.62);
+    if(narrow&&h>hmax) set(Math.max(g?.7:.8,hmax/h));
+  }
+  fitTravel(box,w,cs); hideDanglingArrows(w);   /* после переноса стрелка «→» в конце строки указывала в пустоту */
+  box.dataset.fitW=innerWidth;
+}
+/* «Летящий» токен (fp-travel ±62 px, pr-flow ±120 px) у края схемы уезжал за рамку. Размах —
+   не больше места до края (можно заступить на половину отступа); замер без анимации. */
+function fitTravel(box,w,cs){
+  const tv=w.querySelectorAll(".fp-travel,.pr-flow"); if(!tv.length) return;
+  const br=box.getBoundingClientRect(), L=br.left+parseFloat(cs.paddingLeft)/2, R=br.right-parseFloat(cs.paddingRight)/2;
+  tv.forEach(e=>{ const v=e.classList.contains("pr-flow")?"--flw":"--trv"; e.style.removeProperty(v); e.style.animation="none";
+    const q=e.getBoundingClientRect(); e.style.animation="";
+    const base=parseFloat(getComputedStyle(e).getPropertyValue(v))||(v=="--flw"?120:62), room=Math.max(4,Math.min(q.left-L,R-q.right))/(e.currentCSSZoom||1);
+    if(room<base) e.style.setProperty(v,Math.round(room)+"px"); });
+}
+let FIT_Q=new Set(), FIT_RAF=0;
+/* Колонок «С нуля» 389: подгонять все разом при входе — 120 мс на телефоне. Подгоняем на подлёте к экрану. */
+const FIT_IO=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ FIT_IO.unobserve(e.target); if(e.target.isConnected) fitOne(e.target); } }),{rootMargin:"600px 0px"});
+function fitLater(el){
+  if(el.matches(".zv")){ if(el.querySelector(":scope > :not(.zk):not(.zk-sep):not(.zk-slot)")) FIT_IO.observe(el); return; }
+  FIT_Q.add(el); if(!FIT_RAF) FIT_RAF=requestAnimationFrame(()=>{ FIT_RAF=0; const q=[...FIT_Q]; FIT_Q.clear(); q.forEach(b=>{ if(b.isConnected) fitOne(b); }); }); }
+function fitVisible(root){ (root||document).querySelectorAll(FIT_SEL).forEach(b=>{ if(b.dataset.fitW!=String(innerWidth)) fitLater(b); }); }
+new MutationObserver(ms=>{ for(const m of ms) for(const n of m.addedNodes){ if(n.nodeType!==1||n.classList.contains("fit-in")) continue;
+  if(n.matches(FIT_SEL)) fitLater(n); if(n.firstElementChild) n.querySelectorAll(FIT_SEL).forEach(fitLater); } }).observe(document.body,{childList:true,subtree:true});
+let FIT_RT=null; addEventListener("resize",()=>{ clearTimeout(FIT_RT); FIT_RT=setTimeout(()=>{ document.querySelectorAll(FIT_SEL).forEach(b=>delete b.dataset.fitW); fitVisible(); },160); });
+
 /* ---------- Фон замирает, когда вкладку не видно ----------
    Анимированные слои браузер продолжает растеризовать и у невидимой страницы.
    У этого приложения фон — три круга во весь экран с размытием, и открытая
@@ -3814,7 +3922,7 @@ function render(){const c=cur,s=stR(c.id);
      <p class="q">${esc(T('cards',c.id,'q',c.q))}</p>
      ${feynEl.checked?`<div class="feyn-wrap"><textarea id="feynTa" placeholder="${tr("Объясни своими словами…")}"></textarea><button class="btn icon feyn-mic" id="feynMic" title="${tr("говорить")}" hidden>🎤</button></div>`:""}
      <div class="ans" id="ans">
-       ${pic?`<div class="pic"><span class="pic-tag">${tr("концепция")}</span>${pic.html}${pic.cap?`<div class="pic-cap">${T('cards',c.id,'picCap',pic.cap)}</div>`:""}</div>`:""}
+       ${pic?`<div class="pic"><span class="pic-tag">${tr("концепция")}</span>${pic.html}${pic.cap?`<div class="pic-cap">${capEsc(T('cards',c.id,'picCap',pic.cap))}</div>`:""}</div>`:""}
        ${hook?`<div class="hook">🧠 ${esc(T('cards',c.id,'hook',hook))}</div>`:""}
        <div class="lbl">${tr("объясни ишаку")}</div>
        <div class="ishak">${esc(T('cards',c.id,'a',c.a))}</div>
@@ -3854,7 +3962,7 @@ function setupMic(){
     rec.onend=()=>{on=false;mic.classList.remove("rec");}; rec.onerror=()=>{on=false;mic.classList.remove("rec");};
     rec.start(); on=true; mic.classList.add("rec"); };
 }
-function reveal(){if(revealed)return;revealed=true;$("#ans").classList.add("show");
+function reveal(){if(revealed)return;revealed=true;$("#ans").classList.add("show"); fitVisible(drillStage);
   $("#act").innerHTML=`<button class="btn bad" id="btnBad">${tr("Не знал")} <kbd>1</kbd></button><button class="btn mid" id="btnMid">${tr("Почти")} <kbd>2</kbd></button><button class="btn good" id="btnGood">${tr("Знал")} <kbd>3</kbd></button>`;
   $("#btnBad").onclick=()=>grade(0);$("#btnMid").onclick=()=>grade(1);$("#btnGood").onclick=()=>grade(2);}
 /* Игры трогали расписание только в одну сторону: ошибся — карточка падала на первую
@@ -3930,7 +4038,7 @@ function setMode(m){mode=m;
   $("#viewViz").hidden=(m!=="viz");
   $("#viewMus").hidden=(m!=="mus");
   $("#viewEng").hidden=(m!=="eng");
-  { const v=document.querySelector(".view:not([hidden])"); if(v){ v.classList.remove("enter"); void v.offsetWidth; v.classList.add("enter"); } }
+  { const v=document.querySelector(".view:not([hidden])"); if(v){ v.classList.remove("enter"); void v.offsetWidth; v.classList.add("enter"); fitVisible(v); } }
   if(m!=="eng"&&typeof engLeave==="function")engLeave();   /* озвучка, таймер, запись — не должны пережить уход */
   if(m!=="mus"){ musMicStop(); sgStopMelody(); if(typeof gtStopRhy==="function")gtStopRhy(); }
   stopFp(); clearInterval(gTimer); stopArcade(); if(behTimer){clearInterval(behTimer);behTimer=null;}
@@ -4035,7 +4143,7 @@ function renderFingers(){
    <div class="player glass">
      <div class="player-head"><span class="pill grad-pill">${esc(clName(e.t))}</span>${e.g?`<span class="pill">${esc(T('fp',e.id,'g',e.g))}</span>`:""}<h2>${esc(T('fp',e.id,'title',e.title))}</h2><button class="fav-btn${isFav("fp:"+e.id)?' on':''}" id="fpFav" title="${tr('★ избранное (f)')}" style="margin-left:auto">${isFav("fp:"+e.id)?'★':'☆'}</button></div>
      ${fphook?`<div class="hook">🧠 ${esc(T('fp',e.id,'hook',fphook))}</div>`:""}
-     <div class="film">${e.frames.map((f,i)=>`<div class="frame" data-i="${i}">${f.html}${f.cap?`<div class="cap">${caps[i]||f.cap}</div>`:""}</div>`).join("")}</div>
+     <div class="film">${e.frames.map((f,i)=>`<div class="frame" data-i="${i}">${f.html}${f.cap?`<div class="cap">${capEsc(caps[i]||f.cap)}</div>`:""}</div>`).join("")}</div>
      <div class="dots">${e.frames.map((_,i)=>`<i data-i="${i}"></i>`).join("")}</div>
      <div class="controls"><button class="btn icon" id="fpPrev">←</button><button class="btn primary play" id="fpPlay"></button><button class="btn icon" id="fpNext">→</button></div>
      <div style="text-align:center;margin-top:14px"><button class="more-btn" id="fpStepsBtn">📋 ${tr("По шагам")}</button></div>
@@ -5246,19 +5354,27 @@ function renderPrin(){
   const pf=$("#prFav"); if(pf)pf.onclick=()=>{toggleFav("pr:"+p.id);pf.classList.toggle("on",isFav("pr:"+p.id));pf.textContent=isFav("pr:"+p.id)?"★":"☆";buildPrinNav($("#prinSearch").value);};
   requestAnimationFrame(fitScene); setTimeout(fitScene,140);   // 2-й пересчёт: на мобиле лейаут/шрифты «доезжают» позже кадра
 }
-function fitScene(){   // ужать фикс-пиксельную сцену под ширину контейнера, по центру, без обрезки (важно на узком экране)
+/* Ужать фикс-пиксельную сцену под ширину контейнера, без обрезки (важно на узком экране).
+   Раньше — transform:scale: на телефоне сцены ужимались до 0.27 (текст 3 px), а высота
+   оставалась прежней — 200+ px пустоты в 26 сценах из 100. Теперь как у схем (fitOne):
+   zoom ужимает и высоту; шире 0.75 — сначала переносим ряды (pr-wrap), потом ужимаем, но не
+   мельче 0.6; не влезло и так — прокрутка вбок, а не обрезка. */
+function fitScene(){
   const sc=$(".pr-scene"); if(!sc) return;
   const inner=sc.firstElementChild; if(!inner) return;
-  inner.style.transform=""; inner.style.transformOrigin="center center";
-  sc.classList.add("pr-measure");                              // заморозить анимации → мерить статичный размер
-  inner.style.width="max-content"; void inner.offsetWidth;     // натуральная ширина ДИЗАЙНА, а не сжатая узким контейнером
-  const ir=inner.getBoundingClientRect();
-  let maxR=ir.width;
-  inner.querySelectorAll("*").forEach(el=>{ const right=el.getBoundingClientRect().right-ir.left; if(right>maxR)maxR=right; });
-  sc.classList.remove("pr-measure");
+  inner.style.transform=inner.style.zoom=inner.style.width=""; sc.classList.remove("pr-wrap","pr-scroll");
   const cw=sc.clientWidth-44;   // минус padding pr-scene (22*2)
-  if(cw>0 && maxR>cw+1){ inner.style.width=Math.ceil(maxR)+"px"; inner.style.transform="scale("+(cw/maxR)+")"; }  // масштаб от центра
-  else { inner.style.width=""; }   // помещается — не трогаем
+  if(cw<=0) return;
+  sc.classList.add("pr-measure");                              // заморозить анимации → мерить статичный размер
+  /* сколько ширины нужно: вылет вправо и вылет влево (дерево по центру через left:50% торчит в обе стороны) */
+  const extent=w=>{ inner.style.width=w; void inner.offsetWidth; const ir=inner.getBoundingClientRect(); let L=0,R=ir.width;
+    inner.querySelectorAll("*").forEach(el=>{ const r=el.getBoundingClientRect(); if(!r.width) return; L=Math.min(L,r.left-ir.left); R=Math.max(R,r.right-ir.left); }); return R-L; };
+  let need=extent("max-content");                              // натуральная ширина ДИЗАЙНА, а не сжатая узким контейнером
+  if(need>cw+1&&cw/need<.75){ sc.classList.add("pr-wrap"); need=Math.max(cw,extent(cw+"px")); }
+  if(need>cw+1){ const z=Math.max(.6,cw/need); inner.style.width=Math.ceil(cw/z)+"px"; inner.style.zoom=z.toFixed(3);
+    if(cw/need<.6) sc.classList.add("pr-scroll"); }
+  else inner.style.width=sc.classList.contains("pr-wrap")?cw+"px":"";   // помещается — не трогаем
+  sc.classList.remove("pr-measure");
   hideDanglingArrows(sc);
 }
 /* Горизонтальная стрелка, у которой сосед справа перенёсся на строку ниже, остаётся
