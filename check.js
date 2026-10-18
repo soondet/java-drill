@@ -808,6 +808,23 @@ const check = (name, ok, detail) => {
       var L=p.getBoundingClientRect().left+1; if(w&&[].some.call(w.querySelectorAll("*"),function(e){ var q=e.getBoundingClientRect(); return q.width&&q.left<L&&!e.closest(".fp-travel,.pr-flow"); })) left.push(c.id);
       var pc=p.querySelector(".pic-cap"); if(pc&&pc.children.length) cap.push(c.id); }
     return JSON.stringify({n:n,z:z,over:over,left:left,cap:cap}); })()`));
+  /* «Принцип» на телефоне: сцены нарисованы под рамку компьютера и раньше рассыпались в 236 px
+     (стрелки в пустоту, куски за краем). Сторож: ни один кусок сцены не торчит за рамку, у
+     ужатой есть «⤢ крупно», полный экран открывается повёрнутым и закрывается по Escape. */
+  const prR = JSON.parse(await A.ev(`(function(){ var cut=[], noBtn=[], n=0, small=0; setMode("prin");
+    for(var i=0;i<PRIN.length;i++){ prinCur=i; renderPrin(); var sc=document.querySelector("#prinStage .pr-scene"); delete sc.dataset.fit; fitScene(); n++;
+      sc.classList.add("pr-measure"); var R=sc.getBoundingClientRect();
+      if([].some.call(sc.firstElementChild.querySelectorAll("*"),function(e){ var q=e.getBoundingClientRect(); return q.width&&(q.left<R.left-2||q.right>R.right+2); })) cut.push(PRIN[i].id);
+      sc.classList.remove("pr-measure");
+      if(sc.classList.contains("pr-small")){ small++; if(getComputedStyle(document.querySelector("#prinStage .pr-zoom")).display==="none") noBtn.push(PRIN[i].id); } }
+    prinCur=0; renderPrin(); fitScene(); prFullOpen(); var ov=document.querySelector(".pr-full"), rot=!!(ov&&ov.querySelector(".pr-full-in.rot"));
+    document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true})); var closed=!document.querySelector(".pr-full")&&!document.body.classList.contains("zk-open");
+    setMode("drill"); return JSON.stringify({n:n,small:small,cut:cut,noBtn:noBtn,full:!!ov,rot:rot,closed:closed}); })()`));
+  check("«Принцип» на телефоне: сцена целая, мелкую можно открыть крупно",
+    prR.cut.length === 0 && prR.noBtn.length === 0 && prR.full && prR.rot && prR.closed,
+    "сцен " + prR.n + " · режутся " + prR.cut.length + (prR.cut.length ? " (" + prR.cut.slice(0, 4).join(", ") + ")" : "") + " · ужатых " + prR.small +
+    " · без кнопки " + prR.noBtn.length + " · полный экран " + prR.full + " · повёрнут " + prR.rot + " · закрыт Escape " + prR.closed);
+
   check("схемы влезают в телефон: не прокручиваются вбок, не режутся слева, подпись не глотает карточку",
     fitR.over.length <= 3 && fitR.left.length === 0 && fitR.cap.length === 0,
     "схем " + fitR.n + " · ужато " + fitR.z + " · вбок " + fitR.over.length + (fitR.over.length ? " (" + fitR.over.slice(0, 4).join(", ") + ")" : "") +

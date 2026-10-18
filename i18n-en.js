@@ -2,6 +2,9 @@
 window.I18N = {
  "ui": {
   "__проба__": "__probe__",
+  "крупно": "enlarge",
+  "закрыть": "close",
+  "нажми, чтобы закрыть": "tap to close",
   "Добавили отправку уведомления при создании заказа.": "A notification is now sent when an order is created.",
   "Сетевой вызов внутри транзакции держит соединение к базе всё время ответа notifier": "A network call inside the transaction holds the database connection for as long as the notifier takes to answer",
   "Метод стоит переименовать в createOrder — так понятнее из вызывающего кода, что именно создаётся": "The method should be renamed to createOrder — the calling code would then make clear what is actually being created",

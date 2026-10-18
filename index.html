@@ -2137,16 +2137,21 @@
      на бумаге их не бывает, а без движения они читаются как грязь. */
   .pr-scene.pr-still *{animation:none!important;transition:none!important}
   .pr-scene.pr-still .pr-glow,.pr-scene.pr-still .pr-dash,
-  .pr-wrap [style*="display:flex"],.pr-wrap [style*="display: flex"],.pr-wrap .fp-row,.pr-wrap .fp-lane{flex-wrap:wrap!important;justify-content:center}
-  @media(max-width:620px){ .pr-scene{min-height:220px} }   /* сцена в 70–120 px висела в рамке 330 */
-  .pr-wrap [style*="min-height"]{min-height:0!important}
-  /* Ряд клеток — это массив: не переносим (иначе 4 ячейки встают 3+1), а сжимаем сами клетки */
-  .pr-wrap .fp-grid[style*="display:flex"]{flex-wrap:nowrap!important;min-width:0;max-width:100%}
-  .pr-wrap .fp-grid[style*="display:flex"]>*{flex-shrink:1;min-width:0;height:auto!important;aspect-ratio:1}
+  /* Телефон: отступы области, карточки и рамки съедали 140 px из 390 — сцене оставалось 236 */
+  @media(max-width:620px){ .prin-stage{padding:10px 8px} .prin-card{padding:14px 10px} .pr-scene{min-height:200px;padding:10px} }
+  /* Ужатую сцену можно открыть во весь экран, повёрнутой горизонтально (prFull) */
+  .pr-zoom{display:none;margin:10px auto 0;border:1px solid var(--line);background:var(--panel-2);color:var(--txt);
+    border-radius:10px;font:600 13px var(--sans);padding:9px 16px;min-height:40px;cursor:pointer}
+  .pr-scene.pr-small{cursor:zoom-in} .pr-scene.pr-small+.pr-zoom{display:block}
+  .pr-full{position:fixed;inset:0;z-index:95;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .pr-full-in{position:relative;flex:none;display:flex;align-items:center;justify-content:center;box-sizing:border-box;padding:12px}
+  .pr-full-in.rot{transform:rotate(90deg)}
+  .pr-full .pr-scene{width:100%;height:100%;min-height:0;border:0;background:none;padding:0;cursor:default}
+  .pr-full-x{position:absolute;top:8px;right:8px;z-index:4;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--panel-2);color:var(--txt);font:18px var(--sans);cursor:pointer}
+  .pr-full-hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;font:12px var(--sans);color:var(--mut);pointer-events:none}
   /* На телефоне две плавающие кнопки шапки вклинивались в подзаголовок */
   @media(max-width:620px){ .prin-title{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 10px}
     .prin-title>button{float:none!important;margin:0!important} }
-  .pr-scene.pr-scroll{overflow-x:auto;justify-content:flex-start}
   .pr-scene.pr-still .fp-box.acc,.pr-scene.pr-still [class*="pulse"]{filter:none;box-shadow:none}
   .pr-scene.pr-still .pr-dash,.pr-scene.pr-still .fp-conn{background-position:0 0}
   /* Пустые кружки — это маркеры движения: они существуют, только пока летят.
@@ -2248,6 +2253,24 @@
   @keyframes fpBlink{0%,100%{opacity:1;filter:none}50%{opacity:.5;filter:drop-shadow(0 0 7px var(--acc))}}
   @keyframes fpFloat{0%,100%{transform:translateY(-6px) rotate(-1deg)}50%{transform:translateY(6px) rotate(1deg)}}
   @keyframes fpTravel{0%{transform:translate(calc(-1*var(--trv,62px)),0) scale(.95);box-shadow:9px 0 18px -7px rgba(110,168,254,.6)}25%{transform:translate(0,-3px) scale(1)}50%{transform:translate(var(--trv,62px),0) scale(1.05);box-shadow:-9px 0 18px -7px rgba(110,168,254,.6)}75%{transform:translate(0,3px) scale(1)}100%{transform:translate(calc(-1*var(--trv,62px)),0) scale(.95);box-shadow:9px 0 18px -7px rgba(110,168,254,.6)}}
+  /* Лёгкий режим (телефон, приложение). Замер на Android: в «Принципе» кадр 41–59 мс. Пульсации
+     красили тень и рамку, мигания — filter, пунктиры двигали background-position: всё это
+     перерисовка каждый кадр (основной поток 5% → 1%). Здесь те же движения только через
+     transform/opacity — их считает видеокарта; стало 34–37 мс, это потолок эмулятора с любой
+     анимацией (один крутящийся квадрат 20 px — 28–35). «Красивые эффекты» возвращают как было. */
+  html.fx-lite .pr-pulse{animation-name:prPulseL!important}
+  html.fx-lite .fp-pulse-a,html.fx-lite .fp-pulse-g,html.fx-lite .fp-pulse-r{animation-name:fpPulseL!important}
+  html.fx-lite .fp-pulse-a{border-color:var(--acc)} html.fx-lite .fp-pulse-g{border-color:var(--good)} html.fx-lite .fp-pulse-r{border-color:var(--bad)}
+  html.fx-lite .pr-blink{animation-name:prBlinkL!important} html.fx-lite .fp-blink{animation-name:fpBlinkL!important}
+  html.fx-lite .pr-scale{animation-name:prScaleL!important} html.fx-lite .fp-travel{animation-name:fpTravelL!important}
+  html.fx-lite .pr-dash,html.fx-lite .fp-conn{animation:none!important}
+  html.fx-lite .pr-flow,html.fx-lite .pr-glow,html.fx-lite .pr-dash{filter:none!important}
+  @keyframes prPulseL{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  @keyframes fpPulseL{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+  @keyframes prBlinkL{0%,100%{opacity:1}50%{opacity:.35}}
+  @keyframes fpBlinkL{0%,100%{opacity:1}50%{opacity:.5}}
+  @keyframes prScaleL{0%,100%{transform:scale(.85)}50%{transform:scale(1.12)}}
+  @keyframes fpTravelL{0%,100%{transform:translate(calc(-1*var(--trv,62px)),0) scale(.95)}25%{transform:translate(0,-3px) scale(1)}50%{transform:translate(var(--trv,62px),0) scale(1.05)}75%{transform:translate(0,3px) scale(1)}}
   /* На узком экране токен с размахом ±62 px уезжал за край схемы, и полоса прокрутки «дышала» в такт */
   @media(max-width:700px){ .pic,.frame,.guess-pic{--trv:24px;--flw:46px} }
   .zv{--trv:18px;--flw:36px}
@@ -5349,34 +5372,76 @@ function buildPrinNav(q){
 function renderPrin(){
   if(!PRIN.length){prinStage.innerHTML='<div class="empty"><h2>Скоро ⚙️</h2><div>Живые схемы «принципа работы» генерируются — обнови позже.</div></div>';return;}
   const p=PRIN[Math.min(prinCur,PRIN.length-1)];
-  prinStage.innerHTML=`<div class="prin-card glass"><div class="prin-title">${esc(T('prin',p.id,'title',p.title))}<button class="fav-btn${isFav("pr:"+p.id)?' on':''}" id="prFav" title="${tr('★ избранное')}" style="float:right">${isFav("pr:"+p.id)?'★':'☆'}</button><button class="pr-mode${prinStill?' on':''}" id="prMode" title="${tr('статичная схема, без движения')}">${prinStill?tr('📖 как в книге'):tr('▶ с анимацией')}</button></div>${p.what?`<div class="prin-what">${esc(T('prin',p.id,'what',p.what))}</div>`:""}<div class="pr-scene${prinStill?' pr-still':''}">${p.html}</div></div>`;
+  prinStage.innerHTML=`<div class="prin-card glass"><div class="prin-title">${esc(T('prin',p.id,'title',p.title))}<button class="fav-btn${isFav("pr:"+p.id)?' on':''}" id="prFav" title="${tr('★ избранное')}" style="float:right">${isFav("pr:"+p.id)?'★':'☆'}</button><button class="pr-mode${prinStill?' on':''}" id="prMode" title="${tr('статичная схема, без движения')}">${prinStill?tr('📖 как в книге'):tr('▶ с анимацией')}</button></div>${p.what?`<div class="prin-what">${esc(T('prin',p.id,'what',p.what))}</div>`:""}<div class="pr-scene${prinStill?' pr-still':''}">${p.html}</div><button class="pr-zoom" title="${tr("во весь экран")}">⤢ ${tr("крупно")}</button></div>`;
   const pm=$("#prMode"); if(pm)pm.onclick=()=>prinStillSet(!prinStill);
   const pf=$("#prFav"); if(pf)pf.onclick=()=>{toggleFav("pr:"+p.id);pf.classList.toggle("on",isFav("pr:"+p.id));pf.textContent=isFav("pr:"+p.id)?"★":"☆";buildPrinNav($("#prinSearch").value);};
+  const scn=$("#prinStage .pr-scene"); if(scn) scn.onclick=()=>{ if(scn.classList.contains("pr-small")) prFullOpen(); };
+  const pz=$("#prinStage .pr-zoom"); if(pz) pz.onclick=prFullOpen;
   requestAnimationFrame(fitScene); setTimeout(fitScene,140);   // 2-й пересчёт: на мобиле лейаут/шрифты «доезжают» позже кадра
 }
-/* Ужать фикс-пиксельную сцену под ширину контейнера, без обрезки (важно на узком экране).
-   Раньше — transform:scale: на телефоне сцены ужимались до 0.27 (текст 3 px), а высота
-   оставалась прежней — 200+ px пустоты в 26 сценах из 100. Теперь как у схем (fitOne):
-   zoom ужимает и высоту; шире 0.75 — сначала переносим ряды (pr-wrap), потом ужимаем, но не
-   мельче 0.6; не влезло и так — прокрутка вбок, а не обрезка. */
-function fitScene(){
-  const sc=$(".pr-scene"); if(!sc) return;
+/* Сцены «Принципа» нарисованы под рамку компьютера (~620 px): ряды в них переносятся так,
+   как задумал автор, стрелки и пунктиры стоят между соседями. На телефоне рамка 236–330 px:
+   разложенная в ней сцена рассыпалась (стрелки в пустоту, куски за левым краем), а перенос
+   «по-мобильному» ломал композицию ещё сильнее. Поэтому сцену раскладываем в самой узкой
+   ширине, где структура та же, что на компьютере (те же строки в каждом переносящемся ряду,
+   ничего не торчит за край), и ужимаем zoom'ом — он уменьшает и высоту, пустоты нет.
+   Мелко — кнопка «⤢ крупно» открывает её во весь экран, повёрнутой горизонтально.
+   Замер: флекс-элемент сжимается под рамку, поэтому мерим с flex:none. */
+const PR_D=620;
+function fitSceneEl(sc,big){
   const inner=sc.firstElementChild; if(!inner) return;
-  inner.style.transform=inner.style.zoom=inner.style.width=""; sc.classList.remove("pr-wrap","pr-scroll");
-  const cw=sc.clientWidth-44;   // минус padding pr-scene (22*2)
+  inner.style.transform=inner.style.zoom=inner.style.width=inner.style.flex=""; sc.classList.remove("pr-small");
+  const cs=getComputedStyle(sc), cw=sc.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
   if(cw<=0) return;
-  sc.classList.add("pr-measure");                              // заморозить анимации → мерить статичный размер
-  /* сколько ширины нужно: вылет вправо и вылет влево (дерево по центру через left:50% торчит в обе стороны) */
-  const extent=w=>{ inner.style.width=w; void inner.offsetWidth; const ir=inner.getBoundingClientRect(); let L=0,R=ir.width;
-    inner.querySelectorAll("*").forEach(el=>{ const r=el.getBoundingClientRect(); if(!r.width) return; L=Math.min(L,r.left-ir.left); R=Math.max(R,r.right-ir.left); }); return R-L; };
-  let need=extent("max-content");                              // натуральная ширина ДИЗАЙНА, а не сжатая узким контейнером
-  if(need>cw+1&&cw/need<.75){ sc.classList.add("pr-wrap"); need=Math.max(cw,extent(cw+"px")); }
-  if(need>cw+1){ const z=Math.max(.6,cw/need); inner.style.width=Math.ceil(cw/z)+"px"; inner.style.zoom=z.toFixed(3);
-    if(cw/need<.6) sc.classList.add("pr-scroll"); }
-  else inner.style.width=sc.classList.contains("pr-wrap")?cw+"px":"";   // помещается — не трогаем
+  sc.classList.add("pr-measure"); inner.style.flex="none";
+  const lay=w=>{ inner.style.width=w+"px"; void inner.offsetWidth; };
+  inner.style.width="max-content"; void inner.offsetWidth; const nat=Math.ceil(inner.getBoundingClientRect().width);
+  /* «отпечаток» раскладки: строки в каждом переносящемся ряду, насколько торчит за край, сколько
+     подписей и блоков налезли друг на друга, и полный размах (абсолютные куски тоже) */
+  const rows=[inner,...inner.querySelectorAll("*")].filter(e=>{ const c=getComputedStyle(e); return c.display.includes("flex")&&c.flexWrap==="wrap"&&c.flexDirection.startsWith("row"); });
+  const leaves=[...inner.querySelectorAll(".fp-box,.fp-node,.fp-tag,.fp-token,.fp-slot,.fp-cell,.fp-ver,*")].filter(e=>!e.closest(".pr-flow,.fp-travel,.pr-orbit")&&(e.matches(".fp-box,.fp-node,.fp-tag,.fp-token,.fp-slot,.fp-cell,.fp-ver")||[...e.childNodes].some(n=>n.nodeType===3&&n.textContent.trim())));
+  const print=()=>{ const ir=inner.getBoundingClientRect(); let out=0,L=0,R=ir.width,ov=0;
+    const lines=rows.map(c=>{ let n=0,last=-1e9; [...c.children].forEach(k=>{ if(getComputedStyle(k).position==="absolute") return; const r=k.getBoundingClientRect(); if(!r.width) return; if(r.top>last+4){ n++; last=r.top; } }); return n; });
+    inner.querySelectorAll("*").forEach(el=>{ const r=el.getBoundingClientRect(); if(!r.width) return; L=Math.min(L,r.left-ir.left); R=Math.max(R,r.right-ir.left); out=Math.max(out,ir.left-r.left,r.right-ir.right); });
+    const rs=leaves.map(e=>e.getBoundingClientRect());
+    for(let i=0;i<rs.length;i++) for(let j=i+1;j<rs.length;j++){ const a=rs[i],b=rs[j]; if(!a.width||!b.width) continue;
+      const w=Math.min(a.right,b.right)-Math.max(a.left,b.left), h=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top);
+      if(w>3&&h>3&&w*h>.25*Math.min(a.width*a.height,b.width*b.height)&&!leaves[i].contains(leaves[j])&&!leaves[j].contains(leaves[i])) ov++; }
+    return {lines,out,ov,span:R-L}; };
+  const same=(a,b)=>a.out<=b.out+2&&a.ov<=b.ov&&a.lines.every((n,i)=>n<=b.lines[i]);   /* вынос за край — в пикселях: по числу элементов дерево в 600 px «совпадало» и в 443 */
+  /* эталон — раскладка как на компьютере; сцена шире рамки компьютера — её ширина и есть дизайн */
+  let W0=Math.max(cw,Math.min(PR_D,nat)); lay(W0); let ref=print();
+  if(ref.span>W0+2){ W0=Math.ceil(ref.span); lay(W0); ref=print(); }
+  let L=cw;
+  if(W0>cw+1){ lay(cw);
+    if(!same(print(),ref)){ let lo=cw,hi=W0; while(hi-lo>8){ const m=Math.round((lo+hi)/2); lay(m); if(same(print(),ref)) hi=m; else lo=m; } L=hi; } }
+  let z=Math.min(1,cw/L);
+  if(big){ lay(L); const h=inner.getBoundingClientRect().height, ch=sc.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+    z=Math.min(1.6,cw/L,ch>0?ch/h:9); }
+  if(Math.abs(z-1)>.01||L>cw){ inner.style.width=L+"px"; inner.style.zoom=z.toFixed(3); } else { inner.style.width=""; inner.style.flex=""; }
   sc.classList.remove("pr-measure");
+  if(!big&&z<.86) sc.classList.add("pr-small");
   hideDanglingArrows(sc);
 }
+/* renderPrin зовёт подгонку дважды (кадр и 140 мс — шрифты доезжают позже); повтор с той же
+   шириной и теми же шрифтами — пустая работа и мигание раскладки, пропускаем */
+function fitScene(){ const sc=$("#prinStage .pr-scene"); if(!sc) return;
+  const key=sc.clientWidth+"|"+document.fonts.status+"|"+document.documentElement.lang; if(sc.dataset.fit!==key){ fitSceneEl(sc,false); sc.dataset.fit=key; }
+  if(document.querySelector(".pr-full .pr-scene")) prFullFit(); }
+/* Во весь экран: на телефоне в портрете — повёрнутой на 90°, чтобы сцене досталась длинная сторона */
+function prFullFit(){ const ov=document.querySelector(".pr-full"); if(!ov) return; const box=ov.firstElementChild, rot=innerHeight>innerWidth*1.15;
+  box.classList.remove("rot"); box.style.width=(rot?innerHeight:innerWidth)+"px"; box.style.height=(rot?innerWidth:innerHeight)+"px";
+  fitSceneEl(box.querySelector(".pr-scene"),true);   /* мерить до поворота: у повёрнутой рамки ширина и высота меняются местами */
+  box.classList.toggle("rot",rot); }
+function prFullOpen(){
+  const src=$("#prinStage .pr-scene"); if(!src||document.querySelector(".pr-full")) return;
+  const ov=document.createElement("div"); ov.className="pr-full"; ov.setAttribute("role","dialog");
+  ov.innerHTML=`<div class="pr-full-in"><button class="pr-full-x" aria-label="${tr("закрыть")}">✕</button><div class="pr-full-hint">${tr("нажми, чтобы закрыть")}</div></div>`;
+  const sc=src.cloneNode(true); sc.classList.remove("pr-small"); ov.firstElementChild.appendChild(sc);
+  ov.onclick=prFullClose; document.body.appendChild(ov); document.body.classList.add("zk-open"); prFullFit();
+}
+function prFullClose(){ const ov=document.querySelector(".pr-full"); if(!ov) return false; ov.remove(); document.body.classList.remove("zk-open"); return true; }
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&prFullClose()) e.stopImmediatePropagation(); },true);
 /* Горизонтальная стрелка, у которой сосед справа перенёсся на строку ниже, остаётся
    в конце строки и указывает в пустоту. Раньше это ловилось глазами по одной схеме;
    правило общее, поэтому новые схемы получают его даром. Прячем, а не удаляем:
