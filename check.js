@@ -1095,7 +1095,7 @@ const check = (name, ok, detail) => {
     var было=localStorage.getItem("jdZeroKid");
     try{
       var K=window.ZKID||{}, без=ZERO.filter(function(z){ return !K[z.g+"|"+z.t]; }).map(function(z){ return z.t; });
-      localStorage.removeItem("jdZeroKid"); setMode("zero"); await ж(250);
+      localStorage.removeItem("jdZeroKid"); setMode("zero"); await ж(250); if(window.zkFillAll) zkFillAll(); await ж(50);
       var видно=function(){ return [].slice.call(document.querySelectorAll("#viewZero .zk")).filter(function(e){ return e.offsetParent!==null; }).length; };
       var шагов=document.querySelectorAll("#viewZero .zero-step").length, кадров=document.querySelectorAll("#viewZero .zk").length, рисованных=document.querySelectorAll("#viewZero .zk-svg").length, вкл=видно();
       var S=window.ZKSVG||{}, безРисунка=ZERO.filter(function(z){ return !S[z.g+"|"+z.t]; }).map(function(z){ return z.t; });
@@ -1117,7 +1117,7 @@ const check = (name, ok, detail) => {
      и снимает блокировку прокрутки. Иначе после закрытия страница остаётся «замороженной». */
   const zk = JSON.parse(await A.ev(`(async function(){ var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
     var было=localStorage.getItem("jdZkMiss");
-    try{ setMode("zero"); await ж(200); var s=document.getElementById("zs3"); s.querySelector(".zk-svg").click(); await ж(150);
+    try{ setMode("zero"); await ж(200); if(window.zkFillAll) zkFillAll(); var s=document.getElementById("zs3"); s.querySelector(".zk-svg").click(); await ж(150);
       var box=document.getElementById("zkBox"), открыто=!!box&&!box.hidden&&!!box.querySelector(".zk-big"), t1=box.querySelector(".zkb-top b").textContent;
       var фразы=[], P=ZKV.P, рассказ=!!ZKV.say;
       for(var k=0;k<P;k++){ фразы.push(box.querySelector(".zk-say span").textContent); document.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true})); await ж(40); }

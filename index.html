@@ -10,6 +10,16 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Java Drill">
 <title>JavaDrill — под капотом</title>
+<script>
+/* Лёгкий режим (до первой отрисовки, иначе мигнёт стекло). Замер на Android: стеклянные панели
+   (backdrop-filter) над плывущим размытым фоном пересобирали каждый кадр — 111 мс на кадр в дриле,
+   без них 17. На телефоне и в приложении включаем по умолчанию, на компьютере — красивый.
+   jdFx = "full" | "lite" — ручной выбор в «A» → «Красивые эффекты». */
+(function(){ try{ var s=localStorage.getItem("jdFx"), C=window.Capacitor,
+  phone=matchMedia("(pointer:coarse)").matches&&Math.min(screen.width,screen.height)<820,
+  app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
+  if(s==="lite"||(s!=="full"&&(app||phone))) document.documentElement.classList.add("fx-lite"); }catch(e){} })();
+</script>
 <!-- системные шрифты: внешняя загрузка блокировала первый кадр, фолбэки в CSS полные -->
 <style>
   :root{
@@ -49,6 +59,21 @@
   .bg::after{background:radial-gradient(circle,#7d3bff,transparent 60%);bottom:-20vmax;right:-14vmax;animation-delay:-14s}
   .bg i{position:absolute;width:44vmax;height:44vmax;border-radius:50%;filter:blur(24px);opacity:.3;background:radial-gradient(circle,#11a48f,transparent 60%);top:28%;left:42%;will-change:transform;animation:drift 34s ease-in-out infinite}
   @keyframes drift{0%,100%{transform:translate(0,0)}33%{transform:translate(9vmax,6vmax)}66%{transform:translate(-7vmax,4vmax)}}
+  /* ---- лёгкий режим: тот же вид без самых дорогих для телефона эффектов ----
+     стекло → непрозрачные панели того же тона; фон стоит на месте и без размытия
+     (радиальный градиент и так мягкий); обучающие анимации схем не трогаем */
+  html.fx-lite *,html.fx-lite *::before,html.fx-lite *::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+  html.fx-lite{--panel:#11141d}
+  html.fx-lite .bg::before,html.fx-lite .bg::after,html.fx-lite .bg i{animation:none!important;filter:none!important;will-change:auto}
+  html.fx-lite .topbar{background:rgba(9,10,17,.97)!important}
+  html.fx-lite .rm-backdrop{background:rgba(0,0,0,.6)}
+  html.fx-lite #zkBox{background:rgba(7,9,15,.95)}
+  html.fx-lite .card,html.fx-lite .glass{box-shadow:0 6px 18px rgba(0,0,0,.35)}
+  /* палец: без задержки двойного тапа и серой вспышки, с коротким «нажатием» кнопки */
+  @media (pointer:coarse){
+    button,.btn,[role=tab],.bopt,.dg-opt,.opt,.wp-opt,.zk-qb,.zero-n{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    .btn:active,.bopt:active,.dg-opt:active,.opt:active,.wp-opt:active,.zk-qb:active,.lang-tog:active{transform:scale(.975);transition:transform .06s}
+  }
 
   /* верхняя панель */
   /* viewport-fit=cover раздвигает страницу под чёлку и домашний индикатор,
@@ -310,8 +335,8 @@
     @keyframes popIn{0%{transform:scale(1)}35%{transform:scale(1.035)}100%{transform:scale(1)}}
     .view.enter{animation:viewIn .22s ease-out both}
     @keyframes viewIn{from{opacity:0}to{opacity:1}}
-    .zero-bar span,.hk-bar i,.pc-prog em,.rm-clbar span,.rm-cl-bar span,.mk-prog span,.wbar span,.ph-bar span{animation:barFill .6s var(--ease) both}
-    @keyframes barFill{from{width:0}}
+    .zero-bar span,.hk-bar i,.pc-prog em,.rm-clbar span,.rm-cl-bar span,.mk-prog span,.wbar span,.ph-bar span{animation:barFill .6s var(--ease) both;transform-origin:left center}
+    @keyframes barFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}   /* scaleX, а не width: без пересчёта раскладки */
   }
   .ans.show>*{animation:kitIn .45s var(--ease) both}
   .ans.show>*:nth-child(2){animation-delay:.07s}
@@ -737,6 +762,7 @@
   .zk-c{font:500 12px/1.4 var(--sans);margin-top:7px;padding-top:6px;border-top:1px dashed #e8c873;text-align:center}
   .zk-sep{height:10px}
   .zero-step.zk-missed .zero-t::after{content:" 🔁";font-size:13px}
+  .zk-slot{min-height:190px;border-radius:12px;background:#fff6dc;opacity:.12}
   .zk-svg{padding:8px 7px 9px;position:relative;cursor:zoom-in}
   .zk-zoom{position:absolute;right:5px;top:4px;z-index:2;width:20px;height:20px;border-radius:6px;background:#fff;border:1px solid #e8c873;
     color:#a07a22;font:800 12px/18px var(--sans);text-align:center;opacity:.75;transition:opacity .15s}
@@ -2612,6 +2638,7 @@
       <input type="range" id="fsRange" min="0.85" max="1.5" step="0.05" value="1" aria-label="Размер текста">
       <button id="fsReset" class="fs-reset">Сбросить</button>
       <label class="fs-sw"><input type="checkbox" id="icoSw" checked><span>Иконки технологий</span></label>
+      <label class="fs-sw"><input type="checkbox" id="fxSw"><span>Красивые эффекты</span></label>
     </div>
   </div>
   <button id="gsBtn" class="lang-tog" title="Поиск по всему (/)" aria-label="Поиск">🔍</button>
@@ -3955,6 +3982,9 @@ $("#tabMore").onclick=(e)=>{ e.stopPropagation(); const m=$("#moreMenu"); m.hidd
 $("#rmFab").onclick=openRoadmap; $("#rmClose").onclick=closeRoadmap; $("#rmBackdrop").onclick=closeRoadmap;
 $("#tipBtn").onclick=openTips; $("#tipClose").onclick=closeTips; $("#tipBackdrop").onclick=closeTips;
 (function(){ var sw=$("#icoSw"); if(!sw)return; sw.checked=ICONS_ON; sw.onchange=function(){ setIcons(sw.checked); }; })();
+/* «Красивые эффекты» = стекло и плывущий фон; выключено — лёгкий режим (по умолчанию на телефоне) */
+(function(){ var sw=$("#fxSw"); if(!sw)return; var H=document.documentElement; sw.checked=!H.classList.contains("fx-lite");
+  sw.onchange=function(){ H.classList.toggle("fx-lite",!sw.checked); try{ localStorage.setItem("jdFx",sw.checked?"full":"lite"); }catch(e){} }; })();
 $("#dDDBtn").onclick=e=>{ e.stopPropagation(); const p=$("#dDDPanel"); if(p)p.hidden=!p.hidden; };
 document.addEventListener("click",e=>{ const dd=$("#dDD"),p=$("#dDDPanel"); if(p&&!p.hidden&&dd&&!dd.contains(e.target))p.hidden=true; const m=$("#moreMenu"); if(m&&!m.hidden&&!e.target.closest(".more-tab"))m.hidden=true; const fp=$("#fsPop"); if(fp&&!fp.hidden&&!e.target.closest(".fs-wrap"))fp.hidden=true; });
 let rmGhost=localStorage.getItem("jdRmGhost")==="1";
@@ -4050,18 +4080,25 @@ function buildTerms(q){
   const clusters=[...new Set(TERMS.map(t=>t.t))];
   let html="";
   const favT=TERMS.filter(t=>isFav("tm:"+t.t+"|"+t.term)&&match(t)).sort(ts);
-  if(favT.length){ html+=`<div class="tcluster"><button class="thead${q?" open":""}"><span class="chev">▸</span><span class="nlabel">⭐ ${tr("Избранное")}</span><span class="cnt">${favT.length}</span></button><div class="tbody"${q?"":" hidden"}>`+favT.map(termRow).join("")+`</div></div>`; }
+  /* Содержимое свёрнутой группы рисуется при первом раскрытии: раньше каждое открытие вкладки
+     строило ~1100 терминов (475 КБ разметки) ради одних заголовков — 2 с на телефоне. */
+  const BOD=[]; const body=(items,open)=>{ const k=BOD.push(items)-1; return open?`<div class="tbody" data-b="${k}" data-ready="1">`+items.map(termRow).join("")+`</div>`:`<div class="tbody" data-b="${k}" hidden></div>`; };
+  if(favT.length){ html+=`<div class="tcluster"><button class="thead${q?" open":""}"><span class="chev">▸</span><span class="nlabel">⭐ ${tr("Избранное")}</span><span class="cnt">${favT.length}</span></button>`+body(favT,!!q)+`</div>`; }
   for(const cl of clusters){
     const items=TERMS.filter(t=>t.t===cl&&match(t)).sort(ts);
     if(!items.length)continue;
     const clOpen=!!q;
-    html+=`<div class="tcluster"><button class="thead${clOpen?" open":""}"><span class="chev">▸</span><span class="nlabel">${techIco(cl,cl)}${esc(clName(cl))}</span><span class="cnt">${items.length}</span></button><div class="tbody"${clOpen?"":" hidden"}>`+items.map(termRow).join("")+`</div></div>`;
+    html+=`<div class="tcluster"><button class="thead${clOpen?" open":""}"><span class="chev">▸</span><span class="nlabel">${techIco(cl,cl)}${esc(clName(cl))}</span><span class="cnt">${items.length}</span></button>`+body(items,clOpen)+`</div>`;
   }
   wrap.innerHTML=html||'<div class="muted">ничего не найдено</div>';
-  wrap.querySelectorAll(".thead").forEach(h=>h.onclick=()=>{const b=h.nextElementSibling;b.hidden=!b.hidden;h.classList.toggle("open",!b.hidden);});
-  wrap.querySelectorAll(".term.has-extra .term-head").forEach(hd=>hd.onclick=()=>{const x=hd.parentElement.querySelector(".term-extra");if(x)x.hidden=!x.hidden;});
-  wrap.querySelectorAll(".term-fav").forEach(b=>b.onclick=e=>{e.stopPropagation();toggleFav("tm:"+b.dataset.k);buildTerms($("#termSearch").value);});
+  const wire=root=>{
+    root.querySelectorAll(".term.has-extra .term-head").forEach(hd=>hd.onclick=()=>{const x=hd.parentElement.querySelector(".term-extra");if(x)x.hidden=!x.hidden;});
+    root.querySelectorAll(".term-fav").forEach(b=>b.onclick=e=>{e.stopPropagation();toggleFav("tm:"+b.dataset.k);buildTerms($("#termSearch").value);}); };
+  const fill=b=>{ if(b.dataset.ready)return; b.innerHTML=BOD[+b.dataset.b].map(termRow).join(""); b.dataset.ready="1"; wire(b); };
+  wrap.querySelectorAll(".thead").forEach(h=>h.onclick=()=>{const b=h.nextElementSibling; fill(b); b.hidden=!b.hidden;h.classList.toggle("open",!b.hidden);});
+  wire(wrap);
   if(pendingTerm){ const key=pendingTerm; pendingTerm=null;
+    wrap.querySelectorAll(".tbody:not([data-ready])").forEach(b=>{ if(BOD[+b.dataset.b].some(x=>x.t+"|"+x.term===key)) fill(b); });
     let el=null; wrap.querySelectorAll(".term").forEach(x=>{ if(x.dataset.key===key)el=x; });
     if(el){ const body=el.closest(".tbody"); if(body){ body.hidden=false; const hd=body.previousElementSibling; if(hd)hd.classList.add("open"); }
       const x=el.querySelector(".term-extra"); if(x)x.hidden=false;
@@ -4498,6 +4535,20 @@ document.addEventListener("keydown",e=>{ if(!ZKV)return;
   if(e.key==="Escape"){ e.preventDefault(); e.stopPropagation(); zkClose(); }
   else if(e.key==="ArrowRight"){ e.preventDefault(); e.stopPropagation(); zkStep(1); }
   else if(e.key==="ArrowLeft"){ e.preventDefault(); e.stopPropagation(); zkStep(-1); } },true);
+/* Ленивые сценки: заглушка .zk-slot заменяется сценкой за ~экран до появления. zkFillAll — для
+   проверок и печати, когда нужны все сразу. */
+let ZK_IO=null;
+function zkFillSlot(s){ if(!s||!s.isConnected)return; const z=ZERO[+s.dataset.zk]; if(!z)return;
+  const tmp=document.createElement("div"); tmp.innerHTML=zeroKid(z); const el=tmp.firstElementChild||document.createTextNode("");
+  s.replaceWith(el); if(el.classList&&el.classList.contains("zk-svg")) zkObserve(el.parentNode); }
+function zkSlots(root){
+  const slots=root.querySelectorAll(".zk-slot"); if(!slots.length)return;
+  if(!("IntersectionObserver" in window)){ slots.forEach(zkFillSlot); return; }
+  if(ZK_IO) ZK_IO.disconnect();
+  ZK_IO=new IntersectionObserver(es=>es.forEach(e=>{ if(e.isIntersecting){ ZK_IO.unobserve(e.target); zkFillSlot(e.target); } }),{rootMargin:"900px 0px"});
+  slots.forEach(s=>ZK_IO.observe(s));
+}
+window.zkFillAll=()=>document.querySelectorAll("#viewZero .zk-slot").forEach(zkFillSlot);
 function zkObserve(root){
   const els=root.querySelectorAll(".zk-svg:not(.in)"); if(!els.length)return;
   if(!("IntersectionObserver" in window)){ els.forEach(e=>e.classList.add("in")); return; }
@@ -4702,6 +4753,11 @@ function buildZero(){
   if(!(window.ZKSAY&&window.ZKSVG)) zkLoad().then(ok=>{ if(ok&&mode==="zero"&&!ZQ) buildZero(); });
   const wrap=$("#zeroList"); if(!wrap)return;
   if(!ZERO.length){ wrap.innerHTML='<div class="muted">раздел не загружен</div>'; return; }
+  /* Список из ~390 шагов строится один раз: повторное открытие вкладки его не пересобирает
+     (было 120–190 мс на телефоне каждый раз). Пересборка — при смене языка, иконок, загрузке
+     сценок или сбросе (тогда отпечаток обнуляется). Отметки «понял» и 🔁 обновляются на месте. */
+  const zsig=LANG+"|"+ZERO.length+"|"+(window.ZKSVG?1:0)+"|"+(ICONS_ON?1:0);
+  if(wrap.dataset.sig===zsig&&wrap.querySelector("#zs0")){ zeroBarUI(); zeroNavUI(); zkMissUI(); return; }
   const gs=zeroGroups(); const key={}; gs.forEach(gr=>gr.ids.forEach(i=>key[i]=gr.key));
   const TK=(window.ZTAKE||{}), lastOf={}, endOf={};
   gs.forEach(gr=>{ const last=gr.ids[gr.ids.length-1];
@@ -4711,7 +4767,8 @@ function buildZero(){
     if(z.g!==g){ g=z.g; html+=`<div class="zero-g" id="${key[i]}"><span>${esc(tr(g))}</span></div>`; }
     n++;
     const done=zDone(i);
-    const viz=(window.ZVIZ||{})[z.t], kid=zeroKid(z);
+    /* сценка рисуется, когда шаг подъезжает к экрану (zkFill): 389 сценок разом давали ~40 тыс. узлов */
+    const viz=(window.ZVIZ||{})[z.t], kk=z.g+"|"+z.t, hasKid=!!((window.ZKSVG||{})[kk]||(window.ZKID||{})[kk]), kid=hasKid?'<div class="zk-slot" data-zk="'+i+'"></div>':"";
     html+=`<div class="zero-step${done?" done":""}${viz||kid?" has-viz":""}${kid&&!viz?" kid-only":""}${MISS[zeroKey(z)]?" zk-missed":""}" id="zs${i}" data-i="${i}">
       <div class="zero-n" title="${tr("отметить, что понял")}">${done?"✓":n}</div>
       <div class="zero-b">
@@ -4729,7 +4786,7 @@ function buildZero(){
     <b>${tr("Дошёл до конца — дальше «Для чайника» и «На пальцах»")}</b>
     <p class="muted2" style="margin:8px 0 14px">${tr("Теперь сборщик мусора, потоки и кэш будут не набором правил, а следствиями того, что ты уже понял.")}</p>
     <button class="btn primary" id="zeroNext" style="flex:none">🍼 ${tr("Для чайника")} →</button></div>`;
-  wrap.innerHTML=html;
+  wrap.innerHTML=html; wrap.dataset.sig=zsig;
   wrap.querySelectorAll("[data-zd]").forEach(b=>b.onclick=()=>zeroToDrill(b.dataset.zd));
   wrap.querySelectorAll("[data-zq]").forEach(b=>b.onclick=()=>zeroAsk(b.dataset.zq));
   wrap.querySelectorAll(".zero-n").forEach(b=>b.onclick=()=>{
@@ -4738,7 +4795,7 @@ function buildZero(){
     else { ZDONE.add(zeroKey(ZERO[i])); st.classList.add("done"); b.textContent="✓"; }
     zeroSave(); zeroBarUI(); zeroNavUI(); });
   const nx=$("#zeroNext"); if(nx)nx.onclick=()=>setMode("basics");
-  const rs=$("#zeroReset"); if(rs)rs.onclick=()=>{ ZDONE.clear(); zeroSave(); buildZero(); };
+  const rs=$("#zeroReset"); if(rs)rs.onclick=()=>{ ZDONE.clear(); zeroSave(); wrap.dataset.sig=""; buildZero(); };
   const anl=$("#zeroAnimLbl"); if(anl)anl.textContent=tr("схемы");
   const kdl=$("#zeroKidLbl"); if(kdl)kdl.textContent=tr("🧸 для детей");
   const kd=$("#zeroKid");
@@ -4747,8 +4804,8 @@ function buildZero(){
   const an=$("#zeroAnim");
   if(an){ an.checked=zeroAnimOn(); document.body.classList.toggle("no-anim",!an.checked);
     an.onchange=()=>{ zeroAnimOn(an.checked); document.body.classList.toggle("no-anim",!an.checked); }; }
-  zkObserve(wrap); zkMissUI(); const zm=$("#zeroMiss"); if(zm) zm.onclick=zkMissNext;
-  wrap.querySelectorAll(".zero-step .zk-svg").forEach(k=>k.onclick=()=>zkOpen(+k.closest(".zero-step").dataset.i));
+  zkSlots(wrap); zkMissUI(); const zm=$("#zeroMiss"); if(zm) zm.onclick=zkMissNext;
+  wrap.onclick=e=>{ const k=e.target.closest(".zero-step .zk-svg"); if(k) zkOpen(+k.closest(".zero-step").dataset.i); };
   zeroBarUI(); zeroNavUI();
   if(!buildZero._spy){ buildZero._spy=1;
     window.addEventListener("scroll",()=>{ if(mode==="zero")zeroSpy(); },{passive:true}); }

@@ -9752,7 +9752,8 @@ window.I18N = {
   "распределённые транзакции дороги — обычно саги и компенсации": "distributed transactions are costly — so sagas and compensations",
   "шардинг делает джойны и транзакции между шардами дорогими": "sharding makes joins and transactions across shards costly",
   "synchronized пиннит (до JDK 24) — выигрыша нет": "synchronized pins (before JDK 24) — no benefit",
-  "код до JDK 24 на synchronized и пулах": "pre-JDK 24 code built on synchronized and pools"
+  "код до JDK 24 на synchronized и пулах": "pre-JDK 24 code built on synchronized and pools",
+  "Красивые эффекты": "Fancy effects"
  },
  "cards": {
   "jc-eqhash": {
