@@ -5473,9 +5473,12 @@ function backupKeys(){
 function exportProgress(){
   const data={}; backupKeys().forEach(k=>{ const v=localStorage.getItem(k); if(v!=null)data[k]=v; });
   const stamp=new Date().toISOString();
-  const blob=new Blob([JSON.stringify({app:"java-drill",v:1,date:stamp,data},null,1)],{type:"application/json"});
+  const text=JSON.stringify({app:"java-drill",v:1,date:stamp,data},null,1), name="java-drill-backup-"+stamp.slice(0,10)+".json";
+  /* в Android-приложении WebView не скачивает по ссылке — сохраняет нативный слой (android-app/app-native.js) */
+  if(window.jdNativeSave){ window.jdNativeSave(name,text).then(ok=>{ if(ok)toast(tr("Прогресс сохранён в файл")); }); return; }
+  const blob=new Blob([text],{type:"application/json"});
   const url=URL.createObjectURL(blob), a=document.createElement("a");
-  a.href=url; a.download="java-drill-backup-"+stamp.slice(0,10)+".json";
+  a.href=url; a.download=name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500);
   toast(tr("Прогресс сохранён в файл"));
 }
@@ -15715,7 +15718,7 @@ function musVoice(b){
 </script>
 <script>
 /* PWA: офлайн и установка на рабочий стол. На file:// service worker недоступен — там и не пытаемся. */
-if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){
+if("serviceWorker" in navigator && location.protocol.indexOf("http")===0 && !window.Capacitor){   /* в приложении файлы и так внутри APK */
   window.addEventListener("load",function(){
     navigator.serviceWorker.register("sw.js").catch(function(){});
   });

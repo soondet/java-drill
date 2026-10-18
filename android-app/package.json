@@ -1,0 +1,25 @@
+{
+  "name": "java-drill-android",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Android-приложение тренажёра: те же файлы, что и сайт, внутри APK (Capacitor).",
+  "scripts": {
+    "bundle": "node bundle.js",
+    "sync": "npm run bundle && npx cap sync android",
+    "apk": "npm run sync && cd android && ./gradlew assembleRelease",
+    "apk:debug": "npm run sync && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3"
+  }
+}

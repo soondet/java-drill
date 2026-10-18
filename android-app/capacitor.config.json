@@ -1,0 +1,22 @@
+{
+  "appId": "io.github.soondet.javadrill",
+  "appName": "Java Drill",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#0b0f19",
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 700,
+      "launchAutoHide": true,
+      "backgroundColor": "#0b0f19",
+      "showSpinner": false
+    },
+    "SystemBars": {
+      "insetsHandling": "native",
+      "style": "DARK"
+    }
+  }
+}

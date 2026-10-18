@@ -41,6 +41,9 @@ jobs:
         env:
           CHROME_BIN: /usr/bin/google-chrome   # предустановлен на ubuntu-latest
 
+      - name: Убрать исходники Android-приложения из публикации
+        run: rm -rf android-app
+
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

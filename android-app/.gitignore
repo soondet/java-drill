@@ -1,0 +1,18 @@
+node_modules/
+# собирается из файлов сайта командой npm run bundle
+www/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor-cordova-android-plugins/
+# сборка Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+# ключи подписи — только в ~/.config/java-drill, никогда в репозитории
+*.jks
+*.keystore
+keystore.properties
