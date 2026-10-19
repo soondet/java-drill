@@ -28,7 +28,7 @@ html = html.replace("<!--INLINE-I18N-EN-->", () => {
 // Данные комнат на сайте грузятся лениво (их 740 КБ, а открывают по паролю),
 // но однофайловая сборка должна оставаться самодостаточной — вшиваем их сюда.
 /* ленивые на сайте, но вшитые в однофайловую сборку: комнаты и сценки «С нуля» (порядок важен — kid-svg до kid-scenes) */
-const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js", "tmr-data.js", "kid-zero.js", "kid-svg.js", "kid-scenes.js", "kid-say.js"];
+const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js", "tmr-data.js", "dmr-data.js", "kid-zero.js", "kid-svg.js", "kid-scenes.js", "kid-say.js"];
 let roomKb = 0;
 const roomTags = ROOMS.map(f => {
   try {

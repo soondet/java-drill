@@ -1840,6 +1840,75 @@
   .tmr-deal{display:grid;grid-template-columns:70px 110px 54px 1fr;gap:10px;align-items:baseline;padding:7px 10px;border-radius:8px;background:rgba(0,0,0,.25);margin-bottom:5px;font:12.5px var(--mono);animation:tmrPop .3s ease-out} .tmr-deal b{color:#46d6a0} .tmr-deal em{font:13px var(--sans);font-style:normal}
   @media(max-width:560px){.tmr-dom-h,.tmr-row{grid-template-columns:46px 96px 1fr;gap:8px;padding:8px 10px}.tmr-deal{grid-template-columns:62px 1fr;font-size:12px}.tmr-deal em{grid-column:1/-1}}
   .tmr-videos{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))} .tmr-video video{width:100%;border-radius:12px;background:#000} .tmr-video b{display:block;margin-top:6px;text-align:center}
+  /* ---- комната Дамира: кинозал, синий Flutter и золото премьеры ---- */
+  .hb-wrap.dmr-room{background:
+      radial-gradient(900px 520px at 50% -6%,rgba(71,197,251,.2),transparent 62%),
+      radial-gradient(700px 480px at 94% 34%,rgba(255,207,92,.1),transparent 60%),
+      radial-gradient(600px 420px at 4% 72%,rgba(1,117,194,.16),transparent 60%),#07090f}
+  .dmr-room .tmr-card::before{background:linear-gradient(180deg,#ffcf5c,#47c5fb)}
+  .dmr-room .sg-btn:hover{border-color:#47c5fb}
+  .dmr-btn{background:linear-gradient(135deg,#ffd970,#ffb347);color:#1d1404;border-color:transparent}
+  .dmr-room .dmr-btn:hover{border-color:transparent;filter:brightness(1.06)}
+  .dmr-lead{margin:12vh auto 0;text-align:center}
+  .dmr-lead-c{position:relative;width:190px;height:190px;margin:0 auto 18px;border-radius:50%;border:3px solid rgba(255,255,255,.8);
+    display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle,#2a2a2a,#0d0d0d 70%)}
+  .dmr-lead-c::before,.dmr-lead-c::after{content:"";position:absolute;background:rgba(255,255,255,.35)}
+  .dmr-lead-c::before{left:0;right:0;top:50%;height:1px} .dmr-lead-c::after{top:0;bottom:0;left:50%;width:1px}
+  .dmr-lead-c i{position:absolute;left:50%;top:0;width:2px;height:50%;margin-left:-1px;background:#ffcf5c;transform-origin:50% 100%;animation:dmrSpin .8s linear infinite}
+  .dmr-lead-c b{position:relative;z-index:1;font:800 104px var(--sans);color:#f2f2f2;text-shadow:0 0 18px rgba(0,0,0,.8)}
+  .dmr-lead p{font:700 12px var(--mono);letter-spacing:3px;text-transform:uppercase;color:#ffcf5c;margin:0}
+  @keyframes dmrSpin{to{transform:rotate(360deg)}}
+  .dmr-hero{text-align:center;padding:6px 0 20px;animation:hbUp .6s ease both}
+  .dmr-poster{position:relative;width:180px;aspect-ratio:2/3;margin:0 auto 20px;border-radius:14px;overflow:hidden;transform:rotate(-2deg);
+    box-shadow:0 0 0 1px rgba(255,207,92,.5),0 30px 70px -24px rgba(71,197,251,.65)}
+  .dmr-poster img{width:100%;height:100%;object-fit:cover;display:block}
+  .dmr-poster::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 58%,rgba(7,9,15,.9))}
+  .dmr-prem{position:absolute;left:0;right:0;bottom:12px;z-index:1;font:800 10px var(--mono);letter-spacing:2.4px;color:#ffcf5c}
+  .dmr-pre{font:700 11px var(--mono);letter-spacing:2px;text-transform:uppercase;color:#ffcf5c;margin:0 0 4px}
+  .dmr-room .dmr-hero h1{margin:8px 0 8px;font-size:clamp(28px,5.4vw,44px);letter-spacing:-.6px;
+    background:linear-gradient(90deg,#fff 0%,#ffe6a6 45%,#9fdcff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .dmr-sub{color:var(--mut);margin:0 0 14px;font-size:15px}
+  .dmr-rate{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+  .dmr-rate span{display:flex;flex-direction:column;align-items:center;min-width:78px;padding:7px 10px;border-radius:12px;border:1px solid rgba(255,207,92,.28);background:rgba(10,12,20,.6);font-size:11px;color:var(--mut)}
+  .dmr-rate b{font:800 18px var(--mono);color:#ffcf5c}
+  .dmr-code{margin:0;padding:14px 16px;border-radius:12px;background:#0b0e18;border:1px solid rgba(255,255,255,.07);font:12.5px/1.65 var(--mono);color:#d4d9e6;white-space:pre;overflow-x:auto}
+  .dmr-code .k{color:#c792ea}.dmr-code .t{color:#47c5fb}.dmr-code .s{color:#c3e88d}.dmr-code .c{color:#6b7790;font-style:italic}.dmr-code .a{color:#ffcb6b}
+  .dmr-ln{display:inline-block;min-width:100%;border-radius:4px;transition:background .3s} .dmr-ln.err{background:rgba(255,122,144,.18);box-shadow:inset 3px 0 #ff7a90}
+  .dmr-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center} .dmr-bar .sg-btn{margin-top:12px}
+  .dmr-note{margin-top:12px;font:600 12px var(--mono);color:var(--mut)}
+  .dmr-con{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:#05070c;border:1px solid rgba(255,255,255,.06);font:12px/1.55 var(--mono);
+    white-space:pre-wrap;word-break:break-word;max-height:270px;overflow-y:auto;color:#aab3c5}
+  .dmr-con .g{color:#46d6a0}.dmr-con .r{color:#ff7a90}.dmr-con .y{color:#ffcf5c}.dmr-con .i{color:#5f6b82}.dmr-con .b{color:#47c5fb}
+  .dmr-padel{max-width:380px;margin:0 auto}
+  .dmr-score{display:flex;justify-content:center;align-items:center;gap:12px;font:700 13px var(--mono);margin-bottom:10px;color:var(--mut)}
+  .dmr-score b{display:inline-block;min-width:46px;text-align:center;font-size:22px;color:var(--txt)} .dmr-score .me b{color:#ffcf5c} .dmr-score i{font-style:normal}
+  .dmr-court{position:relative}
+  .dmr-court canvas{width:100%;height:auto;display:block;border-radius:14px;touch-action:pan-y;background:#1b4f9c}
+  .dmr-ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;border-radius:14px;background:rgba(7,9,15,.74)}
+  .dmr-ov[hidden]{display:none} .dmr-ov b{font-size:21px} .dmr-ov p{margin:8px 0 0;color:var(--mut);font-size:13.5px;line-height:1.5;max-width:280px}
+  .dmr-q-n{text-align:center;font:600 11px var(--mono);letter-spacing:1px;color:var(--mut);text-transform:uppercase}
+  .dmr-q-em{font-size:clamp(40px,10vw,58px);text-align:center;letter-spacing:6px;margin:8px 0 2px;animation:tmrPop .3s ease-out}
+  .dmr-q-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .dmr-q-opts button{font:600 14px var(--sans);padding:12px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--txt);cursor:pointer}
+  .dmr-q-opts button:hover:not(:disabled){border-color:#47c5fb} .dmr-q-opts button:disabled{cursor:default}
+  .dmr-q-opts button.ok{border-color:#46d6a0;background:rgba(70,214,160,.16)} .dmr-q-opts button.no{border-color:#ff7a90;background:rgba(255,122,144,.13)}
+  .dmr-q-dm{margin:12px 0 0;padding:12px 14px;border-radius:12px;background:rgba(255,207,92,.08);border:1px solid rgba(255,207,92,.3);line-height:1.55;font-size:14px;animation:tmrPop .3s ease-out}
+  .dmr-q-dm b{color:#ffcf5c}
+  .dmr-q-end{text-align:center} .dmr-q-end b{display:block;font:800 26px var(--sans);color:#ffcf5c} .dmr-q-end span{color:var(--mut)}
+  .dmr-credits{position:relative;height:250px;overflow:hidden;margin:26px auto 0;max-width:520px;
+    -webkit-mask-image:linear-gradient(transparent,#000 18%,#000 82%,transparent);mask-image:linear-gradient(transparent,#000 18%,#000 82%,transparent)}
+  .dmr-roll{position:absolute;left:0;right:0;top:100%;text-align:center;animation:dmrRoll 24s linear infinite}
+  .dmr-roll h3{font:800 30px var(--sans);letter-spacing:8px;color:#ffcf5c;margin:0 0 24px}
+  .dmr-roll p{margin:0 0 15px;font:600 11px var(--mono);letter-spacing:1.4px;text-transform:uppercase;color:var(--mut)}
+  .dmr-roll p b{display:block;margin-top:3px;font:700 16px var(--sans);letter-spacing:.2px;text-transform:none;color:var(--txt)}
+  .dmr-roll .dmr-fin{margin-top:26px;color:#47c5fb}
+  @keyframes dmrRoll{to{transform:translateY(calc(-100% - 250px))}}
+  .dmr-close{border-color:rgba(255,207,92,.35);background:linear-gradient(180deg,rgba(255,207,92,.1),rgba(71,197,251,.08))} .dmr-close .tmr-close-t{color:#ffcf5c}
+  .dmr-close .sg-btn{margin:4px 0 12px}
+  @media(max-width:560px){.dmr-poster{width:150px}.dmr-prem{font-size:9px;letter-spacing:1.2px}.dmr-code{font-size:11.5px;padding:12px}.dmr-lead-c{width:160px;height:160px}.dmr-lead-c b{font-size:88px}}
+  @media(max-width:420px){.dmr-q-opts{grid-template-columns:1fr}}
+  @media(prefers-reduced-motion:reduce){.dmr-hero,.dmr-q-em,.dmr-q-dm,.dmr-lead-c i{animation:none}
+    .dmr-credits{height:auto;-webkit-mask-image:none;mask-image:none}.dmr-roll{position:static;animation:none}}
   @media(max-width:560px){.tmr-kv{grid-template-columns:1fr}.tmr-bid{grid-template-columns:1fr auto}.tmr-bid .tmr-p{grid-column:1/-1}.tmr-tbl{font-size:12px}}
   .hb-term{max-width:720px;margin:9vh auto 0;padding:16px 18px;border-radius:14px;
     background:rgba(0,0,0,.55);border:1px solid var(--line);font:500 12.5px/1.75 var(--mono);
@@ -13307,7 +13376,8 @@ const HB_ROOMS={
   hb:  {cls:"",        data:()=>window.HBDATA, src:"hb-data.js",   intro:hbLog,        wire:hbWireBd},
   sing:{cls:"sg-room", data:()=>window.SGDATA, src:"sing-data.js", intro:sgSoundcheck, wire:sgWire},
   qa:  {cls:"qa-room", data:()=>window.QADATA, src:"qa-data.js",   intro:qaIntro,      wire:qaWire},
-  tmr: {cls:"sg-room tmr-room", data:()=>window.TMRDATA, src:"tmr-data.js", intro:tmrIntro, wire:tmrWire}
+  tmr: {cls:"sg-room tmr-room", data:()=>window.TMRDATA, src:"tmr-data.js", intro:tmrIntro, wire:tmrWire},
+  dmr: {cls:"dmr-room", data:()=>window.DMRDATA, src:"dmr-data.js", intro:dmrIntro, wire:dmrWire}
 };
 
 /* Данные комнат — 740 КБ шифртекста с фотографиями. Открывают их по паролю
@@ -13518,6 +13588,214 @@ function tmrVideos(){
     return '<div class="tmr-video"><video controls playsinline preload="metadata" src="'+url+'"></video><b>'+esc(v.n)+'</b></div>';
   }).join("");
 }
+/* ---- комната Дамира: фильм ----
+   Содержимое из шифртекста (dmr-build.js): код, вопросы кинозала и мелодия лежат в
+   data-атрибутах, здесь только поведение. Видео — тем же tmrVideos, что у Тамира. */
+const DMR_LOG=[
+ ['<span class="g">$</span> flutter run --release -d birthday',320],
+ ['<span class="i">Launching lib/main.dart on Birthday in release mode...</span>',420],
+ ['<span class="i">Running Gradle task \'assembleRelease\'... </span><span class="g">✓</span>',460],
+ ['<span class="i">✓ Built </span><span class="b">damir.apk</span><span class="i"> · стиль 100% · багов 0</span>',380],
+ ['<span class="y">в зале гаснет свет 🎬</span>',480]
+];
+let DMR_T=[], DMR_RAF=null, DMR_KEYS=null;
+function dmrIntro(done){
+  const box=$("#hbIn"); let killed=false;
+  const go=()=>{ if(killed||!$("#hbWrap"))return; killed=true; DMR_T.forEach(clearTimeout); DMR_T=[]; done(); };
+  box.innerHTML='<div class="sg-check"><pre class="hb-term" id="hbTerm"></pre></div><button class="hb-skip" id="hbSkip">пропустить</button>';
+  $("#hbSkip").onclick=go;
+  const t=$("#hbTerm"); let i=0;
+  const count=n=>{ if(killed)return;
+    if(!n)return go();
+    const c=$("#dmrCnt"); if(c)c.textContent=n; else {
+      box.innerHTML='<div class="dmr-lead"><div class="dmr-lead-c"><i></i><b id="dmrCnt">'+n+'</b></div><p>Damir Pictures представляет</p></div><button class="hb-skip" id="hbSkip">пропустить</button>';
+      $("#hbSkip").onclick=go; }
+    DMR_T.push(setTimeout(()=>count(n-1),800)); };
+  const next=()=>{ if(killed)return;
+    if(i>=DMR_LOG.length)return count(3);
+    const [line,wait]=DMR_LOG[i++]; t.innerHTML+=(i>1?"\n":"")+line; DMR_T.push(setTimeout(next,wait)); };
+  next();
+}
+function dmrStop(){
+  DMR_T.forEach(clearTimeout); DMR_T=[];
+  if(DMR_RAF)cancelAnimationFrame(DMR_RAF); DMR_RAF=null;
+  if(DMR_KEYS){ removeEventListener("keydown",DMR_KEYS.d); removeEventListener("keyup",DMR_KEYS.u); DMR_KEYS=null; }
+}
+function dmrWire(){
+  dmrReload(); dmrPadel(); dmrQuiz(); dmrSong(); tmrVideos();
+}
+/* Hot reload: каждое нажатие — одно пожелание, как коммит в лог. Последнее — релиз. */
+function dmrReload(){
+  const box=$("#dmrReload"), con=$("#dmrCon"); if(!box||!con)return;
+  let W=[]; try{ W=JSON.parse(box.getAttribute("data-w")||"[]"); }catch(e){}
+  const go=$("#dmrHot"), hr=$("#dmrHeart"), note=$("#dmrNote"); let n=0, busy=false;
+  const out=h=>{ con.insertAdjacentHTML("beforeend",h+"\n"); con.scrollTop=con.scrollHeight; };
+  go.onclick=()=>{
+    if(busy)return;
+    if(n>=W.length){ out('<span class="i">Nothing to reload: Дамир уже в проде 🚀</span>'); return; }
+    busy=true; const w=W[n++];
+    out('<span class="i">Performing hot reload...</span>');
+    DMR_T.push(setTimeout(()=>{
+      const c=4+(Math.random()*18|0), r=3+(Math.random()*9|0), a=5+(Math.random()*14|0);
+      out('<span class="i">Reloaded 1 of 1 libraries in '+(c+r+a)+'ms (compile: '+c+' ms, reload: '+r+' ms, reassemble: '+a+' ms).</span>');
+      out('<span class="g">✓</span> <span class="b">'+esc(w.t)+'</span> '+esc(w.d));
+      note.textContent="применено "+n+" из "+W.length;
+      const b=go.getBoundingClientRect(); hbBurst(b.left+b.width/2,b.top,22);
+      if(n===W.length){
+        out('<span class="y">Все '+W.length+' изменений применены без перезапуска. Состояние сохранено: друзья, стиль, хорошее настроение.</span>');
+        out('<span class="g">$</span> flutter build ipa <span class="i">→ ревью App Store:</span> <span class="g">Approved ✅ с первого раза</span>');
+        go.textContent="🚀 в проде"; note.textContent="все пожелания в релизе";
+        for(let k=0;k<4;k++)DMR_T.push(setTimeout(()=>hbBurst(innerWidth*(.2+Math.random()*.6),innerHeight*.35,60),k*220));
+      }
+      busy=false;
+    },450));
+  };
+  hr.onclick=()=>{                                     /* final есть final */
+    out('<span class="i">Performing hot reload...</span>');
+    out('<span class="r">lib/main.dart:12:9: Error: \'heart\' can\'t be used as a setter because it\'s final.</span>');
+    out('<span class="r">  damir.heart = …;</span>\n<span class="r">        ^^^^^</span>');
+    out('<span class="i">Try again after fixing the above error(s).</span>');
+    out('<span class="y">Компилятор на стороне жены. И Дамир тоже 💍</span>');
+    const ln=$("#dmrHeartLn"); if(ln){ ln.classList.add("err"); DMR_T.push(setTimeout(()=>ln.classList.remove("err"),1800)); }
+  };
+}
+/* Падел: корт сверху вниз, боковое стекло отбивает, гейм до 4 очков, при 40:40 золотое очко.
+   Логическое поле 360×460, рисуем с учётом плотности экрана. */
+function dmrPadel(){
+  const cv=$("#dmrCourt"), ov=$("#dmrOv"); if(!cv||!ov)return;
+  const W=360, H=460, dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=W*dpr; cv.height=H*dpr; const ctx=cv.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0);
+  const PW=76, PH=11, R=7, WALL=12, MY=H-30, OY=30, PTS=["0","15","30","40"];
+  const s1=$("#dmrS1"), s2=$("#dmrS2");
+  let me={x:W/2,tx:W/2}, op={x:W/2}, ball=null, sc=[0,0], live=false, glassL=0, glassR=0, flash="", flashT=0, wait=0, aiErr=0, trail=[], keys={};
+  let wins=0; try{ wins=+localStorage.getItem("jdDmrWins")||0; }catch(e){}
+  const pts=k=>sc[k]>=4?"гейм":PTS[sc[k]];
+  const score=()=>{ s1.textContent=pts(0); s2.textContent=pts(1); };
+  const say=(t,ms)=>{ flash=t; flashT=performance.now()+(ms||900); };
+  const serve=toMe=>{ const a=(Math.random()-.5)*.9; ball={x:W/2,y:H/2,sp:4.4,vx:0,vy:0}; ball.vx=ball.sp*Math.sin(a); ball.vy=(toMe?1:-1)*ball.sp*Math.cos(a);
+    trail=[]; wait=performance.now()+650; };
+  const pock=hi=>{ const ac=(typeof sgAudio==="function")?sgAudio():null; if(!ac)return; if(ac.state==="suspended")ac.resume(); sgTone(ac,hi?720:520,ac.currentTime+.01,.05,.09,"triangle"); };
+  const drawCourt=()=>{
+    ctx.fillStyle="#1b4f9c"; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle="rgba(255,255,255,.85)"; ctx.lineWidth=2;
+    const sv=H/2*.695;                                 /* линия подачи: 6,95 м от сетки на половине в 10 м */
+    ctx.beginPath(); ctx.moveTo(WALL,H/2-sv); ctx.lineTo(W-WALL,H/2-sv); ctx.moveTo(WALL,H/2+sv); ctx.lineTo(W-WALL,H/2+sv);
+    ctx.moveTo(W/2,H/2-sv); ctx.lineTo(W/2,H/2+sv); ctx.stroke();
+    ctx.fillStyle="rgba(255,255,255,.9)"; ctx.fillRect(WALL,H/2-2,W-2*WALL,4);
+    ctx.fillStyle="rgba(0,0,0,.18)"; ctx.fillRect(WALL,H/2+2,W-2*WALL,3);
+    [[0,glassL],[W-WALL,glassR]].forEach(([x,g])=>{ ctx.fillStyle="rgba(190,225,255,"+(.16+g*.55)+")"; ctx.fillRect(x,0,WALL,H); });
+  };
+  const racket=(x,y,col)=>{ ctx.fillStyle=col; ctx.beginPath(); ctx.roundRect?ctx.roundRect(x-PW/2,y-PH/2,PW,PH,6):ctx.rect(x-PW/2,y-PH/2,PW,PH); ctx.fill();
+    ctx.fillStyle="rgba(0,0,0,.25)"; for(let k=-2;k<=2;k++){ ctx.beginPath(); ctx.arc(x+k*12,y,1.8,0,Math.PI*2); ctx.fill(); } };
+  const draw=now=>{
+    drawCourt();
+    trail.forEach((p,k)=>{ ctx.fillStyle="rgba(217,242,74,"+(k/trail.length*.35)+")"; ctx.beginPath(); ctx.arc(p.x,p.y,R*(.5+k/trail.length*.5),0,Math.PI*2); ctx.fill(); });
+    if(ball){ ctx.fillStyle="#d9f24a"; ctx.shadowColor="rgba(217,242,74,.6)"; ctx.shadowBlur=10; ctx.beginPath(); ctx.arc(ball.x,ball.y,R,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; }
+    racket(op.x,OY,"#ff7a90"); racket(me.x,MY,"#ffcf5c");
+    ctx.font="700 11px ui-monospace,monospace"; ctx.textAlign="center"; ctx.fillStyle="rgba(255,255,255,.55)";
+    ctx.fillText("ПОНЕДЕЛЬНИК",W/2,OY-15); ctx.fillText("ДАМИР",W/2,MY+22);
+    if(flash&&now<flashT){ ctx.font="800 22px system-ui,sans-serif"; ctx.fillStyle="#fff"; ctx.shadowColor="rgba(0,0,0,.6)"; ctx.shadowBlur=8; ctx.fillText(flash,W/2,H/2-18); ctx.shadowBlur=0; }
+  };
+  const point=meWon=>{
+    sc[meWon?0:1]++; score(); pock(false);
+    const r=cv.getBoundingClientRect();
+    if(meWon)hbBurst(r.left+r.width/2,r.top+r.height*.2,20);
+    if(sc[0]>=4||sc[1]>=4)return end(sc[0]>=4);
+    if(sc[0]===3&&sc[1]===3)say("золотое очко ⭐",1400); else say(PTS[sc[0]]+" : "+PTS[sc[1]]);
+    serve(!meWon);                                     /* подаёт выигравший очко */
+  };
+  const end=won=>{
+    live=false; ball=null; cv.style.touchAction="pan-y";
+    if(won){ wins++; try{ localStorage.setItem("jdDmrWins",String(wins)); }catch(e){}
+      for(let k=0;k<4;k++)DMR_T.push(setTimeout(()=>hbBurst(innerWidth*(.25+Math.random()*.5),innerHeight*.4,60),k*200)); }
+    idle(won?'<b>Гейм, Дамир! 🎾</b><p>Понедельник отменён. Побед на этом корте: '+wins+'.</p>'
+            :'<b>Понедельник взял гейм</b><p>Бывает и у лучших. В паделе всё решает следующий розыгрыш.</p>', won?"ещё гейм":"реванш");
+  };
+  const loop=now=>{
+    if(!$("#dmrCourt"))return;
+    const k=Math.min(2,(now-(loop.t||now))/16.67)||1; loop.t=now;
+    if(keys.l)me.tx-=7*k; if(keys.r)me.tx+=7*k;
+    me.tx=Math.max(WALL+PW/2,Math.min(W-WALL-PW/2,me.tx)); me.x+=(me.tx-me.x)*Math.min(1,.45*k);
+    glassL*=.9; glassR*=.9;
+    if(live&&ball&&now>=wait){
+      const tgt=ball.vy<0?ball.x+aiErr:W/2, sp=3.5+ball.sp*.12;
+      op.x+=Math.max(-sp*k,Math.min(sp*k,tgt-op.x)); op.x=Math.max(WALL+PW/2,Math.min(W-WALL-PW/2,op.x));
+      ball.x+=ball.vx*k; ball.y+=ball.vy*k;
+      trail.push({x:ball.x,y:ball.y}); if(trail.length>7)trail.shift();
+      if(ball.x-R<WALL){ ball.x=WALL+R; ball.vx=Math.abs(ball.vx); glassL=1; say("стекло!",500); pock(true); }
+      if(ball.x+R>W-WALL){ ball.x=W-WALL-R; ball.vx=-Math.abs(ball.vx); glassR=1; say("стекло!",500); pock(true); }
+      const hit=(px,py,dir)=>{ const off=Math.max(-1,Math.min(1,(ball.x-px)/(PW/2))), a=off*1.05;
+        ball.sp=Math.min(10,ball.sp*1.06); ball.vx=ball.sp*Math.sin(a); ball.vy=dir*ball.sp*Math.cos(a); ball.y=py+dir*(PH/2+R); pock(true); };
+      if(ball.vy>0&&ball.y+R>=MY-PH/2&&ball.y-R<=MY+PH/2&&Math.abs(ball.x-me.x)<=PW/2+R){ hit(me.x,MY,-1); aiErr=(Math.random()-.5)*(30+ball.sp*9); }
+      if(ball.vy<0&&ball.y-R<=OY+PH/2&&ball.y+R>=OY-PH/2&&Math.abs(ball.x-op.x)<=PW/2+R)hit(op.x,OY,1);
+      if(ball.y>H+R*2)point(false); else if(ball.y<-R*2)point(true);
+    }
+    draw(now);
+    DMR_RAF=(live||glassL>.02||glassR>.02||now<flashT)?requestAnimationFrame(loop):null;   /* без матча цикл спит */
+  };
+  const idle=(html,btn)=>{ ov.hidden=false; ov.innerHTML=html+'<button type="button" class="sg-btn dmr-btn" id="dmrGo">'+btn+'</button>';
+    $("#dmrGo").onclick=start; };
+  const start=()=>{ sc=[0,0]; score(); ov.hidden=true; live=true; cv.style.touchAction="none"; me.tx=me.x=op.x=W/2; aiErr=0; serve(false); say("подача!",700);
+    if(!DMR_RAF){ loop.t=0; DMR_RAF=requestAnimationFrame(loop); } };
+  const aim=e=>{ if(!live)return; const r=cv.getBoundingClientRect(); me.tx=(e.clientX-r.left)*W/r.width; };
+  cv.addEventListener("pointermove",aim); cv.addEventListener("pointerdown",aim);
+  if(DMR_KEYS){ removeEventListener("keydown",DMR_KEYS.d); removeEventListener("keyup",DMR_KEYS.u); }
+  DMR_KEYS={d:e=>{ if(!live)return; if(e.key==="ArrowLeft"){ keys.l=1; e.preventDefault(); } if(e.key==="ArrowRight"){ keys.r=1; e.preventDefault(); } },
+            u:e=>{ if(e.key==="ArrowLeft")keys.l=0; if(e.key==="ArrowRight")keys.r=0; }};
+  addEventListener("keydown",DMR_KEYS.d); addEventListener("keyup",DMR_KEYS.u);
+  score();
+  idle('<b>Дамир vs Понедельник</b><p>Гейм до 4 очков, при 40:40 — золотое очко. Мяч отскакивает от бокового стекла: этим можно пользоваться.</p>'+(wins?'<p>Побед на этом корте: '+wins+'.</p>':''),"на корт");
+  if(DMR_RAF)cancelAnimationFrame(DMR_RAF); DMR_RAF=null; draw(performance.now());
+}
+/* Кинозал: эмодзи → фильм. После ответа — версия того же фильма с Дамиром. */
+function dmrQuiz(){
+  const box=$("#dmrQuiz"); if(!box)return;
+  let Q=[]; try{ Q=JSON.parse(box.getAttribute("data-q")||"[]"); }catch(e){}
+  if(!Q.length)return;
+  let i=0, ok=0;
+  const mix=a=>{ a=a.slice(); for(let k=a.length-1;k>0;k--){ const j=(Math.random()*(k+1))|0; [a[k],a[j]]=[a[j],a[k]]; } return a; };
+  const show=()=>{
+    if(i>=Q.length)return end();
+    const q=Q[i];
+    box.innerHTML='<div class="dmr-q-n">сеанс '+(i+1)+' из '+Q.length+' · угадано '+ok+'</div><div class="dmr-q-em">'+esc(q.e)+'</div>'
+      +'<div class="dmr-q-opts">'+mix([q.a].concat(q.w)).map(o=>'<button type="button">'+esc(o)+'</button>').join("")+'</div><div id="dmrQd"></div>';
+    const bs=[...box.querySelectorAll(".dmr-q-opts button")];
+    bs.forEach(b=>b.onclick=()=>{
+      const right=b.textContent===q.a; if(right)ok++;
+      bs.forEach(x=>{ x.disabled=true; if(x.textContent===q.a)x.classList.add("ok"); else if(x===b)x.classList.add("no"); });
+      if(right){ const r=b.getBoundingClientRect(); hbBurst(r.left+r.width/2,r.top,18); }
+      $("#dmrQd").innerHTML='<div class="dmr-q-dm">'+(right?"✓ ":"Это «"+esc(q.a)+"». ")+'<b>Версия с Дамиром:</b> '+esc(q.d)+'</div>'
+        +'<button type="button" class="sg-btn" id="dmrNext">'+(i+1<Q.length?"следующий сеанс →":"итоги")+'</button>';
+      $("#dmrNext").onclick=()=>{ i++; show(); };
+    });
+  };
+  const end=()=>{
+    const rank=ok===Q.length?"кинокритик уровня Дамира 🎬":ok>=Q.length-2?"киноман: попкорн заслужен 🍿":ok>=Q.length/2?"смотришь трейлеры, но с душой":"попкорн съеден, фильм — нет 🍿";
+    box.innerHTML='<div class="dmr-q-end"><b>'+ok+' из '+Q.length+'</b><span>'+rank+'</span></div><button type="button" class="sg-btn" id="dmrAgain">пересмотреть</button>';
+    $("#dmrAgain").onclick=()=>{ i=0; ok=0; show(); };
+    if(ok>=Q.length-1)for(let k=0;k<3;k++)DMR_T.push(setTimeout(()=>hbBurst(innerWidth*(.3+Math.random()*.4),innerHeight*.4,50),k*200));
+  };
+  show();
+}
+/* Саундтрек в титрах: Happy Birthday тем же синтезатором, что у Лауры; бас на смене аккорда */
+function dmrSong(){
+  const b=$("#dmrSong"); if(!b)return;
+  let S=[]; try{ S=JSON.parse(b.getAttribute("data-song")||"[]"); }catch(e){}
+  const label=b.textContent;
+  b.onclick=()=>{
+    if(SG_PLAY){ sgStopMelody(); b.textContent=label; return; }
+    const ac=sgAudio(); if(!ac||!S.length)return; if(ac.state==="suspended")ac.resume();
+    SG_PLAY={oscs:[],timers:[],until:0};
+    const BEAT=.44, t0=ac.currentTime+.15, ROOT={I:0,IV:5,V:7}; let t=0;
+    S.forEach(([iv,d,ch])=>{
+      sgTone(ac,sgHz(67+iv),t0+t,Math.max(.08,d*BEAT-.06),.16,"triangle");
+      if(ch)sgTone(ac,sgHz(48+ROOT[ch]),t0+t,1.2,.1,"sine");
+      t+=d*BEAT; });
+    b.textContent="⏹ стоп";
+    SG_PLAY.timers.push(setTimeout(()=>{ sgStopMelody(); b.textContent=label; },t*1000+400));
+    const r=b.getBoundingClientRect(); hbBurst(r.left+r.width/2,r.top,30);
+  };
+}
 function hbLoad(cfg){
   return new Promise(res=>{
     if(cfg.data())return res(true);
@@ -13549,6 +13827,7 @@ function hbClose(){
   if(typeof TMR_TRADE!=="undefined"&&TMR_TRADE)cancelAnimationFrame(TMR_TRADE);
   if(typeof TMR_TRADE_KEY!=="undefined"&&TMR_TRADE_KEY)removeEventListener("keydown",TMR_TRADE_KEY);
   if(typeof TMR_CASE_T!=="undefined"){ TMR_CASE_T.forEach(clearTimeout); TMR_CASE_T=[]; }
+  if(typeof dmrStop==="function")dmrStop();
   if(HB){ cancelAnimationFrame(HB.raf); removeEventListener("resize",HB.fit); HB=null; }
   if(Object.keys(HB_ROOMS).some(k=>location.hash==="#"+k))   /* иначе повторный вход в ту же комнату не срабатывает */
     history.replaceState(null,"",location.pathname+location.search);
@@ -14254,7 +14533,7 @@ function qaScore(box,team,score){
 /* ---- как сюда попасть: ссылка #hb или набрать секретное слово ---- */
 (function(){
   const byHash=()=>{ const h=location.hash;
-    if(h==="#hb")hbOpen("hb"); else if(h==="#sing")hbOpen("sing"); else if(h==="#qa")hbOpen("qa"); else if(h==="#tmr")hbOpen("tmr"); };
+    if(h==="#hb")hbOpen("hb"); else if(h==="#sing")hbOpen("sing"); else if(h==="#qa")hbOpen("qa"); else if(h==="#tmr")hbOpen("tmr"); else if(h==="#dmr")hbOpen("dmr"); };
   addEventListener("hashchange",byHash);
   if(document.readyState==="loading")addEventListener("DOMContentLoaded",byHash); else byHash();
   let buf="";

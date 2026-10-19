@@ -299,6 +299,21 @@ const check = (name, ok, detail) => {
       "замок " + tm.lock + " · данные " + tm.data + " · на чужой код: «" + tm.ошибка + "» · открылась без кода: " + tm.open + " · закрылась: " + tm.closed);
   }
 
+  /* ---- комната #dmr: то же снаружи — замок, данные, чужой код отбит ---- */
+  {
+    const dm = JSON.parse(await A.ev(`(async function(){
+      var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+      location.hash="#dmr"; await ж(600);
+      var lock=!!document.querySelector("#hbWrap .hb-lock"), data=!!window.DMRDATA, inp=document.getElementById("hbPw");
+      var ошибка=""; if(inp){ inp.value="явно-не-тот-код"; await hbTry(inp.value); await ж(50); ошибка=(document.getElementById("hbErr")||{}).textContent||""; }
+      var open=!!document.querySelector("#hbWrap .dmr-hero");
+      hbClose(); await ж(100);
+      return JSON.stringify({lock:lock, data:data, ошибка:ошибка, open:open, closed:!document.getElementById("hbWrap")});
+    })()`));
+    check("комната #dmr: замок, данные, чужой код отбит", dm.lock && dm.data && /Не тот код/.test(dm.ошибка) && !dm.open && dm.closed,
+      "замок " + dm.lock + " · данные " + dm.data + " · на чужой код: «" + dm.ошибка + "» · открылась без кода: " + dm.open + " · закрылась: " + dm.closed);
+  }
+
   /* ---- раздел AI: маршрут, карточки, термины ----
      Про AI в тренажёре не было ничего; теперь маршрут в «С нуля», кластер карточек и
      термины. Считаем всё вместе, чтобы выпадение одного файла из сборки было видно. */
