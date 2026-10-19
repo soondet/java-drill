@@ -13,6 +13,9 @@ const fs=require("fs"), path=require("path"), crypto=require("crypto"), {execFil
 const NAME="Дамир";
 const DATE="19.10";
 const BRAND="Corneli";
+const COVER_CAP="на Железном троне";          /* подпись под обложкой: «Look 19.10 — …» */
+/* подписи лукбука по порядку файлов dmr-look-1, -2 …; пусто — только номер */
+const LOOK_CAPS=["Corneli: от улицы до трона","Вечер у фонтанов: кэмел и лоферы"];
 /* hot reload: каждое нажатие применяет одно пожелание, как коммит */
 const WISHES=[
   {t:"feat(health):",  d:"здоровье без единого краша — весь год и на всех платформах"},
@@ -156,7 +159,7 @@ const N=(()=>{ let k=0; return ()=>["I","II","III","IV","V","VI","VII"][k++]; })
 const HTML=`
 <header class="dm-cover">
   <div class="dm-top"><span>Atelier Damir</span><span>Осень · 2026</span><span>№ ${DATE}</span></div>
-  <figure class="dm-ph"><div class="dm-ph-f"><img src="${IMG}" alt="${NAME}"></div><figcaption>Look ${DATE} — именинник</figcaption></figure>
+  <figure class="dm-ph"><div class="dm-ph-f"><img src="${IMG}" alt="${NAME}"></div><figcaption>Look ${DATE} — ${COVER_CAP}</figcaption></figure>
   <p class="dm-kick">Buon compleanno</p>
   <h1>С днём рождения,<em>${NAME}</em></h1>
   <p class="dm-sub">Коллекция одного вечера: стиль, падел, кино и Flutter — сшито по мерке</p>
@@ -187,7 +190,7 @@ const HTML=`
 
 ${LOOKS.length?`<section class="dm-card">
   <h2><small>${N()}</small>Лукбук</h2>
-  <div class="dm-look">${LOOKS.map((src,i)=>'<figure><img src="'+src+'" alt="Look '+String(i+1).padStart(2,"0")+'" loading="lazy"><figcaption>Look '+String(i+1).padStart(2,"0")+'</figcaption></figure>').join("")}</div>
+  <div class="dm-look">${LOOKS.map((src,i)=>'<figure><img src="'+src+'" alt="Look '+String(i+1).padStart(2,"0")+'" loading="lazy"><figcaption><b>Look '+String(i+1).padStart(2,"0")+'</b>'+(LOOK_CAPS[i]||"")+'</figcaption></figure>').join("")}</div>
 </section>`:""}
 
 <section class="dm-card">

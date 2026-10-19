@@ -1903,9 +1903,13 @@
   .dm-tag-in .dm-tag-c{font:italic 400 13.5px/1.55 var(--serif);color:#4a443c}
   .dm-tag-in .dm-tag-z{margin:12px 0 0;font:500 9.5px var(--sans);letter-spacing:3px;text-transform:uppercase;color:#8a8073}
   .dm-tag-z b{margin:0 4px;font:400 19px var(--serif);letter-spacing:0;color:#2a2620}
-  .dm-look{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,240px));justify-content:center;gap:16px;margin-top:16px}
-  .dm-look figure{margin:0} .dm-look img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;border:1px solid var(--hl)}
-  .dm-look figcaption{margin-top:8px;text-align:center;font:italic 400 13.5px var(--serif);color:var(--tp)}
+  /* лукбук без обрезки: у снимков свои пропорции (бывают коллажи из двух кадров), высота общая */
+  .dm-look{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-top:18px}
+  .dm-look figure{margin:0;max-width:100%}
+  .dm-look img{display:block;height:380px;width:auto;max-width:100%;object-fit:contain;border:1px solid var(--hl)}
+  .dm-look figcaption{margin-top:10px;text-align:center;font:italic 400 15px var(--serif);color:var(--iv)}
+  .dm-look figcaption b{display:block;margin-bottom:2px;font:500 10px var(--sans);font-style:normal;letter-spacing:2.5px;text-transform:uppercase;color:var(--au)}
+  @media(max-width:560px){.dm-look img{height:auto;width:100%}}
   .dm-btn{margin-top:14px;padding:13px 22px;border:1px solid var(--au);border-radius:0;background:var(--au);color:#15120d;cursor:pointer;
     font:600 11.5px var(--sans);letter-spacing:2.5px;text-transform:uppercase;transition:background .2s,border-color .2s,color .2s}
   .dm-btn:hover{background:var(--au2);border-color:var(--au2)}
