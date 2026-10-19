@@ -16,8 +16,10 @@ permissions:
   pages: write
   id-token: write
 
+# группа сменена 19.10.2026: прогон #71 завис в «Waiting» (GitHub его не отменяет),
+# а в старой группе «pages» все деплои вставали за ним в очередь
 concurrency:
-  group: pages
+  group: pages-v2
   cancel-in-progress: true
 
 jobs:
