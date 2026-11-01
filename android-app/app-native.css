@@ -1,271 +1,483 @@
-/* Стили Android-приложения. Всё под html.native-app — на сайте этого файла нет, а если бы и был, правила бы не сработали.
+/* Стили Android-приложения java-drill. Всё под html.native-app — на сайте этого файла нет, а если бы и был, правила бы не сработали.
  * Подключается в <head> после стилей сайта (android-app/bundle.js), поэтому при равной специфичности перекрывает их.
- * Цвета — токены сайта (--acc, --good, --bad, --warn, --grad): один стиль на сайте и в приложении. */
+ *
+ * Визуальный язык — «точный инструмент»: графитовые поверхности четырёх уровней, один акцент (градиент сайта) только
+ * на главном действии, три смысловых цвета оценок, цифры — пропорциональные с табличными цифрами, код — моно.
+ * Сквозной мотив — ступени лестницы повторения: знак в шапке, ступени у карточки, лестница в «Прогрессе».
+ *
+ * 1 токены · 2 база · 3 шапка и панель · 4 компоненты · 5 экраны слоя · 6 занятие · 7 итоги · 8 прогресс
+ * 9 разделы сайта · 10 телефон боком · 11 меньше движения */
 
-/* ---------- что на телефоне лишнее ---------- */
+/* ---------- 1. токены ---------- */
+html.native-app {
+  /* поверхности: фон → карточка → вложенное → всплывающее; хром (шапка, панели) — свой */
+  --jd-s0: #07080e; --jd-s1: #0f121a; --jd-s2: #161a24; --jd-s3: #1d2230; --jd-chrome: #0a0c13;
+  --jd-b1: rgba(255, 255, 255, .06); --jd-b2: rgba(255, 255, 255, .10); --jd-hl: inset 0 1px 0 rgba(255, 255, 255, .045);
+  --jd-t1: #eef1f7; --jd-t2: #d5dae7; --jd-t3: #98a1b4; --jd-t4: #6c7486;
+  --jd-acc: #6ea8fe; --jd-vio: #a98bff; --jd-cy: #54e6c8; --jd-org: #ff9f43;
+  --jd-good: #46d6a0; --jd-mid: #ffcf6e; --jd-bad: #ff7a85;
+  --jd-r1: 10px; --jd-r2: 14px; --jd-r3: 20px;
+  --jd-sh1: 0 10px 30px -18px rgba(0, 0, 0, .7); --jd-sh2: 0 24px 60px -28px rgba(0, 0, 0, .85);
+  --jd-e: cubic-bezier(.2, .8, .2, 1); --jd-q: 120ms; --jd-m: 220ms; --jd-l: 280ms;
+  /* токены сайта: поверхности непрозрачные — на телефоне фон под ними не плывёт, разделы сайта сами в тон */
+  --panel: var(--jd-s1); --panel-2: rgba(255, 255, 255, .045); --line: var(--jd-b2); --line-2: var(--jd-b1);
+}
+
+/* ---------- 2. база ---------- */
 html.native-app .tabs, html.native-app .kpis, html.native-app .hint-keys, html.native-app .onb, html.native-app #rmFab { display: none !important; }
 html.native-app kbd { display: none !important; }                        /* Space и 1/2/3 — подсказки для клавиатуры */
 html.native-app .card .fav-btn, html.native-app .card .hide-btn { display: none !important; }   /* — в меню «⋯» */
 html.native-app body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
-html.native-app .toast { bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
 html.native-app button, html.native-app .btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-
-/* ---------- нижняя панель ---------- */
-.jd-bb { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; background: #0c0f18; border-top: 1px solid var(--line);
-  padding: 4px calc(4px + env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) calc(4px + env(safe-area-inset-left)); }
-.jd-bb button { flex: 1; min-width: 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 2px;
-  border: 0; border-radius: 14px; background: transparent; color: #8d95a8; font: 600 11.5px/1.1 var(--sans); transition: color .15s, background .15s; }
-.jd-bb button .jd-svg { width: 24px; height: 24px; }
-.jd-bb button.on { color: #fff; background: rgba(110, 168, 254, .13); }
-.jd-bb button.on .jd-svg { color: var(--acc); }
-.jd-bb button:active { transform: scale(.95); }
-
-/* ---------- экраны слоя: Сегодня, Учить, Карточки ---------- */
-.jd-view { width: 100%; max-width: 680px; margin: 0 auto; padding: 8px 16px 24px; box-sizing: border-box; }   /* флекс-элемент с auto-полями сжимается по содержимому */
-.jt-head { padding: 10px 2px 14px; }
-.jt-head span { color: var(--mut); font-size: 14px; }
-.jt-head h1 { margin: 2px 0 0; font-size: 30px; line-height: 1.15; font-weight: 750; letter-spacing: -.3px; }
-.jt-main { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: var(--shadow); }
-.jt-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
-.jt-nums b { display: block; font: 750 32px/1.1 var(--mono); }
-.jt-nums span { color: var(--mut); font-size: 13px; }
-.jd-bar { display: block; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .08); overflow: hidden; }
-.jd-bar i { display: block; height: 100%; border-radius: 4px; background: var(--grad); transition: width .3s ease; }
-.jt-bar { margin: 18px 0 8px; }
-.jt-cap { margin: 0 0 16px; text-align: center; color: var(--mut); font-size: 13px; }
-.jt-go { width: 100%; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 17px; font-weight: 700; border-radius: 16px; }
-.jt-go small { font: 500 12.5px var(--sans); opacity: .8; }
-.jt-done { color: var(--read); margin: 0 0 12px; line-height: 1.5; }
-.jt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
-.jd-chip .jd-svg { width: 18px; height: 18px; flex: none; }
-.jd-chip .fl { color: #ff9f43; } .jd-chip .ok { color: var(--good); }
-.jd-chip { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 12px; border-radius: 18px; background: var(--panel-2); border: 1px solid var(--line-2); color: var(--read); font-size: 14px; }
-.jd-h3 { margin: 22px 2px 10px; font-size: 13px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--mut); }
-.jd-list { display: flex; flex-direction: column; gap: 8px; }
-.jd-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 10px 14px; border-radius: 16px; border: 1px solid var(--line);
-  background: var(--panel); color: var(--txt); text-align: left; font: inherit; }
-.jd-row:active { transform: scale(.985); background: rgba(255, 255, 255, .07); }
-.jd-ico { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: rgba(255, 255, 255, .06); color: var(--read); }
-.jd-ico .jd-svg { width: 22px; height: 22px; }
-.jd-ico.t-bad { background: rgba(255, 122, 133, .13); color: var(--bad); } .jd-ico.t-warn { background: rgba(255, 207, 110, .13); color: var(--warn); }
-.jd-ico.t-org { background: rgba(255, 159, 67, .13); color: #ff9f43; } .jd-ico.t-vio { background: rgba(169, 139, 255, .14); color: var(--acc2); }
-.jd-ico.t-acc { background: rgba(110, 168, 254, .14); color: var(--acc); } .jd-ico.t-cy { background: rgba(84, 230, 200, .12); color: var(--cyan); }
-/* слабая тема: процент освоения вместо одинаковой иконки */
-.jd-pct { flex: none; display: flex; align-items: baseline; justify-content: center; width: 54px; height: 42px; padding-top: 9px; border-radius: 13px; background: rgba(255, 159, 67, .12); color: #ffb26b; font: 750 18px/1 var(--mono); }
-.jd-pct small { font-size: 11px; margin-left: 1px; opacity: .8; }
-.jd-rt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.jd-rt b { font-size: 16px; font-weight: 650; }
-.jd-rt small { color: var(--mut); font-size: 13px; line-height: 1.35; }
-.jd-rt .jd-bar { height: 5px; margin-top: 4px; }
-.jd-n { font: 700 15px var(--mono); color: var(--read); }
-.jd-chev { color: var(--mut); font-size: 22px; flex: none; }
-.jd-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.jd-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 112px; padding: 14px; border-radius: 18px; border: 1px solid var(--line);
-  background: var(--panel); color: var(--txt); text-align: left; font: inherit; }
-.jd-tile .jd-tile-ico { display: grid; place-items: center; width: 46px; height: 46px; margin-bottom: 8px; border-radius: 14px; background: rgba(255, 255, 255, .06); font-size: 24px; font-weight: 400; line-height: 1; }
-.jd-tile span { font-size: 16px; font-weight: 650; }
-.jd-tile small { color: var(--mut); font-size: 12.5px; line-height: 1.35; }
-.jd-tile:active { transform: scale(.97); }
-.jd-search .jd-svg { width: 20px; height: 20px; flex: none; }
-.jd-search { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 0 16px; margin-bottom: 12px; border-radius: 26px; border: 1px solid var(--line);
-  background: var(--panel-2); color: var(--mut); font: 500 15px var(--sans); text-align: left; }
-.jd-switch { display: flex; align-items: center; gap: 12px; min-height: 52px; margin: 14px 2px 0; color: var(--read); font-size: 15px; }
-/* переключатель вместо системного белого чекбокса */
-.jd-switch input { -webkit-appearance: none; appearance: none; position: relative; flex: none; width: 46px; height: 28px; margin: 0; border-radius: 14px; background: rgba(255, 255, 255, .16); transition: background .2s; }
-.jd-switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); transition: transform .2s; }
-.jd-switch input:checked { background: var(--acc); }
-.jd-switch input:checked::after { transform: translateX(18px); }
-
-/* ---------- занятие: фокус, полоса прогресса сверху, действия снизу под большим пальцем ---------- */
-.jd-sbar, #jdAct { display: none; }
-html.native-app body.jd-focus { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
-html.native-app body.jd-focus .topbar, html.native-app body.jd-focus .filt-bar, html.native-app body.jd-focus .subbar, html.native-app body.jd-focus .jd-bb { display: none !important; }
-html.native-app body.jd-focus .jd-sbar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 55;
-  padding: calc(env(safe-area-inset-top) + 6px) 14px 8px 6px; background: #07080e; border-bottom: 1px solid var(--line-2); }   /* непрозрачная: при 94% сквозь неё читался текст */
-.jd-sbar .jd-x { width: 48px; height: 48px; flex: none; border: 0; border-radius: 24px; background: transparent; color: var(--read); font-size: 20px; }
-.jd-sbar .jd-x:active { background: rgba(255, 255, 255, .08); }
-.jd-sbar .jd-p { flex: 1; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .08); overflow: hidden; }
-.jd-sbar .jd-p i { display: block; height: 100%; width: 0; background: var(--grad); border-radius: 4px; transition: width .25s ease; }
-.jd-sbar .jd-pn { font: 600 13px var(--mono); color: var(--mut); white-space: nowrap; }
-html.native-app body.jd-focus #jdAct { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 56;
-  padding: 10px calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
-  background: #0a0c14; border-top: 1px solid var(--line); }   /* непрозрачная: при 97% сквозь неё читался ответ */
-#jdAct .actions { display: flex; gap: 8px; margin: 0 !important; max-width: 680px; margin-inline: auto !important; }
-#jdAct .btn { flex: 1; min-width: 0; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  padding: 6px 4px; font-size: 16px; font-weight: 700; border-radius: 16px; animation: none; }
-#jdAct .btn small { font: 500 12px/1.2 var(--sans); opacity: .82; white-space: nowrap; }
-#jdAct .btn.bad { background: rgba(255, 122, 133, .10); border: 1px solid rgba(255, 122, 133, .40); }
-#jdAct .btn.mid { background: rgba(255, 207, 110, .09); border: 1px solid rgba(255, 207, 110, .36); }
-#jdAct .btn.good { background: rgba(70, 214, 160, .11); border: 1px solid rgba(70, 214, 160, .42); }
-#jdAct .btn:active { transform: scale(.97); }
-#jdAct .btn:disabled { opacity: .5; }
-html.native-app body.jd-focus #viewDrill { padding-top: 6px; }
-/* карточка — от верха, а не по центру: при раскрытии ответа она не прыгает */
-html.native-app body.jd-focus #drillStage { align-items: flex-start; justify-content: flex-start; min-height: 0; padding-top: 10px; }
-/* карточка открывается чуть быстрее, ответ раскрывается за ~220 мс */
-/* карточка: короткое появление не с нуля — следующий вопрос виден сразу, даже если телефон занят отрисовкой
-   (с прозрачности 0 на эмуляторе карточка была невидимой ~0.6 с) */
-html.native-app body.jd-focus #drillStage .card { animation: jdCardIn .16s ease-out both; }
-@keyframes jdCardIn { from { opacity: .35; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-html.native-app body.jd-focus #drillStage .ans.show { animation-duration: .22s; }
-
-/* меню карточки «⋯» */
-.jd-more { position: absolute; top: -12px; right: -14px; min-width: 48px; min-height: 48px; border: 0; border-radius: 24px; background: transparent; color: var(--read); font-size: 22px; line-height: 1; }
-html.native-app .card-tags { padding-right: 40px; }   /* место под «⋯»: теги переносятся, а кнопка остаётся в углу */
-.jd-more:active { background: rgba(255, 255, 255, .08); }
-.card-tags { position: relative; }
-.jd-pop { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 230px; padding: 6px; border-radius: 16px; background: #151a27; border: 1px solid var(--line); box-shadow: var(--shadow); }
-.jd-pop button { display: block; width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent; color: var(--txt); font: 600 15px var(--sans); text-align: left; }
-.jd-pop button:active { background: rgba(255, 255, 255, .07); }
-
-/* итоги занятия */
-.jr { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 22px 18px; margin-top: 6px; }
-.jr h2 { margin: 0 0 6px; font-size: 24px; line-height: 1.2; }
-.jr-lead { color: var(--mut); margin: 0 0 16px; }
-.jr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
-.jr-grid div { text-align: center; padding: 12px 4px; border-radius: 14px; background: var(--panel-2); }
-.jr-grid b { display: block; font: 750 28px/1.1 var(--mono); }
-.jr-grid span { color: var(--mut); font-size: 13px; }
-.jr-grid .g b { color: var(--good); } .jr-grid .m b { color: var(--warn); } .jr-grid .b b { color: var(--bad); }
-.jr-p { color: var(--read); line-height: 1.5; margin: 8px 0 0; }
-.jr-next { color: var(--mut); }
-
-/* лестница в «Прогрессе» */
-.jl { margin-bottom: 22px; }
-.jl-head { width: 100%; padding-top: 2px; }
-html.native-app .prog-h { display: none; }               /* «Твой прогресс» — теперь общий заголовок экрана сверху */
-.jl-acc { color: var(--read); margin: 0 2px 10px; }
-.jl-row { display: grid; grid-template-columns: 34px 92px 1fr 44px; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 12px; margin-bottom: 6px;
-  border-radius: 14px; border: 1px solid var(--line-2); background: var(--panel); color: var(--txt); font: inherit; text-align: left; }
-.jl-row .jl-b { font: 750 16px var(--mono); text-align: center; }
-.jl-row .jl-d { color: var(--mut); font-size: 13px; }
-.jl-row .jl-n { font: 700 15px var(--mono); text-align: right; }
-.jl-row.m { border-color: rgba(70, 214, 160, .3); }
-.jl-row.m .jd-bar i { background: var(--good); }
-.jl-note { color: var(--mut); font-size: 13px; margin: 10px 2px 6px; }
-.jl-list { margin-top: 8px; }
-.jl-list .jl-go { width: 100%; min-height: 52px; margin-bottom: 8px; }
-.jl-q { padding: 10px 12px; border-bottom: 1px solid var(--line-2); color: var(--read); font-size: 14px; line-height: 1.4; }
-.jl-q small { display: block; color: var(--mut); font-size: 12px; }
-
-/* меньше движения — по системе и по своей настройке: никаких въездов и каскадов */
-@media (prefers-reduced-motion: reduce) {
-  html.native-app .jd-view.enter, html.native-app #drillStage .card, html.native-app #drillStage .ans.show, html.native-app #drillStage .ans.show * { animation: none !important; }
-  .jd-bar i, .jd-sbar .jd-p i { transition: none; }
-}
-/* телефон боком: панель действий ниже, полоса сессии тоньше */
-@media (orientation: landscape) and (max-height: 520px) {
-  #jdAct .btn { min-height: 48px; }
-  html.native-app body.jd-focus { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
-  .jt-head h1 { font-size: 24px; }
-}
-
-/* ---------- Visual QA: шапка, фон, карточка, панель, тост, поиск, «Игра» ---------- */
-/* шапка: без рамки «как в десктопе», иконки 44 px, бренд скромнее — главный заголовок у экрана */
-html.native-app .tools { background: transparent; border: 0; padding: 0; gap: 0; }
-html.native-app .lang-tog { width: 44px; height: 44px; border: 0; border-radius: 22px; background: transparent; color: var(--read); display: grid; place-items: center; font-size: 13px; }
-html.native-app .lang-tog .jd-svg { width: 22px; height: 22px; }
-html.native-app .lang-tog:active { background: rgba(255, 255, 255, .08); }
-html.native-app .brand { font-size: 16px; }
-/* фон: цветные пятна приглушены — поверхности ровные, текст не «плывёт» по фиолетовому */
-html.native-app .bg { opacity: .45; }
-/* карточка: только тема и важные метки; уровень «основа/второстеп.» — шум во время ответа */
-html.native-app .card .tier-core, html.native-app .card .tier-sec { display: none !important; }
-html.native-app .card-tags .pill:not(.grad-pill):not(.pill-tricky):not(.pill-leech) { border: 0; background: none; padding-left: 2px; color: var(--mut); }
-html.native-app .card .q { font-size: calc(23px * var(--ts, 1)); line-height: 1.32; font-weight: 700; letter-spacing: -.2px; }
-/* до ответа вопрос ниже от верха (не прилипает под шапку), после — плавно поднимается к ответу */
-html.native-app body.jd-focus.jd-revealed #drillStage { transition: padding-top .22s ease-out; }   /* плавно только при раскрытии; новая карточка — сразу на месте */
-html.native-app body.jd-focus:not(.jd-revealed) #drillStage { padding-top: 9vh; }
-html.native-app .ans .lbl { display: block; margin-top: 20px; }
-/* панель оценок: текст уходит под неё мягко, а не обрезается краем */
-html.native-app body.jd-focus #jdAct::before { content: ""; position: absolute; left: 0; right: 0; top: -32px; height: 32px; background: linear-gradient(to bottom, rgba(10, 12, 20, 0), #0a0c14); pointer-events: none; }
-#jdAct .btn small { color: var(--read); opacity: .72; }
-#jdAct .btn.primary small { color: #0a0b12; opacity: .7; }   /* на градиенте подпись тёмная, светлая не читалась */
-/* тост: во всю ширину, одной строкой, над панелью */
-html.native-app .toast { left: 16px !important; right: 16px; max-width: none; justify-content: space-between; padding: 14px 16px; border-radius: 14px; font-size: 14px; transform: translateY(14px) !important; }
-html.native-app .toast.on { transform: none !important; }
-html.native-app #toastMsg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-html.native-app #toastAct { font-weight: 700; min-height: 36px; }
-/* поиск в разделах — как «Поиск по всему»: капсула, иконка линией */
-html.native-app #fpSearch, html.native-app #termSearch, html.native-app #prinSearch, html.native-app #basSearch, html.native-app #gsInput {
-  flex: none; height: 48px; border-radius: 24px; border: 1px solid var(--line); padding: 0 16px 0 46px; font: 500 15px var(--sans); color: var(--txt);
-  background: var(--panel-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398a1b4' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 16px center / 20px; }
-/* «Игра»: та же шапка, что у остальных разделов — слева, без огромной иконки и без рамки-витрины */
-html.native-app .game-menu { max-width: 680px; text-align: left; padding: 8px 2px 24px; background: none; border: 0; box-shadow: none; backdrop-filter: none; }
-html.native-app .game-menu .game-emoji { display: none; }
-html.native-app .game-menu > h2 { font-size: 30px; font-weight: 750; letter-spacing: -.3px; margin: 10px 0 4px; }
-html.native-app .game-menu > .muted2 { margin-bottom: 14px; }
-html.native-app .game-menu .g-cats { justify-content: flex-start; }
-@media (prefers-reduced-motion: reduce) { html.native-app body.jd-focus.jd-revealed #drillStage { transition: none; } }
-/* подсказка под вопросом до ответа */
-.jd-hint { margin: 14px 0 0; color: var(--mut); font-size: 14px; line-height: 1.4; }
-html.native-app body.jd-revealed .jd-hint { display: none; }
-/* «Как заниматься» и карта тем — на всю ширину телефона, без торчащей шапки */
-html.native-app .rm-drawer { width: 100vw !important; max-width: none !important; left: 0 !important; right: 0 !important; border-radius: 0 !important; }
-/* флажки — один стиль на всё приложение вместо системных синих и белых квадратов */
-html.native-app input[type=checkbox]:not([role=switch]) { -webkit-appearance: none; appearance: none; flex: none; width: 22px; height: 22px; margin: 0 2px; border-radius: 7px;
-  border: 1.6px solid rgba(255, 255, 255, .32); background: transparent no-repeat center / 16px; vertical-align: middle; transition: background-color .15s, border-color .15s; }
-html.native-app input[type=checkbox]:not([role=switch]):checked { background-color: var(--acc); border-color: var(--acc);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0b12' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }
-/* смена раздела: короткий переход не с нуля — тяжёлый раздел («Для чайника», 82 карточки) не мигает пустым экраном */
-html.native-app .view.enter { animation: jdViewIn .18s ease-out both; }
-@keyframes jdViewIn { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { html.native-app .view.enter { animation: none; } }
-/* шапка шторки: заголовок слева, крестик 44 px в правом углу */
-html.native-app .rm-head { justify-content: space-between; padding: calc(env(safe-area-inset-top) + 8px) 8px 10px 16px; }
-html.native-app .rm-head .rm-x { width: 44px; height: 44px; border-radius: 22px; }
-/* телефон боком: высоты 360 px не хватает на высокую панель и шапку — иконка и подпись в строку */
-@media (orientation: landscape) and (max-height: 520px) {
-  .jd-bb { padding-top: 2px; padding-bottom: calc(2px + env(safe-area-inset-bottom)); }
-  .jd-bb button { min-height: 44px; flex-direction: row; gap: 8px; font-size: 12.5px; }
-  .jd-bb button .jd-svg { width: 20px; height: 20px; }
-  html.native-app body { padding-bottom: calc(52px + env(safe-area-inset-bottom)); }
-  html.native-app .topbar { padding-top: 0 !important; padding-bottom: 0 !important; }
-  .jt-head { padding: 4px 2px 8px; }
-}
-/* низ экрана не уходит под панели: сайт держит body ровно в высоту экрана, а .view сжимается (flex 1 1 0, min-height 0),
-   поэтому отступ body под панель в прокрутку не попадает — последняя строка «Сегодня», «Учить», «Карточек»
-   и кнопки под ответом оставались под панелью. Свои разделы и занятие растут по содержимому и держат отступ сами. */
-html.native-app .view.jd-view, html.native-app #viewDrill { flex: 1 0 auto; min-height: auto; }
-html.native-app .view.jd-view { padding-bottom: calc(94px + env(safe-area-inset-bottom)); }
-html.native-app #viewDrill { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
-html.native-app body.jd-focus #viewDrill { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
-@media (orientation: landscape) and (max-height: 520px) {
-  html.native-app .view.jd-view { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
-  html.native-app #viewDrill { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
-  html.native-app body.jd-focus #viewDrill { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-}
-/* шапка непрозрачная: на 97% сквозь неё читались заголовки прокрученного экрана */
-html.native-app .topbar { background: #090a11; }
+html.native-app .bg { opacity: .45; }                                     /* цветные пятна приглушены — текст не «плывёт» по фиолетовому */
+/* иконка набора — маска (см. app-native-late.js): цвет — color, размер — width/height */
+.jd-svg { display: inline-block; flex: none; width: 24px; height: 24px; vertical-align: middle; background-color: currentColor;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; -webkit-mask-size: contain; mask-size: contain; }
 /* полосы прокрутки: на сайте настольные 10 px, всегда видны и съедают поле справа — на телефоне тонкая, вбок не видна */
 html.native-app ::-webkit-scrollbar { width: 3px; height: 0; }
 html.native-app ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .16); border: 0; border-radius: 3px; }
-/* одно поле 16 px на всех экранах, как у своих разделов (было 12–22 — край прыгал при переходе) */
-html.native-app #progStage, html.native-app #gameStage, html.native-app .terms-wrap { padding-left: 16px; padding-right: 16px; }
-html.native-app .game-menu { padding-left: 0; padding-right: 0; }
-html.native-app .sidebar #fpSearch, html.native-app .sidebar #prinSearch { margin-left: 16px; margin-right: 16px; width: calc(100% - 32px); }
-/* «Игра»: плитки как в «Учить» — слева, иконка в плашке, заголовок и пояснение */
+/* низ экрана не уходит под панели: сайт держит body ровно в высоту экрана, а .view сжимается (flex 1 1 0, min-height 0),
+   поэтому отступ body под панель в прокрутку не попадает. Свои разделы и занятие растут по содержимому и держат отступ сами. */
+html.native-app .view.jd-view, html.native-app #viewDrill { flex: 1 0 auto; min-height: auto; }
+html.native-app .view.jd-view { padding-bottom: calc(94px + env(safe-area-inset-bottom)); }
+html.native-app #viewDrill { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
+/* смена раздела: короткий переход не с нуля — тяжёлый раздел («Для чайника», 82 карточки) не мигает пустым экраном */
+html.native-app .view.enter { animation: jdViewIn var(--jd-m) var(--jd-e) both; }
+@keyframes jdViewIn { from { opacity: .4; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes jdUp { from { opacity: .2; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- 3. шапка и нижняя панель ---------- */
+/* шапка и полоса занятия — fixed, не sticky: body у сайта ровно в высоту экрана, и sticky держалась только первые
+   ~800 px прокрутки, дальше уезжала вместе с экраном («Карточки», длинный ответ). Место под ними — отступ body,
+   высоту меряет app-native-late.js (--jd-top, --jd-stop). Фон — с !important: fx-lite сайта ставит 97% с !important,
+   и сквозь шапку читался прокрученный текст (правка 1.4 без него не действовала). */
+html.native-app .topbar { position: fixed !important; top: 0; left: 0; right: 0; background: var(--jd-chrome) !important; border-bottom-color: var(--jd-b1); }
+html.native-app body:not(.jd-focus) { padding-top: var(--jd-top, 55px); }
+html.native-app body.jd-focus { padding-top: var(--jd-stop, 63px); }
+html.native-app .tools { background: transparent; border: 0; padding: 0; gap: 0; }
+html.native-app .lang-tog { width: 44px; height: 44px; border: 0; border-radius: 22px; background: transparent; color: var(--jd-t2); display: grid; place-items: center; font-size: 13px; }
+html.native-app .lang-tog .jd-svg { width: 22px; height: 22px; }
+html.native-app .lang-tog:active { background: rgba(255, 255, 255, .08); }
+html.native-app .brand { font-size: 16px; gap: 8px; letter-spacing: -.2px; }
+.jd-mark { display: inline-block; flex: none; width: 20px; height: 20px; background: var(--grad);
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: contain; mask-size: contain; }
+/* внутренние экраны («На пальцах», «Термины»…): вместо логотипа — «назад» и название; −4 px сверху и снизу — шапка той же высоты */
+.jd-up { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: -4px 0 -4px -8px; padding: 0 10px 0 6px; border: 0; border-radius: 22px;
+  background: transparent; color: var(--jd-t1); font: 700 17px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 62vw; }
+.jd-up .jd-svg { width: 22px; height: 22px; color: var(--jd-t2); }
+.jd-up:active { background: rgba(255, 255, 255, .08); }
+.brand .jd-up span { background: none; color: var(--jd-t1); -webkit-text-fill-color: currentColor; overflow: hidden; text-overflow: ellipsis; }
+/* нижняя панель: активный раздел — капсула за иконкой, подпись под ней */
+.jd-bb { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; background: var(--jd-chrome); border-top: 1px solid var(--jd-b1);
+  padding: 5px calc(4px + env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom)) calc(4px + env(safe-area-inset-left)); }
+.jd-bb button { flex: 1; min-width: 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 0 2px;
+  border: 0; background: transparent; color: var(--jd-t3); font: 600 11.5px/1.1 var(--sans); transition: color var(--jd-q) var(--jd-e); }
+.jd-bb .jd-pi { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 16px; transition: background-color var(--jd-m) var(--jd-e), transform var(--jd-q) var(--jd-e); }
+.jd-bb .jd-pi .jd-svg { width: 24px; height: 24px; }
+.jd-bb button.on { color: var(--jd-t1); }
+.jd-bb button.on .jd-pi { background: rgba(110, 168, 254, .16); color: var(--jd-acc); }
+.jd-bb button:active .jd-pi { transform: scale(.92); }
+
+/* ---------- 4. компоненты ---------- */
+.jd-view { width: 100%; max-width: 680px; margin: 0 auto; padding: 8px 16px 24px; box-sizing: border-box; }   /* флекс-элемент с auto-полями сжимается по содержимому */
+/* заголовок экрана: строка-контекст сверху, крупное название */
+.jt-head { padding: 10px 2px 16px; }
+.jt-head span { color: var(--jd-t3); font-size: 14px; }
+.jt-head h1 { margin: 2px 0 0; font-size: 30px; line-height: 1.15; font-weight: 750; letter-spacing: -.5px; }
+/* подзаголовок секции */
+.jd-h3, html.native-app .prog-sub { margin: 26px 2px 10px; font: 700 12px/1.2 var(--sans); letter-spacing: .9px; text-transform: uppercase; color: var(--jd-t3); }
+/* цифры — табличные: столбцы не прыгают при смене значения */
+.jd-num, .jt-nums b, .jt-ctr b, .jt-sv b, .jd-n, .jd-pct, .jl-n, .jl-big b, .jl-tb b, .jr-grid b, .jr-pct b, .jd-sbar .jd-pn { font-variant-numeric: tabular-nums; }
+.jd-bar { display: block; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .07); overflow: hidden; }
+.jd-bar i { display: block; height: 100%; border-radius: 3px; background: var(--grad); transition: width var(--jd-l) var(--jd-e); }
+/* строка списка */
+.jd-list { display: flex; flex-direction: column; gap: 8px; }
+.jd-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 10px 14px; border-radius: var(--jd-r2); border: 1px solid var(--jd-b1);
+  background: var(--jd-s1); color: var(--jd-t1); text-align: left; font: inherit; box-shadow: var(--jd-hl); transition: transform var(--jd-q) var(--jd-e), background-color var(--jd-q); }
+.jd-row:active { transform: scale(.985); background: var(--jd-s2); }
+.jd-ico { flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: rgba(255, 255, 255, .06); color: var(--jd-t2); }
+.jd-ico .jd-svg { width: 22px; height: 22px; }
+.t-bad { --tone: var(--jd-bad); --tint: rgba(255, 122, 133, .13); } .t-warn { --tone: var(--jd-mid); --tint: rgba(255, 207, 110, .13); }
+.t-org { --tone: var(--jd-org); --tint: rgba(255, 159, 67, .13); } .t-vio { --tone: var(--jd-vio); --tint: rgba(169, 139, 255, .14); }
+.t-acc { --tone: var(--jd-acc); --tint: rgba(110, 168, 254, .14); } .t-cy { --tone: var(--jd-cy); --tint: rgba(84, 230, 200, .12); }
+.jd-ico[class*="t-"] { background: var(--tint); color: var(--tone); }
+.jd-pct { flex: none; display: flex; align-items: baseline; justify-content: center; width: 54px; height: 42px; padding-top: 10px; box-sizing: border-box; border-radius: 13px;
+  background: rgba(255, 159, 67, .12); color: #ffb26b; font: 750 18px/1 var(--sans); }
+.jd-pct small { font-size: 11px; margin-left: 1px; opacity: .8; }
+.jd-rt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.jd-rt b { font-size: 16px; font-weight: 650; }
+.jd-rt small { color: var(--jd-t3); font-size: 13px; line-height: 1.35; }
+.jd-rt .jd-bar { height: 4px; margin-top: 5px; }
+.jd-n { font: 700 15px var(--sans); color: var(--jd-t2); }
+.jd-chev { color: var(--jd-t4); font-size: 22px; flex: none; }
+/* плитка */
+.jd-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.jd-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 120px; padding: 14px; border-radius: var(--jd-r3); border: 1px solid var(--jd-b1);
+  background: var(--jd-s1); color: var(--jd-t1); text-align: left; font: inherit; box-shadow: var(--jd-hl); transition: transform var(--jd-q) var(--jd-e), background-color var(--jd-q); }
+.jd-tile .jd-ico { width: 44px; height: 44px; margin-bottom: 10px; }
+.jd-tile span { font-size: 16px; font-weight: 650; letter-spacing: -.1px; }
+.jd-tile small { color: var(--jd-t3); font-size: 12.5px; line-height: 1.35; }
+.jd-tile:active { transform: scale(.97); background: var(--jd-s2); }
+/* нечётная последняя плитка группы — во всю ширину, строкой */
+.jd-tiles > .jd-tile:last-child:nth-child(odd) { grid-column: 1 / -1; display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto; column-gap: 14px; row-gap: 2px; align-items: center; min-height: 76px; }
+.jd-tiles > .jd-tile:last-child:nth-child(odd) .jd-ico { grid-row: 1 / 3; margin: 0; }
+/* поиск-кнопка и поля поиска разделов — одна капсула, иконка линией */
+.jd-search { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 50px; padding: 0 16px; margin-bottom: 12px; border-radius: 25px; border: 1px solid var(--jd-b1);
+  background: var(--jd-s1); color: var(--jd-t3); font: 500 15px var(--sans); text-align: left; }
+.jd-search .jd-svg { width: 20px; height: 20px; }
+html.native-app #fpSearch, html.native-app #termSearch, html.native-app #prinSearch, html.native-app #basSearch, html.native-app #gsInput {
+  flex: none; height: 48px; border-radius: 24px; border: 1px solid var(--jd-b1); padding: 0 16px 0 46px; font: 500 15px var(--sans); color: var(--jd-t1);
+  background: var(--jd-s1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398a1b4' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='6.5'/%3E%3Cpath d='m20 20-4.2-4.2'/%3E%3C/svg%3E") no-repeat 16px center / 20px; }
+html.native-app .gs-back { background: rgba(4, 5, 10, .8); }            /* под поиском по всему не должно читаться «Сегодня» */
+/* переключатель вместо системного белого чекбокса */
+.jd-switch { display: flex; align-items: center; gap: 12px; min-height: 52px; margin: 14px 2px 0; color: var(--jd-t2); font-size: 15px; }
+.jd-switch input { -webkit-appearance: none; appearance: none; position: relative; flex: none; width: 46px; height: 28px; margin: 0; border-radius: 14px; background: rgba(255, 255, 255, .16); transition: background-color var(--jd-m) var(--jd-e); }
+.jd-switch input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .4); transition: transform var(--jd-m) var(--jd-e); }
+.jd-switch input:checked { background: var(--jd-acc); }
+.jd-switch input:checked::after { transform: translateX(18px); }
+/* флажки — один стиль на всё приложение вместо системных синих и белых квадратов */
+html.native-app input[type=checkbox]:not([role=switch]) { -webkit-appearance: none; appearance: none; flex: none; width: 22px; height: 22px; margin: 0 2px; border-radius: 7px;
+  border: 1.6px solid rgba(255, 255, 255, .32); background: transparent no-repeat center / 16px; vertical-align: middle; transition: background-color var(--jd-q), border-color var(--jd-q); }
+html.native-app input[type=checkbox]:not([role=switch]):checked { background-color: var(--jd-acc); border-color: var(--jd-acc);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0b12' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E"); }
+/* тост: во всю ширину, одной строкой, над панелью */
+html.native-app .toast { left: 16px !important; right: 16px; bottom: calc(84px + env(safe-area-inset-bottom)) !important; max-width: none; justify-content: space-between; padding: 14px 16px;
+  border-radius: var(--jd-r2); border: 1px solid var(--jd-b2); background: var(--jd-s3); box-shadow: var(--jd-sh2); font-size: 14px; transform: translateY(14px) !important; }
+html.native-app .toast.on { transform: none !important; }
+html.native-app #toastMsg { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+html.native-app #toastAct { font-weight: 700; min-height: 36px; }
+/* меню карточки «⋯» */
+.jd-pop { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 240px; padding: 6px; border-radius: 16px; background: var(--jd-s3); border: 1px solid var(--jd-b2); box-shadow: var(--jd-sh2);
+  animation: jdPop var(--jd-q) var(--jd-e) both; transform-origin: top right; }
+@keyframes jdPop { from { opacity: 0; transform: scale(.96) translateY(-4px); } }
+.jd-pop button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent; color: var(--jd-t1); font: 600 15px var(--sans); text-align: left; }
+.jd-pop button .jd-svg { width: 20px; height: 20px; color: var(--jd-t3); }
+.jd-pop button:active { background: rgba(255, 255, 255, .07); }
+/* шторки «Как заниматься» и роадмап: во всю ширину, заголовок как у экранов — белый, без эмодзи и градиента */
+html.native-app .rm-drawer { width: 100vw !important; max-width: none !important; left: 0 !important; right: 0 !important; border-radius: 0 !important; background: var(--jd-s0); }
+html.native-app .rm-head { justify-content: space-between; padding: calc(env(safe-area-inset-top) + 8px) 8px 10px 16px; }
+html.native-app .rm-head .rm-x { width: 44px; height: 44px; border-radius: 22px; }
+html.native-app .rm-title { font-size: 0; }
+html.native-app .rm-title b { font: 750 19px var(--sans); letter-spacing: -.2px; background: none; color: var(--jd-t1); -webkit-text-fill-color: currentColor; }
+/* пустое состояние */
+.jd-empty-ico { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 22px; background: rgba(70, 214, 160, .12); color: var(--jd-good); }
+.jd-empty-ico .jd-svg { width: 30px; height: 30px; }
+html.native-app #drillStage .empty { text-align: center; padding-top: 6vh; }
+html.native-app #drillStage .empty h2 { font-size: 24px; letter-spacing: -.3px; }
+
+/* ---------- 5. экраны слоя: Сегодня, Учить, Карточки, Игра ---------- */
+/* «Сегодня»: один центр — кольцо дня и число «осталось», остальное вторично */
+.jt-hero { position: relative; padding: 18px; border-radius: 24px; border: 1px solid var(--jd-b2); box-shadow: var(--jd-hl), var(--jd-sh2);
+  background: radial-gradient(120% 90% at 0% 0%, rgba(110, 168, 254, .11), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(84, 230, 200, .06), transparent 60%), var(--jd-s1); }
+.jt-top { display: grid; grid-template-columns: 124px 1fr; gap: 20px; align-items: center; margin-bottom: 18px; }
+.jt-ring { position: relative; width: 124px; height: 124px; }
+.jt-ring svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); }
+.jt-ring .tr { fill: none; stroke: rgba(255, 255, 255, .07); stroke-width: 10; }
+.jt-ring .pr { fill: none; stroke-width: 10; stroke-linecap: round; stroke-dasharray: 326.7; stroke-dashoffset: calc(326.7 * (1 - var(--p))); animation: jtRing 320ms var(--jd-e) both; }
+@keyframes jtRing { from { stroke-dashoffset: 326.7; } }
+.jt-ctr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.jt-ctr b { font: 750 38px/1 var(--sans); letter-spacing: -1.2px; }
+.jt-ctr span { margin-top: 5px; color: var(--jd-t3); font-size: 12.5px; }
+.jt-ctr .jd-svg { width: 34px; height: 34px; color: var(--jd-good); }
+.jt-nums { display: flex; flex-direction: column; gap: 12px; }
+.jt-nums > div { display: grid; grid-template-columns: 8px 40px 1fr; align-items: baseline; gap: 10px; }
+.jt-nums i { width: 8px; height: 8px; border-radius: 50%; align-self: center; }
+.jt-nums .r { background: var(--jd-acc); } .jt-nums .n { background: var(--jd-vio); } .jt-nums .d { background: var(--jd-good); }
+.jt-nums b { font: 700 22px/1 var(--sans); letter-spacing: -.4px; }
+.jt-nums span { color: var(--jd-t3); font-size: 13.5px; white-space: nowrap; }
+.jt-go { width: 100%; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 17px; font-weight: 700; border-radius: 16px; }
+.jt-go small { font: 500 12.5px var(--sans); opacity: .8; }
+.jt-done { color: var(--jd-t2); margin: 0 0 14px; line-height: 1.5; }
+/* под кольцом — две равные плитки: серия по дням и освоенное */
+.jt-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.jt-stat { display: flex; flex-direction: column; padding: 14px 14px 13px; border-radius: 18px; border: 1px solid var(--jd-b1); background: var(--jd-s1); box-shadow: var(--jd-hl); }
+.jt-stat > .jt-week, .jt-stat > .jd-bar { margin-top: auto; }   /* полоски обеих плиток на одной линии, даже если подпись в две строки */
+.jt-sv { display: flex; align-items: center; gap: 8px; }
+.jt-sv .jd-svg { width: 20px; height: 20px; }
+.jt-sv .fl { color: var(--jd-org); } .jt-sv .ok { color: var(--jd-good); }
+.jt-sv b { font: 750 24px/1 var(--sans); letter-spacing: -.5px; }
+.jt-sv small { color: var(--jd-t3); font-size: 14px; }
+.jt-stat > span { display: block; margin: 6px 0 11px; color: var(--jd-t3); font-size: 13px; }
+.jt-week { display: flex; gap: 4px; }
+.jt-week i { flex: 1; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .08); }
+.jt-week i.on { background: var(--jd-org); }
+.jt-week i.t:not(.on) { box-shadow: inset 0 0 0 1px rgba(255, 159, 67, .55); }
+.jt-stat .jd-bar { height: 6px; }
+.jt-stat .jd-bar i { background: var(--jd-good); }
+.jd-topic .jd-bar i { background: linear-gradient(90deg, var(--jd-org), #ffb26b); }
+
+/* «Учить»: группы по смыслу вместо одиннадцати одинаковых плиток */
+#viewLearn .jd-h3:first-of-type { margin-top: 4px; }
+
+/* «Игра»: та же шапка, что у остальных разделов, плитки как в «Учить» */
+html.native-app #gameStage { padding-left: 16px; padding-right: 16px; }
+html.native-app .game-menu { max-width: 680px; text-align: left; padding: 8px 0 24px; background: none; border: 0; box-shadow: none; backdrop-filter: none; }
+html.native-app .game-menu::before { content: attr(data-k); display: block; margin: 10px 2px 0; color: var(--jd-t3); font-size: 14px; }
+html.native-app .game-menu .game-emoji { display: none; }
+html.native-app .game-menu > h2 { font-size: 30px; font-weight: 750; letter-spacing: -.5px; margin: 2px 0 6px; }
+html.native-app .game-menu > .muted2 { margin-bottom: 16px; color: var(--jd-t3); }
+html.native-app .game-menu .g-cats { justify-content: flex-start; }
 html.native-app .mode-cards { gap: 10px; }
-html.native-app .mode-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 112px; padding: 14px; border-radius: 18px;
-  border: 1px solid var(--line); background: var(--panel); box-shadow: none; text-align: left; }
-html.native-app .mode-card .mc-emoji { display: grid; place-items: center; width: 46px; height: 46px; margin: 0 0 8px; border-radius: 14px; background: rgba(255, 255, 255, .06);
+html.native-app .mode-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 120px; padding: 14px; border-radius: var(--jd-r3);
+  border: 1px solid var(--jd-b1); background: var(--jd-s1); box-shadow: var(--jd-hl); text-align: left; transition: transform var(--jd-q) var(--jd-e), background-color var(--jd-q); }
+html.native-app .mode-card .mc-emoji { display: grid; place-items: center; width: 44px; height: 44px; margin: 0 0 10px; border-radius: 13px; background: rgba(255, 255, 255, .06);
   font-size: 24px; line-height: 1; filter: none; animation: none; }
+html.native-app .mode-card .mc-emoji[class*="t-"] { background: var(--tint); color: var(--tone); }
+html.native-app .mode-card .mc-emoji .jd-svg { width: 22px; height: 22px; }
 html.native-app .mode-card b, html.native-app .mode-card span { text-align: left; }
 html.native-app .mode-card b { font-size: 16px; font-weight: 650; margin: 0; }
-html.native-app .mode-card span { color: var(--mut); font-size: 12.5px; line-height: 1.35; margin: 0; }
-html.native-app .mode-card:active { transform: scale(.97); }
-/* поиск по всему: фон плотнее — под панелью не должно читаться «Сегодня» */
-html.native-app .gs-back { background: rgba(4, 5, 10, .8); }
-/* внутренние экраны («На пальцах», «Термины»…): вместо логотипа — «назад» и название экрана */
-.jd-up { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: -4px 0 -4px -8px; padding: 0 10px 0 6px; border: 0; border-radius: 22px;
-  background: transparent; color: var(--txt); font: 700 17px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 62vw; }
-.jd-up .jd-svg { width: 22px; height: 22px; flex: none; color: var(--read); }
-.jd-up:active { background: rgba(255, 255, 255, .08); }
-.brand .jd-up span { background: none; color: var(--txt); -webkit-text-fill-color: currentColor; overflow: hidden; text-overflow: ellipsis; }
+html.native-app .mode-card span { color: var(--jd-t3); font-size: 12.5px; line-height: 1.35; margin: 0; }
+html.native-app .mode-card:active { transform: scale(.97); background: var(--jd-s2); }
+/* широкие плитки игры — строкой: иконка слева, текст справа */
+html.native-app .mode-card[style*="grid-column"] { display: grid; grid-template-columns: 44px 1fr; grid-template-rows: auto auto; column-gap: 14px; row-gap: 2px; align-items: center; min-height: 80px; }
+html.native-app .mode-card[style*="grid-column"] .mc-emoji { grid-row: 1 / 3; margin: 0; }
+
+/* ---------- 6. занятие: фокус, полоса прогресса сверху, действия снизу под большим пальцем ---------- */
+.jd-sbar, #jdAct { display: none; }
+html.native-app body.jd-focus { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+html.native-app body.jd-focus .topbar, html.native-app body.jd-focus .filt-bar, html.native-app body.jd-focus .subbar, html.native-app body.jd-focus .jd-bb { display: none !important; }
+html.native-app body.jd-focus .jd-sbar { display: flex; align-items: center; gap: 12px; position: fixed; top: 0; left: 0; right: 0; z-index: 55;
+  padding: calc(env(safe-area-inset-top) + 6px) 16px 8px 6px; background: var(--jd-chrome); border-bottom: 1px solid var(--jd-b1); }   /* непрозрачная: при 94% сквозь неё читался текст */
+.jd-sbar .jd-x { display: grid; place-items: center; width: 48px; height: 48px; flex: none; border: 0; border-radius: 24px; background: transparent; color: var(--jd-t2); }
+.jd-sbar .jd-x .jd-svg { width: 22px; height: 22px; }
+.jd-sbar .jd-x:active { background: rgba(255, 255, 255, .08); }
+.jd-sbar .jd-p { flex: 1; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .07); overflow: hidden; }
+.jd-sbar .jd-p i { display: block; height: 100%; width: 0; background: var(--grad); border-radius: 3px; transition: width var(--jd-l) var(--jd-e); }
+.jd-sbar .jd-pn { font: 600 13px var(--sans); color: var(--jd-t3); white-space: nowrap; }
+html.native-app body.jd-focus #viewDrill { padding-top: 6px; padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+/* карточка — от верха, а не по центру: при раскрытии ответа она не прыгает; до ответа вопрос ниже от верха */
+html.native-app body.jd-focus #drillStage { align-items: flex-start; justify-content: flex-start; min-height: 0; padding-top: 10px; }
+html.native-app body.jd-focus:not(.jd-revealed) #drillStage { padding-top: 9vh; }
+html.native-app body.jd-focus.jd-revealed #drillStage { transition: padding-top var(--jd-m) var(--jd-e); }   /* плавно только при раскрытии; новая карточка — сразу на месте */
+/* карточка — сам экран: без рамки и подложки, вопрос лежит прямо на фоне, коробка в коробке не нужна */
+html.native-app body.jd-focus #drillStage .card { background: none; border: 0; box-shadow: none; backdrop-filter: none; padding: 6px 4px 0; border-radius: 0;
+  animation: jdCardIn 200ms var(--jd-e) both; }   /* не с прозрачности 0 — на эмуляторе карточка была невидимой ~0.6 с */
+@keyframes jdCardIn { from { opacity: .35; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* метки: тема — цветная капсула, подтема — тихий текст, уровень «основа/второстеп.» — шум во время ответа */
+html.native-app .card .tier-core, html.native-app .card .tier-sec { display: none !important; }
+html.native-app .card-tags { position: relative; padding-right: 92px; }   /* место под «⋯»: теги переносятся, а кнопка остаётся в углу */
+html.native-app .card-tags .pill:not(.grad-pill):not(.pill-tricky):not(.pill-leech) { border: 0; background: none; padding-left: 2px; color: var(--jd-t3); }
+/* ступени карточки: семь столбиков по росту, 5–7 — зона «освоено», после ответа контуром — куда поднимет «Знал» */
+.boxpips.jd-steps { position: absolute; right: 42px; top: 50%; display: inline-flex; align-items: flex-end; gap: 3px; height: 18px; margin-top: -9px; padding: 0; }
+.jd-steps i { width: 4px; border-radius: 2px; background: rgba(255, 255, 255, .13); transition: background-color var(--jd-m) var(--jd-e); }
+.jd-steps i:nth-child(1) { height: 6px; } .jd-steps i:nth-child(2) { height: 8px; } .jd-steps i:nth-child(3) { height: 10px; } .jd-steps i:nth-child(4) { height: 12px; }
+.jd-steps i:nth-child(5) { height: 14px; } .jd-steps i:nth-child(6) { height: 16px; } .jd-steps i:nth-child(7) { height: 18px; }
+.jd-steps i.on { background: var(--jd-acc); } .jd-steps i.on.m { background: var(--jd-good); }
+.jd-steps i.nx { background: transparent; box-shadow: inset 0 0 0 1.5px var(--jd-good); animation: jdNx 700ms var(--jd-e) 2; }
+@keyframes jdNx { 50% { opacity: .35; } }
+.jd-more { position: absolute; top: -12px; right: -14px; display: grid; place-items: center; min-width: 48px; min-height: 48px; border: 0; border-radius: 24px; background: transparent; color: var(--jd-t2); }
+.jd-more .jd-svg { width: 22px; height: 22px; }
+.jd-more:active { background: rgba(255, 255, 255, .08); }
+/* вопрос — главный объект экрана */
+html.native-app .card .q { margin-top: 18px; font-size: calc(24px * var(--ts, 1)); line-height: 1.3; font-weight: 700; letter-spacing: -.35px; color: var(--jd-t1); }
+.jd-hint { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; color: var(--jd-t3); font-size: 14px; line-height: 1.4; }
+.jd-hint .jd-svg { width: 18px; height: 18px; color: var(--jd-t4); }
+html.native-app body.jd-revealed .jd-hint { display: none; }
+/* ответ — своя структура: метка «Ответ», схема, аналогия, объяснение, глубже, нюанс, действия, источник */
+html.native-app body.jd-focus .ans { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--jd-b1); }
+html.native-app body.jd-focus .ans::before { content: attr(data-jdl); display: block; margin-bottom: 14px; font: 700 12px/1.2 var(--sans); letter-spacing: .9px; text-transform: uppercase; color: var(--jd-acc); }
+html.native-app body.jd-focus .ans.show > * { animation: jdUp 260ms var(--jd-e) both; }
+html.native-app body.jd-focus .ans.show > :nth-child(2) { animation-delay: 40ms; } html.native-app body.jd-focus .ans.show > :nth-child(3) { animation-delay: 80ms; }
+html.native-app body.jd-focus .ans.show > :nth-child(4) { animation-delay: 120ms; } html.native-app body.jd-focus .ans.show > :nth-child(n+5) { animation-delay: 160ms; }
+html.native-app .ans .pic { margin: 0 0 16px; padding: 36px 14px 14px; border-radius: var(--jd-r3); border: 1px solid var(--jd-b1); background: var(--jd-s1); box-shadow: var(--jd-hl); }
+html.native-app .ans .pic-tag, html.native-app .ans .lbl { display: block; font: 700 12px/1.2 var(--sans); letter-spacing: .9px; text-transform: uppercase; color: var(--jd-t3); }
+html.native-app .ans .lbl { margin: 22px 0 8px; }
+html.native-app .ans .pic-cap { color: var(--jd-t3); font-size: 13.5px; line-height: 1.45; }
+html.native-app .ans .hook { display: block; position: relative; margin: 0; padding: 14px 16px 14px 56px; border: 1px solid rgba(169, 139, 255, .2); border-left-width: 1px;
+  border-radius: var(--jd-r2); background: rgba(169, 139, 255, .07); color: var(--jd-t2); font-size: 16px; line-height: 1.5; }
+.jd-hk { position: absolute; left: 14px; top: 13px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: rgba(169, 139, 255, .16); color: var(--jd-vio); }
+.jd-hk .jd-svg { width: 17px; height: 17px; }
+html.native-app .ans .ishak { color: var(--jd-t2); font-size: calc(17px * var(--ts, 1)); line-height: 1.6; }
+html.native-app .ans .deep { margin-top: 14px; color: var(--jd-t3); font-size: calc(15px * var(--ts, 1)); line-height: 1.6; }
+html.native-app .ans .note { display: block; position: relative; margin: 18px 0 0; padding: 14px 16px 14px 56px; border: 1px solid rgba(255, 207, 110, .2); border-left-width: 1px;
+  border-radius: var(--jd-r2); background: rgba(255, 207, 110, .06); color: var(--jd-t2); font-size: 15px; line-height: 1.55; }
+html.native-app .ans .note .ni { position: absolute; left: 14px; top: 13px; display: grid; place-items: center; width: 28px; height: 28px; margin: 0; border-radius: 9px; background: rgba(255, 207, 110, .14); color: var(--jd-mid); font-size: 0; }
+html.native-app .ans .note .ni .jd-svg { width: 17px; height: 17px; }
+html.native-app .ans .note b { color: var(--jd-mid); }
+html.native-app .ans pre { border-radius: var(--jd-r2); border: 1px solid var(--jd-b1); background: #0b0d14; }
+/* действия под ответом — тихие капсулы с иконками */
+html.native-app .ans .more-btn, html.native-app .ans .mynote-btn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin: 18px 8px 0 0; padding: 0 16px; border-radius: 22px;
+  border: 1px solid var(--jd-b2); background: var(--jd-s1); color: var(--jd-t2); font: 600 14px var(--sans); box-shadow: none; transition: transform var(--jd-q) var(--jd-e), background-color var(--jd-q); }
+html.native-app .ans .mynote-btn { margin-top: 10px; border-style: dashed; }
+html.native-app .ans .more-btn .jd-svg, html.native-app .ans .mynote-btn .jd-svg { width: 18px; height: 18px; color: var(--jd-t3); }
+html.native-app .ans .more-btn:active, html.native-app .ans .mynote-btn:active { transform: scale(.97); background: var(--jd-s2); }
+html.native-app .ans .more-text { color: var(--jd-t2); font-size: 15.5px; line-height: 1.6; }
+html.native-app .ans .src { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--jd-b1); color: var(--jd-t3); font-size: 13px; }
+html.native-app .ans .src > span:first-child { font-size: 0; display: inline-grid; place-items: center; color: var(--jd-t4); }
+html.native-app .ans .src > span:first-child .jd-svg { width: 16px; height: 16px; }
+html.native-app .ans .src b { color: var(--jd-t2); font-weight: 600; }
+/* панель действий: непрозрачная, текст уходит под неё мягко */
+html.native-app body.jd-focus #jdAct { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 56;
+  padding: 10px calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+  background: var(--jd-chrome); border-top: 1px solid var(--jd-b1); }
+html.native-app body.jd-focus #jdAct::before { content: ""; position: absolute; left: 0; right: 0; top: -32px; height: 32px; background: linear-gradient(to bottom, rgba(10, 12, 19, 0), var(--jd-chrome)); pointer-events: none; }
+#jdAct .actions { display: flex; gap: 8px; margin: 0 !important; max-width: 680px; margin-inline: auto !important; }
+#jdAct .btn { flex: 1; min-width: 0; min-height: 62px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 4px;
+  font: 700 16px/1.1 var(--sans); border-radius: 16px; animation: none;
+  transition: transform var(--jd-q) var(--jd-e), background-color var(--jd-q) var(--jd-e), border-color var(--jd-q), opacity var(--jd-m) var(--jd-e); }
+#jdAct .btn small { font: 500 12px/1.2 var(--sans); color: var(--jd-t2); opacity: .72; white-space: nowrap; }
+#jdAct .btn.primary small { color: #0a0b12; opacity: .7; }   /* на градиенте подпись тёмная, светлая не читалась */
+/* три оценки — один набор: цвет смысла в подписи и тонкой подложке; нажатие — плотнее; выбор — заливка, остальные гаснут */
+#jdAct .btn.bad, #jdAct .btn.mid, #jdAct .btn.good { background: var(--tint); border: 1px solid var(--edge); color: var(--tone); }
+#jdAct .btn.bad { --tone: var(--jd-bad); --tint: rgba(255, 122, 133, .08); --edge: rgba(255, 122, 133, .32); --fill: rgba(255, 122, 133, .24); }
+#jdAct .btn.mid { --tone: var(--jd-mid); --tint: rgba(255, 207, 110, .07); --edge: rgba(255, 207, 110, .30); --fill: rgba(255, 207, 110, .22); }
+#jdAct .btn.good { --tone: var(--jd-good); --tint: rgba(70, 214, 160, .08); --edge: rgba(70, 214, 160, .34); --fill: rgba(70, 214, 160, .24); }
+#jdAct .btn:active { transform: scale(.96); }
+#jdAct .actions > .btn { flex: 1 1 0 !important; margin-top: 0 !important; }   /* кнопка пустого состояния приходит с flex:none от сайта */
+#jdAct .btn.bad:active, #jdAct .btn.mid:active, #jdAct .btn.good:active { background: var(--fill); }
+#jdAct .btn:disabled { opacity: .5; }
+#jdAct.jd-picked .btn:disabled { opacity: .28; }
+#jdAct.jd-picked .btn.jd-pick { opacity: 1; background: var(--fill); border-color: var(--tone); transform: scale(.98); }
+#jdAct.jd-picked .btn.jd-pick small { color: var(--jd-t1); opacity: .85; }
+
+/* ---------- 7. итоги занятия ---------- */
+.jr { margin-top: 6px; padding: 22px 18px 18px; border-radius: 24px; border: 1px solid var(--jd-b2); box-shadow: var(--jd-hl), var(--jd-sh2);
+  background: radial-gradient(120% 80% at 0% 0%, rgba(70, 214, 160, .09), transparent 55%), var(--jd-s1); animation: jdUp var(--jd-l) var(--jd-e) both; }
+.jr-top { display: grid; grid-template-columns: 1fr 88px; gap: 16px; align-items: center; margin-bottom: 16px; }
+.jr h2 { margin: 0 0 6px; font-size: 24px; line-height: 1.2; letter-spacing: -.4px; }
+.jr-lead { color: var(--jd-t3); margin: 0; font-size: 14px; line-height: 1.45; }
+.jr-pct { position: relative; width: 88px; height: 88px; }
+.jr-pct svg { display: block; width: 100%; height: 100%; transform: rotate(-90deg); }
+.jr-pct .tr { fill: none; stroke: rgba(255, 255, 255, .07); stroke-width: 8; }
+.jr-pct .pr { fill: none; stroke: var(--jd-good); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 226.2; stroke-dashoffset: calc(226.2 * (1 - var(--p))); animation: jrRing 320ms var(--jd-e) both; }
+@keyframes jrRing { from { stroke-dashoffset: 226.2; } }
+.jr-pct div { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.jr-pct b { font: 750 22px/1 var(--sans); letter-spacing: -.5px; }
+.jr-pct span { margin-top: 3px; color: var(--jd-t3); font-size: 11px; }
+.jr-seg { display: flex; gap: 3px; height: 8px; margin-bottom: 12px; border-radius: 4px; overflow: hidden; }
+.jr-seg i { min-width: 3px; } .jr-seg .g { background: var(--jd-good); } .jr-seg .m { background: var(--jd-mid); } .jr-seg .b { background: var(--jd-bad); }
+.jr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.jr-grid div { text-align: center; padding: 12px 4px; border-radius: var(--jd-r2); background: var(--jd-s2); }
+.jr-grid b { display: block; font: 750 26px/1.1 var(--sans); }
+.jr-grid span { color: var(--jd-t3); font-size: 13px; }
+.jr-grid .g b { color: var(--jd-good); } .jr-grid .m b { color: var(--jd-mid); } .jr-grid .b b { color: var(--jd-bad); }
+.jr-p { display: flex; gap: 10px; align-items: flex-start; color: var(--jd-t2); line-height: 1.5; margin: 12px 0 0; font-size: 15px; }
+.jr-p .jd-svg { width: 18px; height: 18px; margin-top: 2px; color: var(--jd-t3); }
+.jr-p .jd-svg.bad { color: var(--jd-bad); } .jr-p .jd-svg.ok { color: var(--jd-good); }
+.jr-next { color: var(--jd-t3); }
+
+/* ---------- 8. прогресс ---------- */
+.jl { margin-bottom: 8px; }
+.jl-head { width: 100%; padding-top: 2px; }
+html.native-app .prog-h, html.native-app .prog-kpis, html.native-app .pbb { display: none; }   /* сводка и заголовок — общие, сверху экрана */
+/* сводка: освоено крупно, распределение — одна полоса из трёх частей */
+.jl-sum, .jl-today { padding: 16px; border-radius: var(--jd-r3); border: 1px solid var(--jd-b1); background: var(--jd-s1); box-shadow: var(--jd-hl); }
+.jl-today { margin-top: 10px; }
+.jl-big { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.jl-big b { font: 750 40px/1 var(--sans); letter-spacing: -1.3px; }
+.jl-big span { color: var(--jd-t3); font-size: 14px; }
+.jl-tb { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.jl-tb span { color: var(--jd-t3); font-size: 14px; }
+.jl-tb b { font: 750 26px/1 var(--sans); letter-spacing: -.6px; }
+.jl-tb b small { margin-left: 4px; color: var(--jd-t3); font: 500 13px var(--sans); letter-spacing: 0; }
+.jl-dist { display: flex; gap: 3px; height: 10px; border-radius: 5px; overflow: hidden; background: rgba(255, 255, 255, .05); }
+.jl-dist i { min-width: 3px; transform-origin: left; animation: jlGrow var(--jd-l) var(--jd-e) both; }
+@keyframes jlGrow { from { transform: scaleX(.2); opacity: .4; } }
+.jl-dist .m, .jl-leg .m { background: var(--jd-good); } .jl-dist .l, .jl-leg .l { background: var(--jd-acc); } .jl-dist .n, .jl-leg .n { background: rgba(255, 255, 255, .14); }
+.jl-dist .g, .jl-leg .g { background: var(--jd-good); } .jl-dist .y, .jl-leg .y { background: var(--jd-mid); } .jl-dist .b, .jl-leg .b { background: var(--jd-bad); }
+.jl-leg { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; color: var(--jd-t3); font-size: 13px; }
+.jl-leg span { display: inline-flex; align-items: center; gap: 7px; }
+.jl-leg i { width: 8px; height: 8px; border-radius: 2px; }
+.jl-leg b { color: var(--jd-t2); font-weight: 650; font-variant-numeric: tabular-nums; }
+/* лестница: узлы на одной линии, 5–7 — зона «освоено»; строки, а не карточки */
+.jl-steps { position: relative; }
+.jl-steps::before { content: ""; position: absolute; left: 27px; top: 30px; bottom: 30px; width: 2px; border-radius: 1px; background: linear-gradient(var(--jd-acc), var(--jd-vio) 55%, var(--jd-good)); opacity: .32; }
+.jl-row { position: relative; display: grid; grid-template-columns: 32px 1fr 64px 36px; align-items: center; gap: 12px; width: 100%; min-height: 58px; padding: 6px 10px 6px 12px;
+  border: 0; border-radius: var(--jd-r2); background: transparent; color: var(--jd-t1); font: inherit; text-align: left; animation: jdUp 240ms var(--jd-e) both; transition: background-color var(--jd-q); }
+.jl-row:active { background: rgba(255, 255, 255, .05); }
+.jl-row:nth-child(2) { animation-delay: 25ms; } .jl-row:nth-child(3) { animation-delay: 50ms; } .jl-row:nth-child(4) { animation-delay: 75ms; }
+.jl-zone .jl-row:nth-of-type(1) { animation-delay: 100ms; } .jl-zone .jl-row:nth-of-type(2) { animation-delay: 125ms; } .jl-zone .jl-row:nth-of-type(3) { animation-delay: 150ms; }
+.jl-row .jl-b { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--jd-acc); background: var(--jd-s0);
+  font: 750 14px/1 var(--sans); color: var(--jd-t1); }
+.jl-row.e .jl-b { border-color: rgba(255, 255, 255, .16); color: var(--jd-t4); }          /* пустая ступень */
+.jl-row.due .jl-b { box-shadow: 0 0 0 5px rgba(110, 168, 254, .14); }                      /* отсюда сегодняшние повторы */
+.jl-row .jl-d { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 15px; font-weight: 600; color: var(--jd-t1); }
+.jl-row .jl-d small { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 12px; font-weight: 500; color: var(--jd-t3); }
+.jl-row .jl-d .du { color: var(--jd-acc); } .jl-row .jl-d .lc { color: var(--jd-bad); }
+.jl-row .jd-bar { height: 5px; }
+.jl-row .jl-n { font: 700 16px var(--sans); text-align: right; }
+.jl-zone { position: relative; margin-top: 6px; padding: 30px 0 2px; border-radius: 18px; border: 1px solid rgba(70, 214, 160, .22); background: rgba(70, 214, 160, .05); }
+.jl-zl { position: absolute; top: 10px; left: 14px; font: 700 11.5px/1.2 var(--sans); letter-spacing: .9px; text-transform: uppercase; color: var(--jd-good); }
+.jl-row.m .jl-b { border-color: var(--jd-good); }
+.jl-row.m .jd-bar i { background: var(--jd-good); }
+.jl-note { color: var(--jd-t3); font-size: 13px; margin: 12px 2px 6px; }
+.jl-list { margin-top: 8px; }
+.jl-list .jl-go { width: 100%; min-height: 52px; margin-bottom: 8px; }
+.jl-q { padding: 10px 12px; border-bottom: 1px solid var(--jd-b1); color: var(--jd-t2); font-size: 14px; line-height: 1.4; }
+.jl-q small { display: block; color: var(--jd-t3); font-size: 12px; }
+/* разделы прогресса с сайта — в тех же поверхностях; планировщик собеса и сохранение — в конец */
+html.native-app #progStage { padding-left: 16px; padding-right: 16px; }
+html.native-app #progStage .prog-wrap { display: flex; flex-direction: column; }
+html.native-app #progStage .prog-wrap > * { flex-shrink: 0; }   /* колонка не сжимает блоки: у графика высота столбиков в процентах, он схлопывался до 31 px */
+html.native-app .prog-wrap > .exam-box, html.native-app .prog-wrap > .exam-row { order: 10; }
+html.native-app .prog-wrap > .prog-data { order: 11; } html.native-app .prog-wrap > .prog-foot, html.native-app .prog-wrap > #impFile { order: 12; }
+html.native-app .prog-wrap > .exam-box { margin-top: 28px; }
+html.native-app .hist { height: 92px; gap: 5px; padding: 14px; border-radius: var(--jd-r3); border: 1px solid var(--jd-b1); background: var(--jd-s1); box-shadow: var(--jd-hl); }
+html.native-app .hist .hbar { border-radius: 4px 4px 2px 2px; background: linear-gradient(to top, rgba(110, 168, 254, .35), rgba(110, 168, 254, .8)); }
+html.native-app .hist .hcol:last-child .hbar { background: linear-gradient(to top, rgba(169, 139, 255, .5), var(--jd-vio)); }
+html.native-app .weak-row, html.native-app .clrow { min-height: 52px; padding: 8px 14px; border-radius: var(--jd-r2); border: 1px solid var(--jd-b1); background: var(--jd-s1); box-shadow: var(--jd-hl); }
+html.native-app .weak-list, html.native-app .clmap { gap: 8px; }
+html.native-app .wbar, html.native-app .cbar { height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .07); }
+html.native-app .wpct { color: #ffb26b; font-variant-numeric: tabular-nums; }
+html.native-app .cnum { color: var(--jd-t3); font-variant-numeric: tabular-nums; }
+html.native-app .hid-row { padding: 10px 12px; border-radius: var(--jd-r2); border: 1px solid var(--jd-b1); background: var(--jd-s1); }
+html.native-app .hid-cl { color: var(--jd-bad); }
+html.native-app #drillWeak { width: 100%; min-height: 52px; border-radius: 16px; }
+html.native-app .exam-box { padding: 16px; border-radius: var(--jd-r3); border: 1px solid var(--jd-b1); background: var(--jd-s1); box-shadow: var(--jd-hl); }
+html.native-app .prog-data button, html.native-app #printBtn { min-height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid var(--jd-b2); background: var(--jd-s1); color: var(--jd-t2); font: 600 14px var(--sans); }
+html.native-app .prog-foot { color: var(--jd-t3); }
+
+/* ---------- 9. разделы сайта ---------- */
+/* одно поле 16 px на всех экранах, как у своих разделов (было 12–22 — край прыгал при переходе) */
+html.native-app .terms-wrap { padding-left: 16px; padding-right: 16px; }
+html.native-app .sidebar #fpSearch, html.native-app .sidebar #prinSearch { margin-left: 16px; margin-right: 16px; width: calc(100% - 32px); }
 /* название экрана теперь в шапке — во вступлении («🍼 Для чайника. …») остаётся только пояснение */
-html.native-app .bas-intro { font-size: 0; }
+html.native-app .bas-intro { font-size: 0; border-color: var(--jd-b1); }
 html.native-app .bas-intro > b { display: none; }
 html.native-app .bas-intro > span { font-size: 13.5px; }
-/* шторки «Как заниматься» и роадмап: заголовок как у экранов — белый, без эмодзи и градиента */
-html.native-app .rm-title { font-size: 0; }
-html.native-app .rm-title b { font: 750 19px var(--sans); letter-spacing: -.2px; background: none; color: var(--txt); -webkit-text-fill-color: currentColor; }
+/* «Музыка»: клавиатура как инструмент — выше, белые с кромкой, чёрные с бликом, подсветка — свечение;
+   на телефоне :hover залипает после тапа и красил клавишу как нажатую — гасим; кнопки под клавиатурой 44 px */
+html.native-app .kb { height: 136px; border-radius: var(--jd-r2); border-color: var(--jd-b2); background: #07080c; }
+html.native-app .kb-w { border-right-color: #c3c9d6; border-radius: 0 0 6px 6px; box-shadow: inset 0 -5px 0 #cdd3df, inset 0 1px 0 #fff; padding-bottom: 10px; }
+html.native-app .kb-w:hover { background: linear-gradient(#f6f7fa, #dfe3ec); }
+html.native-app .kb-w.mid:hover { background: linear-gradient(#fff, #e6ebf5); }
+html.native-app .kb-w.on, html.native-app .kb-w.on:hover { background: linear-gradient(#cfe0ff, #8ab8ff); box-shadow: inset 0 -5px 0 #5f95f0, inset 0 0 14px rgba(110, 168, 254, .5); }
+html.native-app .kb-w.root, html.native-app .kb-w.root:hover { background: linear-gradient(#ffe2bf, #ffbd6e); box-shadow: inset 0 -5px 0 #e0902f; }
+html.native-app .kb-w.hit, html.native-app .kb-w.hit:hover { background: linear-gradient(#bdf5de, #6fe0b6); box-shadow: inset 0 -5px 0 #2fb886; }
+html.native-app .kb-w:active { box-shadow: inset 0 -2px 0 #cdd3df; transform: translateY(1px); }
+html.native-app .kb-b { height: 60%; background: linear-gradient(#2f3442, #0b0d12 82%, #20242e); border-radius: 0 0 5px 5px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14), inset 0 -4px 0 rgba(255, 255, 255, .06), 0 4px 6px rgba(0, 0, 0, .55); }
+html.native-app .kb-b:hover { background: linear-gradient(#2f3442, #0b0d12 82%, #20242e); }
+html.native-app .kb-b.on, html.native-app .kb-b.on:hover { background: linear-gradient(#8ab8ff, #3f74d6); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 0 12px rgba(110, 168, 254, .55), 0 4px 6px rgba(0, 0, 0, .5); }
+html.native-app .kb-b.root, html.native-app .kb-b.root:hover { background: linear-gradient(#ffc27a, #c97a1c); }
+html.native-app .kb-b.hit, html.native-app .kb-b.hit:hover { background: linear-gradient(#6fe0b6, #1f9a6f); }
+html.native-app .kb-b:active { transform: translateY(1px); }
+html.native-app .kb-foot { margin-top: 10px; }
+html.native-app .kb-cap { padding-left: 2px; text-align: left; font-size: 12.5px; line-height: 1.35; }
+html.native-app .kb-pin, html.native-app .kb-clr, html.native-app .kb-midi { width: 44px; height: 44px; border-radius: 14px; font-size: 16px; border-color: var(--jd-b2); background: var(--jd-s1); }
+
+/* ---------- 10. телефон боком: высоты 360 px не хватает на высокие панели и шапку ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+  html.native-app body { padding-bottom: calc(52px + env(safe-area-inset-bottom)); }
+  html.native-app body.jd-focus { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  html.native-app .topbar { padding-top: 0 !important; padding-bottom: 0 !important; }
+  .jd-bb { padding-top: 2px; padding-bottom: calc(2px + env(safe-area-inset-bottom)); }
+  .jd-bb button { min-height: 44px; flex-direction: row; gap: 6px; font-size: 12.5px; }
+  .jd-bb .jd-pi { width: 44px; height: 28px; }
+  .jd-bb .jd-pi .jd-svg { width: 20px; height: 20px; }
+  #jdAct .btn { min-height: 48px; }
+  .jt-head { padding: 4px 2px 8px; }
+  .jt-head h1 { font-size: 24px; }
+  .jt-top { grid-template-columns: 104px 1fr; }
+  .jt-ring { width: 104px; height: 104px; }
+  html.native-app .view.jd-view, html.native-app #viewDrill { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+  html.native-app body.jd-focus #viewDrill { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  html.native-app body.jd-focus:not(.jd-revealed) #drillStage { padding-top: 3vh; }
+}
+
+/* ---------- 11. меньше движения — по системе: никаких въездов, каскадов и перетеканий ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html.native-app .view.enter, html.native-app #drillStage .card, html.native-app #drillStage .ans.show, html.native-app #drillStage .ans.show *,
+  html.native-app .jl-row, .jl-dist i, .jt-ring .pr, .jr-pct .pr, .jr, .jd-steps i.nx, .jd-pop { animation: none !important; }
+  html.native-app body.jd-focus.jd-revealed #drillStage, .jd-bar i, .jd-sbar .jd-p i, .jd-bb .jd-pi, #jdAct .btn, .jd-row, .jd-tile, .jd-switch input, .jd-switch input::after { transition: none !important; }
+}

@@ -31,6 +31,7 @@
     search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
     bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.8.6 1.3 1.4 1.4 2.2h4.4c.1-.8.6-1.6 1.4-2.2A6 6 0 0 0 12 3z"/>',
     star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+    starOn: '<path fill="currentColor" d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
     alert: '<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/>',
     down: '<path d="m3 7 6.5 6.5 4-4L21 17"/><path d="M21 11.5V17h-5.5"/>',
     zap: '<path d="M13 2.5 4.5 13.5h6.5l-1 8 8.5-11h-6.5z"/>',
@@ -38,9 +39,65 @@
     map: '<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>',
     flame: '<path d="M12 21.5c3.9 0 6.5-2.6 6.5-6.1 0-3.2-2.4-5.4-3.6-8.4-.4 1.9-1.4 3-2.4 3.6-.2-2.6-1.6-4.9-3.6-6.1.3 2.6-.7 4.4-1.9 6.1-1 1.5-1.5 3-1.5 4.8 0 3.5 2.6 6.1 6.5 6.1z"/>',
     check: '<circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.8 2.8L16.2 9.6"/>',
-    back: '<path d="M15 5l-7 7 7 7"/>'
+    done: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>',
+    x: '<path d="M6 6l12 12M18 6 6 18"/>',
+    dots: '<circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
+    eyeOff: '<path d="M3 3l18 18"/><path d="M10.6 5.6A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.9 3.7M6.3 6.4A16.5 16.5 0 0 0 2.5 12S6 18.5 12 18.5c1.8 0 3.3-.5 4.6-1.2"/><path d="M9.9 9.9a2.8 2.8 0 0 0 4.2 4.2"/>',
+    mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+    spark: '<path d="M12 3c.6 4.2 2.8 6.4 7 7-4.2.6-6.4 2.8-7 7-.6-4.2-2.8-6.4-7-7 4.2-.6 6.4-2.8 7-7z"/><path d="M19 16.5v4M17 18.5h4"/>',
+    cube: '<path d="M12 2.8 20.5 7.5v9L12 21.2 3.5 16.5v-9z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9.2"/>',
+    pencil: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+    sprout: '<path d="M12 21v-9"/><path d="M12 12c0-4 3-7 8-7 0 4-3 7-8 7z"/><path d="M12 14.5c0-3-2.5-5.5-7-5.5 0 3.5 2.5 5.5 7 5.5z"/>',
+    hand: '<path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11M11 10.5V4a1.5 1.5 0 0 1 3 0v6.5M14 10.5V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 9.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.6-2.2L4.6 15.6a1.5 1.5 0 0 1 2.3-1.9L8 15"/>',
+    schema: '<rect x="3" y="3" width="7.5" height="6" rx="1.5"/><rect x="13.5" y="15" width="7.5" height="6" rx="1.5"/><path d="M6.8 9v3.5a2 2 0 0 0 2 2h8.4V15"/>',
+    blocks: '<rect x="3.5" y="13" width="7" height="7" rx="1.5"/><rect x="13.5" y="13" width="7" height="7" rx="1.5"/><rect x="8.5" y="4" width="7" height="7" rx="1.5"/>',
+    server: '<rect x="3.5" y="4" width="17" height="6.5" rx="1.8"/><rect x="3.5" y="13.5" width="17" height="6.5" rx="1.8"/><path d="M7 7.25h.01M7 16.75h.01M11 7.25h2M11 16.75h2"/>',
+    route: '<circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="5" r="2.2"/><path d="M8.2 19H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h6.8"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>',
+    coins: '<circle cx="9" cy="9" r="5.5"/><path d="M14.4 7.7a5.5 5.5 0 1 1-4.9 7.8"/><path d="M9 7v4"/>',
+    note: '<path d="M9 18V5.5l11-2V16"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+    eye: '<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
+    shield: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+    ghost: '<path d="M5 20V11a7 7 0 0 1 14 0v9l-2.4-1.8L14.3 20 12 18.2 9.7 20l-2.3-1.8z"/><circle cx="9.5" cy="11" r=".9" fill="currentColor"/><circle cx="14.5" cy="11" r=".9" fill="currentColor"/>',
+    joy: '<circle cx="12" cy="6" r="2.8"/><path d="M12 8.8V15"/><rect x="4" y="15" width="16" height="5.5" rx="2"/>',
+    columns: '<path d="M3.5 20.5h17M4.5 9h15M12 3.5 4 8h16z"/><path d="M7 10v8M10.3 10v8M13.7 10v8M17 10v8"/>',
+    pulse: '<path d="M3 12h4l2.5-6 5 12 2.5-6h4"/>',
+    printer: '<path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14.5h10v6H7z"/>',
+    target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8" fill="currentColor"/>',
+    users: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.1c2.6.3 4.5 2.6 4.5 5.4"/>',
+    cross: '<path d="M5 5l14 14M19 5 5 19"/><path d="M5 9V5h4M19 9V5h-4"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    tray: '<path d="M12 3v11M8 10l4 4 4-4"/><path d="M4 14v4.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V14"/>',
+    tf: '<path d="m3.5 12.5 3 3 5.5-6"/><path d="m14 9 6 6M20 9l-6 6"/>',
+    order: '<path d="M10 6h10M10 12h10M10 18h10"/><path d="M4.5 5 6 4v5M4 14.5a1.6 1.6 0 1 1 2.6 1.2L4 18h3"/>',
+    image: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 16-5-5L6 19.5"/>',
+    keys: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M7.5 14h9"/>',
+    type: '<path d="M5 20 11 4h2l6 16M7.6 14h8.8"/>',
+    bug: '<rect x="7.5" y="7" width="9" height="13" rx="4.5"/><path d="M12 11v9M9 4.5l1.5 2.5M15 4.5 13.5 7M3.5 13h4M16.5 13h4M4.5 8.5l3 2M19.5 8.5l-3 2M4.5 18.5l3-2M19.5 18.5l-3-2"/>',
+    trophy: '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v1.5A3.5 3.5 0 0 0 7.5 11M17 6h3v1.5a3.5 3.5 0 0 1-3.5 3.5M12 14v3.5M8 20.5h8M9.5 17.5h5"/>',
+    download: '<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 19.5h15"/>',
+    upload: '<path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4.5 19.5h15"/>',
+    clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+    heal: '<path d="M10.5 13.5 13.5 10.5"/><rect x="2.8" y="8.3" width="18.4" height="7.4" rx="3.7" transform="rotate(-45 12 12)"/>'
   };
-  const ic = (n, cls) => '<svg class="jd-svg ' + (cls || "") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IC[n] || "") + "</svg>";
+  /* знак продукта — ступени лестницы повторения, в градиенте сайта */
+  /* эмодзи в начале текста — снимаем, когда на его место встаёт иконка набора */
+  const EMO = /^[\s‍️⃣\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F170}-\u{1F189}]+/u;
+  function deEmoji(el) { if (!el) return; const t = [...el.childNodes].find(n => n.nodeType === 3 && n.textContent.trim()); if (t) t.textContent = t.textContent.replace(EMO, ""); }
+  function withIcon(el, name, cls) { if (!el || el.dataset.jdi) return; el.dataset.jdi = 1; deEmoji(el); el.insertAdjacentHTML("afterbegin", ic(name, cls)); }
+  /* Иконка — маска, а не встроенный SVG: WebView 124 на Android рисует встроенный SVG (и <img> с SVG) в сетке плиток
+     с ошибками растра — куски плиток повторялись не на своих местах; маска с currentColor идёт другим путём и чиста.
+     Маски — одна таблица стилей: .i-имя { mask-image: url(data:…) }, цвет — color элемента. */
+  const maskUrl = (body, fill) => 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="' + (fill || "none") + '" stroke="' + (fill ? "none" : "#000") + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + body.replace(/currentColor/g, "#000") + "</svg>") + '")';
+  const icCss = document.createElement("style"); icCss.id = "jdIcons";
+  icCss.textContent = Object.keys(IC).map(n => ".i-" + n + "{-webkit-mask-image:" + maskUrl(IC[n]) + ";mask-image:" + maskUrl(IC[n]) + "}").join("\n")
+    + "\n.jd-mark{-webkit-mask-image:" + maskUrl('<rect x="1.5" y="15" width="4.4" height="7.5" rx="1.6"/><rect x="7.1" y="10.5" width="4.4" height="12" rx="1.6"/><rect x="12.7" y="6" width="4.4" height="16.5" rx="1.6"/><rect x="18.3" y="1.5" width="4.4" height="21" rx="1.6"/>', "#000")
+    + ";mask-image:" + maskUrl('<rect x="1.5" y="15" width="4.4" height="7.5" rx="1.6"/><rect x="7.1" y="10.5" width="4.4" height="12" rx="1.6"/><rect x="12.7" y="6" width="4.4" height="16.5" rx="1.6"/><rect x="18.3" y="1.5" width="4.4" height="21" rx="1.6"/>', "#000") + "}";
+  document.head.appendChild(icCss);
+  /* знак продукта — ступени лестницы повторения, в градиенте сайта */
+  const MARK = '<i class="jd-mark" aria-hidden="true"></i>';
+  const ic = (n, cls) => '<i class="jd-svg i-' + n + (cls ? " " + cls : "") + '" aria-hidden="true"></i>';
   const inDays = n => n <= 0 ? L("сегодня", "today") : n === 1 ? L("завтра", "tomorrow") : L("через " + n + " " + plural(n, "день", "дня", "дней"), "in " + n + " days");
 
   /* ---------- состояние занятия ---------- */
@@ -84,8 +141,12 @@
   const OWN = { today: "viewToday", learn: "viewLearn", cards: "viewCards" };
   Object.values(OWN).forEach(id => { const s = document.createElement("section"); s.id = id; s.className = "view jd-view"; s.hidden = true; $q("#viewDrill").before(s); });
   const sbar = document.createElement("div"); sbar.className = "jd-sbar";
-  sbar.innerHTML = '<button class="jd-x" aria-label="' + h(L("Выйти — занятие сохранится", "Exit — progress is kept")) + '">✕</button><div class="jd-p" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i></i></div><span class="jd-pn"></span>';
+  sbar.innerHTML = '<button class="jd-x" aria-label="' + h(L("Выйти — занятие сохранится", "Exit — progress is kept")) + '">' + ic("x") + '</button><div class="jd-p" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i></i></div><span class="jd-pn"></span>';
   document.body.prepend(sbar);
+  /* высота шапки и полосы занятия — в переменные для отступа body (обе fixed, см. app-native.css) */
+  const topbarEl = $q(".topbar"), rootStyle = document.documentElement.style;
+  const measureBars = () => { if (topbarEl && topbarEl.offsetHeight) rootStyle.setProperty("--jd-top", topbarEl.offsetHeight + "px"); if (sbar.offsetHeight) rootStyle.setProperty("--jd-stop", sbar.offsetHeight + "px"); };
+  if (window.ResizeObserver) { const ro = new ResizeObserver(measureBars); if (topbarEl) ro.observe(topbarEl); ro.observe(sbar); }
   const actBar = document.createElement("div"); actBar.id = "jdAct"; document.body.appendChild(actBar);
   sbar.querySelector(".jd-x").onclick = () => setMode("today");
 
@@ -102,39 +163,45 @@
   const draw = {
     today() {
       const p = plan(), done = doneToday(), res = resumable(), left = res ? NS.ids.length : p.rep + p.fresh;
-      const total = done + left, pct = total ? Math.round(done / total * 100) : 100, mins = Math.max(1, Math.round(left * 20 / 60));
+      const total = done + left, frac = total ? done / total : 1, mins = Math.max(1, Math.round(left * 20 / 60));
       const mast = CARDS.filter(c => stR(c.id).box >= 5).length, streak = streakCount(), weak = weakTopics(3);
-      const leech = CARDS.filter(c => isLeech(c.id) && !isHidden(c.id)).length;
+      const leech = CARDS.filter(c => isLeech(c.id) && !isHidden(c.id)).length, hist = histGet(), t = today();
+      const week = [6, 5, 4, 3, 2, 1, 0].map(d => '<i class="' + (hist[t - d] ? "on" : "") + (d === 0 ? " t" : "") + '"></i>').join("");
+      const num = (cls, n, label) => '<div><i class="' + cls + '"></i><b>' + n + "</b><span>" + h(label) + "</span></div>";
       $q("#viewToday").innerHTML =
         '<header class="jt-head"><span>' + h(greet()) + "</span><h1>" + h(L("Сегодня", "Today")) + "</h1></header>"
-        + '<div class="jt-main"><div class="jt-nums">'
-        + "<div><b>" + (res ? NS.ids.length : p.rep) + "</b><span>" + h(res ? L("осталось", "left") : L("к повтору", "to review")) + "</span></div>"
-        + "<div><b>" + (res ? NS.done : p.fresh) + "</b><span>" + h(res ? L("пройдено", "done") : L("новых", "new")) + "</span></div>"
-        + "<div><b>" + done + "</b><span>" + h(L("сделано", "done")) + "</span></div></div>"
-        + bar(pct, "jt-bar") + '<p class="jt-cap">' + h(total ? done + " " + L("из", "of") + " " + total + " " + L("на сегодня", "for today") : L("на сегодня ничего", "nothing for today")) + "</p>"
+        + '<div class="jt-hero"><div class="jt-top"><div class="jt-ring" role="img" aria-label="' + h(L("сделано", "done") + " " + done + " " + L("из", "of") + " " + total) + '">'
+        + '<svg viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="jtRg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ea8fe"/><stop offset=".5" stop-color="#a98bff"/><stop offset="1" stop-color="#54e6c8"/></linearGradient></defs>'
+        + '<circle class="tr" cx="60" cy="60" r="52"/>' + (frac > 0 ? '<circle class="pr" cx="60" cy="60" r="52" stroke="url(#jtRg)" style="--p:' + frac.toFixed(3) + '"/>' : "") + "</svg>"
+        + '<div class="jt-ctr">' + (left ? "<b>" + left + "</b><span>" + h(L("осталось", "left")) + "</span>" : ic("done") + "<span>" + h(L("готово", "done")) + "</span>") + "</div></div>"
+        + '<div class="jt-nums">'
+        + num("r", res ? NS.ids.filter(id => prog[id]).length : p.rep, L("к повтору", "to review"))   /* в продолженном занятии — разбивка остатка очереди */
+        + num("n", res ? NS.ids.filter(id => !prog[id]).length : p.fresh, L("новых", "new"))
+        + num("d", done, L("сделано", "done")) + "</div></div>"
         + (left
           ? '<button class="btn primary jt-go" id="jtGo"><span>' + h(res ? L("Продолжить занятие", "Continue session") : L("Начать занятие", "Start session")) + "</span><small>" + h((res ? NS.done + " " + L("из", "of") + " " + (NS.done + NS.ids.length) + " · " : "") + "≈ " + mins + " " + L("мин", "min")) + "</small></button>"
           : '<p class="jt-done">' + h(L("На сегодня всё. Интервалы сделают своё — новые повторы придут сами.", "All done for today. New reviews will come on schedule.")) + "</p>"
             + '<button class="btn jt-go" data-go="weak"><span>' + h(L("Подтянуть слабые места", "Practice weak spots")) + "</span><small>" + h(L("до 40 карточек", "up to 40 cards")) + "</small></button>")
         + "</div>"
-        + '<div class="jt-chips"><span class="jd-chip">' + ic("flame", "fl") + streak + " " + h(L(plural(streak, "день подряд", "дня подряд", "дней подряд"), plural(streak, "day streak", "days streak"))) + '</span><span class="jd-chip">' + ic("check", "ok") + h(L("освоено", "mastered")) + " " + mast + " / " + CARDS.length + "</span></div>"
+        + '<div class="jt-stats"><div class="jt-stat"><div class="jt-sv">' + ic("flame", "fl") + "<b>" + streak + "</b></div><span>" + h(L(plural(streak, "день подряд", "дня подряд", "дней подряд"), plural(streak, "day streak", "days streak"))) + '</span><div class="jt-week" aria-hidden="true">' + week + "</div></div>"
+        + '<div class="jt-stat"><div class="jt-sv">' + ic("check", "ok") + "<b>" + mast + "</b><small>/ " + CARDS.length + "</small></div><span>" + h(L("освоено — ступени 5–7", "mastered — steps 5–7")) + "</span>" + bar(mast / CARDS.length * 100) + "</div></div>"
         + (weak.length ? '<h3 class="jd-h3">' + h(L("Слабые темы", "Weak topics")) + '</h3><div class="jd-list">' + weak.map(w => '<button class="jd-row jd-topic" data-topic="' + h(w.t) + '"><span class="jd-pct">' + w.pct + '<small>%</small></span><span class="jd-rt"><b>' + h(clName(w.t)) + "</b><small>" + h(w.lapses ? L("провалов", "lapses") + ": " + w.lapses : L("освоено мало", "little mastered")) + "</small>" + bar(w.pct) + '</span><span class="jd-chev">›</span></button>').join("") + "</div>" : "")
-        + (leech ? '<div class="jd-list" style="margin-top:10px">' + row('data-go="leech"', "alert", L("Проблемные карточки", "Problem cards"), L("провалены 4 раза и больше", "failed 4+ times"), leech, "t-bad") + "</div>" : "");
+        + (leech ? '<div class="jd-list" style="margin-top:8px">' + row('data-go="leech"', "alert", L("Проблемные карточки", "Problem cards"), L("провалены 4 раза и больше", "failed 4+ times"), leech, "t-bad") + "</div>" : "");
     },
     learn() {
-      const S = [["zero", "🌱", L("С нуля", "From zero"), L("путь от первой программы до сеньора", "from first program to senior")],
-        ["fp", "✋", L("На пальцах", "Explained"), L("209 разборов кадр за кадром", "209 frame-by-frame explainers")],
-        ["prin", "⚙️", L("Принцип", "Principles"), L("100 живых схем", "100 live diagrams")],
-        ["viz", "🧊", L("3D-мир", "3D world"), L("прогулка по концепциям", "walk through concepts")],
-        ["basics", "🍼", L("Для чайника", "Basics"), L("основы простыми словами", "fundamentals in plain words")],
-        ["sand", "🏗", L("Песочница", "Sandbox"), L("собери систему и дай нагрузку", "build a system, add load")],
-        ["path", "🗺", L("Путь в сеньоры", "Path to senior"), L("уровни и что осталось", "levels and what's left")],
-        ["beh", "🎤", L("Поведенческий", "Behavioral"), L("о себе, опыт, ситуации", "about you, experience, cases")],
-        ["eng", "🇬🇧", L("Английский", "English"), L("грамматика и фразы собеса", "grammar and interview phrases")],
-        ["money", "💰", L("Деньги", "Money"), L("экономика и рынки", "economics and markets")],
-        ["mus", "🎵", L("Музыка", "Music"), L("бонус", "bonus")]];
-      $q("#viewLearn").innerHTML = '<header class="jt-head"><span>' + h(L("Разделы", "Sections")) + "</span><h1>" + h(L("Учить", "Learn")) + '</h1></header><div class="jd-tiles">'
-        + S.map(s => '<button class="jd-tile" data-mode="' + s[0] + '"><b class="jd-tile-ico" aria-hidden="true">' + s[1] + "</b><span>" + h(s[2]) + "</span><small>" + h(s[3]) + "</small></button>").join("") + "</div>";
+      const G = [[L("Основа", "Core"), "t-acc", [["zero", "sprout", L("С нуля", "From zero"), L("путь от первой программы до сеньора", "from first program to senior")],
+          ["basics", "blocks", L("Для чайника", "Basics"), L("основы простыми словами", "fundamentals in plain words")],
+          ["fp", "hand", L("На пальцах", "Explained"), L("209 разборов кадр за кадром", "209 frame-by-frame explainers")],
+          ["prin", "schema", L("Принцип", "Principles"), L("100 живых схем", "100 live diagrams")]]],
+        [L("Практика", "Practice"), "t-vio", [["viz", "cube", L("3D-мир", "3D world"), L("прогулка по концепциям", "walk through concepts")],
+          ["sand", "server", L("Песочница", "Sandbox"), L("собери систему и дай нагрузку", "build a system, add load")]]],
+        [L("Карьера", "Career"), "t-cy", [["path", "route", L("Путь в сеньоры", "Path to senior"), L("уровни и что осталось", "levels and what's left")],
+          ["beh", "mic", L("Поведенческий", "Behavioral"), L("о себе, опыт, ситуации", "about you, experience, cases")],
+          ["eng", "globe", L("Английский", "English"), L("грамматика и фразы собеса", "grammar and interview phrases")]]],
+        [L("Бонус", "Bonus"), "t-org", [["money", "coins", L("Деньги", "Money"), L("экономика и рынки", "economics and markets")],
+          ["mus", "note", L("Музыка", "Music"), L("пианино и гитара, шпоры со звуком", "piano and guitar, sounding cheat sheets")]]]];
+      $q("#viewLearn").innerHTML = '<header class="jt-head"><span>' + h(L("Разделы", "Sections")) + "</span><h1>" + h(L("Учить", "Learn")) + "</h1></header>"
+        + G.map(g => '<h3 class="jd-h3">' + h(g[0]) + '</h3><div class="jd-tiles">' + g[2].map(s => '<button class="jd-tile" data-mode="' + s[0] + '"><span class="jd-ico ' + g[1] + '" aria-hidden="true">' + ic(s[1]) + "</span><span>" + h(s[2]) + "</span><small>" + h(s[3]) + "</small></button>").join("") + "</div>").join("");
     },
     cards() {
       const fav = CARDS.filter(c => isFav(c.id) && !isHidden(c.id)).length, leech = CARDS.filter(c => isLeech(c.id) && !isHidden(c.id)).length;
@@ -170,7 +237,7 @@
     const t = e.target.closest("#jtGo,[data-go],[data-topic],[data-mode],#jdCram"); if (!t || !t.closest(".jd-view")) return;
     if (t.id === "jdCram") { cramEl.checked = t.checked; return; }
     if (t.id === "jtGo") return startSession();
-    if (t.dataset.mode) return setMode(t.dataset.mode);
+    if (t.dataset.mode) return openMode(t.dataset.mode);
     if (t.dataset.topic) return startList("topic", t.dataset.topic);
     const g = t.dataset.go;
     if (g === "search") { const b = $q("#gsBtn"); if (b) b.click(); return; }
@@ -178,6 +245,8 @@
     if (g === "map") { const b = $q("#rmFab"); if (b) b.click(); return; }
     startList(g);
   });
+
+  function openMode(m) { const tab = $q("#tab" + m.charAt(0).toUpperCase() + m.slice(1)); if (tab) tab.click(); else setMode(m); }
 
   /* setMode: свои экраны + фокус занятия. Свой экран: исходная setMode с несуществующим режимом
      прячет все разделы и гасит игры, звук и микрофон — уборка та же, что при любом переходе. */
@@ -219,20 +288,40 @@
   const origRender = window.render;
   window.render = function () {
     const old = actBar.querySelector("#act"); if (old) old.remove();
-    origRender(); lock = false; document.body.classList.remove("jd-revealed");
+    origRender(); lock = false; document.body.classList.remove("jd-revealed"); actBar.classList.remove("jd-picked");
     const act = $q("#drillStage #act"); if (act) actBar.replaceChildren(act);
     const rb = $q("#btnReveal"); if (rb) rb.innerHTML = "<span>" + h(feynEl.checked ? L("Показать эталон", "Show reference") : L("Показать ответ", "Show answer")) + "</span>";
     const tags = $q("#drillStage .card-tags");
-    if (tags && !tags.querySelector(".jd-more")) tags.insertAdjacentHTML("beforeend", '<button class="jd-more" aria-label="' + h(L("Действия с карточкой", "Card actions")) + '" aria-haspopup="menu">⋯</button>');
+    if (tags && !tags.querySelector(".jd-more")) tags.insertAdjacentHTML("beforeend", '<button class="jd-more" aria-label="' + h(L("Действия с карточкой", "Card actions")) + '" aria-haspopup="menu">' + ic("dots") + "</button>");
     /* до ответа под вопросом — тихая подсказка из «Как заниматься»: вспомнить вслух, потом открыть */
-    const qq = $q("#drillStage .card .q"); if (qq && !feynEl.checked) qq.insertAdjacentHTML("afterend", '<p class="jd-hint">' + h(L("Ответь вслух своими словами — потом открой ответ", "Answer out loud in your own words — then reveal")) + "</p>");
+    const qq = $q("#drillStage .card .q"); if (qq && !feynEl.checked) qq.insertAdjacentHTML("afterend", '<p class="jd-hint">' + ic("mic") + h(L("Ответь вслух своими словами — потом открой ответ", "Answer out loud in your own words — then reveal")) + "</p>");
+    dress();
     window.scrollTo(0, 0);
   };
+  /* карточка в языке приложения: ступени вместо точек, иконки набора вместо эмодзи у аналогии, нюанса, действий и источника */
+  function dress() {
+    const card = $q("#drillStage .card"); if (!card || !cur) return;
+    const bp = card.querySelector(".boxpips");
+    if (bp && !bp.classList.contains("jd-steps")) {
+      const b = Math.min(BOX_MAX, Math.max(1, stR(cur.id).box || 1));
+      bp.classList.add("jd-steps"); bp.dataset.box = b;
+      bp.innerHTML = [1, 2, 3, 4, 5, 6, 7].map(i => '<i class="' + (i <= b ? "on" : "") + (i >= 5 ? " m" : "") + '"></i>').join("");
+    }
+    const ans = card.querySelector(".ans"); if (!ans) return;
+    ans.dataset.jdl = feynEl.checked ? L("Эталон", "Reference") : L("Ответ", "Answer");
+    const hook = ans.querySelector(".hook"); if (hook && !hook.querySelector(".jd-hk")) { deEmoji(hook); hook.insertAdjacentHTML("afterbegin", '<span class="jd-hk">' + ic("spark") + "</span>"); }
+    ans.querySelectorAll(".note .ni").forEach(n => { if (!n.querySelector(".jd-svg")) n.innerHTML = ic("alert"); });
+    /* «Нюанс: ⚠️ …» — знак уже стоит иконкой слева, второй в тексте лишний */
+    ans.querySelectorAll(".note b").forEach(b => { const t = b.nextSibling; if (t && t.nodeType === 3) t.textContent = t.textContent.replace(EMO, " "); });
+    withIcon(ans.querySelector("#vizGo"), "cube"); withIcon(ans.querySelector("#moreBtn"), "book"); withIcon(ans.querySelector("#myNoteBtn"), "pencil");
+    const src = ans.querySelector(".src > span:first-child"); if (src && !src.querySelector(".jd-svg")) src.innerHTML = ic("book");
+  }
   const origReveal = window.reveal;
   window.reveal = function () {
     origReveal(); document.body.classList.add("jd-revealed");
     if (!cur) return;
     const b = stR(cur.id).box, knew = BOX_DAYS[Math.min(b + 1, BOX_MAX)], almost = Math.max(1, Math.round(BOX_DAYS[b] / 2));
+    const nx = $q("#drillStage .jd-steps i:nth-child(" + Math.min(b + 1, BOX_MAX) + ")"); if (nx && b < BOX_MAX && !nx.classList.contains("on")) nx.classList.add("nx");
     const set = (sel, t, s) => { const e = $q(sel); if (e) { e.innerHTML = "<span>" + h(t) + "</span><small>" + h(s) + "</small>"; e.setAttribute("aria-label", t + ", " + s); } };
     set("#btnBad", L("Не знал", "Didn't know"), cramEl.checked ? L("шаг назад", "step back") : L("ещё раз сегодня", "again today"));
     set("#btnMid", L("Почти", "Almost"), inDays(almost));
@@ -244,6 +333,7 @@
     if (lock || !cur || !revealed || GRADING) return;
     lock = true;
     actBar.querySelectorAll("button").forEach(b => { b.disabled = true; });
+    const pick = actBar.querySelector(["#btnBad", "#btnMid", "#btnGood"][lvl]); if (pick) { pick.classList.add("jd-pick"); actBar.classList.add("jd-picked"); }
     const c = cur, wasNew = !prog[c.id];
     undo = { id: c.id, prev: prog[c.id] ? JSON.parse(JSON.stringify(prog[c.id])) : null, raw: RAW().map(k => [k, localStorage.getItem(k)]),
       qids: queue.map(x => x.id), card: c, ns: NS ? JSON.parse(JSON.stringify(NS)) : null };
@@ -273,24 +363,30 @@
   }
   const origEmpty = window.renderEmpty;
   window.renderEmpty = function () {
-    lock = false; actBar.replaceChildren();
+    lock = false; actBar.replaceChildren(); actBar.classList.remove("jd-picked");
     if (NS && NS.done) return results();
     origEmpty();
     const b = $q("#drillStage .empty .btn"); if (b) { const a = document.createElement("div"); a.className = "actions"; a.id = "act"; a.appendChild(b); actBar.appendChild(a); }
+    const eh = $q("#drillStage .empty h2"); if (eh) { eh.textContent = eh.textContent.replace(/[\s\u200d\ufe0f\p{Extended_Pictographic}]+$/u, "").replace(EMO, ""); eh.insertAdjacentHTML("beforebegin", '<div class="jd-empty-ico">' + ic("done") + "</div>"); }
   };
   function results() {
     const s = NS, p = plan(), seen = Object.keys(s.seen).length;
     const hard = Object.entries(s.fails).sort((a, b) => b[1] - a[1])[0], strong = Object.entries(s.goods).filter(x => !hard || x[0] !== hard[0]).sort((a, b) => b[1] - a[1]).slice(0, 2).map(x => clName(x[0]));
     const tomorrow = CARDS.filter(c => prog[c.id] && !isHidden(c.id) && prog[c.id].due === today() + 1).length;
     const leech = Object.keys(s.seen).filter(id => isLeech(id)).length, left = p.rep + p.fresh;
-    $q("#drillStage").innerHTML = '<div class="jr">'
-      + "<h2>" + h(s.counts[0] ? L("Занятие закончено", "Session complete") : L("Чисто — ни одного «не знал»", "Clean — no misses")) + "</h2>"
-      + '<p class="jr-lead">' + h(L("Карточек", "Cards") + ": " + seen + " · " + L("ответов", "answers") + ": " + s.done + (s.fresh ? " · " + L("новых", "new") + ": " + s.fresh : "")) + "</p>"
-      + '<div class="jr-grid"><div class="g"><b>' + s.counts[2] + "</b><span>" + h(L("знал", "knew")) + '</span></div><div class="m"><b>' + s.counts[1] + "</b><span>" + h(L("почти", "almost")) + '</span></div><div class="b"><b>' + s.counts[0] + "</b><span>" + h(L("не знал", "missed")) + "</span></div></div>"
-      + (hard ? '<p class="jr-p">' + h(L("Самая трудная тема — ", "Hardest topic — ")) + "<b>" + h(clName(hard[0])) + "</b>" + h(L(". Её карточки уже в расписании — повтори завтра.", ". Its cards are scheduled — review tomorrow.")) + "</p>" : "")
-      + (strong.length ? '<p class="jr-p">' + h(L("Увереннее всего: ", "Strongest: ")) + "<b>" + h(strong.join(", ")) + "</b></p>" : "")
-      + (leech ? '<p class="jr-p">🩸 ' + h(L("Проблемных среди них: ", "Problem cards among them: ") + leech) + "</p>" : "")
-      + '<p class="jr-p jr-next">' + h(left ? L("Ещё к повтору сегодня: ", "Still due today: ") + left : L("Завтра к повтору: ", "Due tomorrow: ") + tomorrow) + "</p></div>";
+    const c = s.counts, acc = s.done ? c[2] / s.done : 0, seg = (cls, n) => n ? '<i class="' + cls + '" style="flex:' + n + '"></i>' : "";
+    $q("#drillStage").innerHTML = '<div class="jr"><div class="jr-top"><div>'
+      + "<h2>" + h(c[0] ? L("Занятие закончено", "Session complete") : L("Чисто — ни одного «не знал»", "Clean — no misses")) + "</h2>"
+      + '<p class="jr-lead">' + h(L("Карточек", "Cards") + ": " + seen + " · " + L("ответов", "answers") + ": " + s.done + (s.fresh ? " · " + L("новых", "new") + ": " + s.fresh : "")) + "</p></div>"
+      + '<div class="jr-pct" role="img" aria-label="' + h(L("знал", "knew") + " " + Math.round(acc * 100) + "%") + '"><svg viewBox="0 0 88 88" aria-hidden="true"><circle class="tr" cx="44" cy="44" r="36"/>' + (acc > 0 ? '<circle class="pr" cx="44" cy="44" r="36" style="--p:' + acc.toFixed(3) + '"/>' : "") + "</svg>"
+      + "<div><b>" + Math.round(acc * 100) + "%</b><span>" + h(L("знал", "knew")) + "</span></div></div></div>"
+      + '<div class="jr-seg" aria-hidden="true">' + seg("g", c[2]) + seg("m", c[1]) + seg("b", c[0]) + "</div>"
+      + '<div class="jr-grid"><div class="g"><b>' + c[2] + "</b><span>" + h(L("знал", "knew")) + '</span></div><div class="m"><b>' + c[1] + "</b><span>" + h(L("почти", "almost")) + '</span></div><div class="b"><b>' + c[0] + "</b><span>" + h(L("не знал", "missed")) + "</span></div></div>"
+      + (hard ? '<p class="jr-p">' + ic("down", "bad") + "<span>" + h(L("Самая трудная тема — ", "Hardest topic — ")) + "<b>" + h(clName(hard[0])) + "</b>" + h(L(". Её карточки уже в расписании — повтори завтра.", ". Its cards are scheduled — review tomorrow.")) + "</span></p>" : "")
+      + (strong.length ? '<p class="jr-p">' + ic("check", "ok") + "<span>" + h(L("Увереннее всего: ", "Strongest: ")) + "<b>" + h(strong.join(", ")) + "</b></span></p>" : "")
+      + (leech ? '<p class="jr-p">' + ic("alert", "bad") + "<span>" + h(L("Проблемных среди них: ", "Problem cards among them: ") + leech) + "</span></p>" : "")
+      + '<p class="jr-p jr-next">' + ic("clock") + "<span>" + h(left ? L("Ещё к повтору сегодня: ", "Still due today: ") + left : L("Завтра к повтору: ", "Due tomorrow: ") + tomorrow) + "</span></p></div>";
+    actBar.classList.remove("jd-picked");
     actBar.innerHTML = '<div class="actions" id="act">' + (left ? '<button class="btn" id="jrHome"><span>' + h(L("На главную", "Home")) + '</span></button><button class="btn primary" id="jrMore"><span>' + h(L("Продолжить", "Continue")) + "</span><small>" + h(L("ещё " + left + " к повтору", left + " more due")) + "</small></button>" : '<button class="btn primary" id="jrHome"><span>' + h(L("На главную", "Home")) + "</span></button>") + "</div>";
     $q("#jrHome").onclick = () => { NS = null; nsSave(); setMode("today"); };
     const more = $q("#jrMore"); if (more) more.onclick = () => { NS = null; nsSave(); startSession(); };
@@ -304,7 +400,7 @@
     if (more) {
       if (closeMenu()) return;
       const fav = isFav(cur && cur.id), pop = document.createElement("div"); pop.className = "jd-pop"; pop.setAttribute("role", "menu");
-      pop.innerHTML = '<button role="menuitem" data-a="fav">' + (fav ? "★ " + h(L("Убрать из избранного", "Remove from favorites")) : "☆ " + h(L("В избранное", "Add to favorites"))) + '</button><button role="menuitem" data-a="hide">🚫 ' + h(L("Больше не показывать", "Don't show again")) + "</button>";
+      pop.innerHTML = '<button role="menuitem" data-a="fav">' + (fav ? ic("starOn") + h(L("Убрать из избранного", "Remove from favorites")) : ic("star") + h(L("В избранное", "Add to favorites"))) + '</button><button role="menuitem" data-a="hide">' + ic("eyeOff") + h(L("Больше не показывать", "Don't show again")) + "</button>";
       more.after(pop); return;
     }
     const a = e.target.closest(".jd-pop [data-a]");
@@ -317,14 +413,30 @@
   window.buildProg = function () {
     origProg();
     const stg = $q("#progStage"); if (!stg) return;
-    const cnt = [0, 0, 0, 0, 0, 0, 0, 0]; let fresh = 0;
-    CARDS.forEach(c => { if (isHidden(c.id)) return; const p = prog[c.id]; if (p) cnt[Math.min(BOX_MAX, Math.max(1, p.box))]++; else fresh++; });
+    const cnt = [0, 0, 0, 0, 0, 0, 0, 0], due = cnt.slice(), lc = cnt.slice(); let fresh = 0;
+    CARDS.forEach(c => { if (isHidden(c.id)) return; const p = prog[c.id]; if (!p) { fresh++; return; }
+      const b = Math.min(BOX_MAX, Math.max(1, p.box)); cnt[b]++; if (p.due <= today()) due[b]++; if (isLeech(c.id)) lc[b]++; });
     const max = Math.max(1, ...cnt), lg = logGet()[today()] || [0, 0, 0], tot = lg[0] + lg[1] + lg[2];
-    const html = '<header class="jt-head jl-head"><span>' + h(L("лестница, точность, темы", "ladder, accuracy, topics")) + "</span><h1>" + h(L("Прогресс", "Progress")) + '</h1></header><div class="jl"><h3 class="jd-h3">' + h(L("Лестница повторения", "Review ladder")) + "</h3>"
-      + (tot ? '<p class="jl-acc">' + h(L("Сегодня", "Today") + ": " + L("знал", "knew") + " " + lg[2] + " · " + L("почти", "almost") + " " + lg[1] + " · " + L("не знал", "missed") + " " + lg[0] + " — " + L("точность", "accuracy") + " " + Math.round(lg[2] / tot * 100) + "%") + "</p>" : "")
-      + [1, 2, 3, 4, 5, 6, 7].map(b => '<button class="jl-row' + (b >= 5 ? " m" : "") + '" data-box="' + b + '"><span class="jl-b">' + b + '</span><span class="jl-d">' + h(inDays(BOX_DAYS[b])) + "</span>" + bar(cnt[b] / max * 100) + '<span class="jl-n">' + cnt[b] + "</span></button>").join("")
-      + '<p class="jl-note">' + h(L("Ступени 5–7 — освоено. Не начатых: ", "Steps 5–7 are mastered. Not started: ") + fresh) + '</p><div class="jl-list" hidden></div></div>';
+    const mast = cnt[5] + cnt[6] + cnt[7], learning = cnt[1] + cnt[2] + cnt[3] + cnt[4], all = mast + learning + fresh;
+    const seg = (cls, n) => n ? '<i class="' + cls + '" style="flex:' + n + '"></i>' : "";
+    const leg = (cls, label, n) => '<span><i class="' + cls + '"></i>' + h(label) + " <b>" + n + "</b></span>";
+    const step = b => '<button class="jl-row' + (b >= 5 ? " m" : "") + (cnt[b] ? "" : " e") + (due[b] ? " due" : "") + '" data-box="' + b + '"><span class="jl-b">' + b + '</span><span class="jl-d">' + h(inDays(BOX_DAYS[b]))
+      + ((due[b] || lc[b]) ? "<small>" + (due[b] ? '<span class="du">' + h(L("к повтору", "due") + " " + due[b]) + "</span>" : "") + (lc[b] ? '<span class="lc">' + h(L("проблемных", "problem") + " " + lc[b]) + "</span>" : "") + "</small>" : "")
+      + "</span>" + bar(cnt[b] / max * 100) + '<span class="jl-n">' + cnt[b] + "</span></button>";
+    const html = '<header class="jt-head jl-head"><span>' + h(L("лестница, точность, темы", "ladder, accuracy, topics")) + "</span><h1>" + h(L("Прогресс", "Progress")) + '</h1></header><div class="jl">'
+      + '<section class="jl-sum"><div class="jl-big"><b>' + mast + "</b><span>" + h(L("освоено из", "mastered of") + " " + all + " · " + Math.round(mast / Math.max(1, all) * 100) + "%") + "</span></div>"
+      + '<div class="jl-dist" aria-hidden="true">' + seg("m", mast) + seg("l", learning) + seg("n", fresh) + "</div>"
+      + '<div class="jl-leg">' + leg("m", L("освоено", "mastered"), mast) + leg("l", L("учатся", "learning"), learning) + leg("n", L("не начато", "not started"), fresh) + "</div></section>"
+      + (tot ? '<section class="jl-today"><div class="jl-tb"><span>' + h(L("Сегодня · ответов", "Today · answers") + " " + tot) + "</span><b>" + Math.round(lg[2] / tot * 100) + "%<small>" + h(L("точность", "accuracy")) + "</small></b></div>"
+        + '<div class="jl-dist" aria-hidden="true">' + seg("g", lg[2]) + seg("y", lg[1]) + seg("b", lg[0]) + "</div>"
+        + '<div class="jl-leg">' + leg("g", L("знал", "knew"), lg[2]) + leg("y", L("почти", "almost"), lg[1]) + leg("b", L("не знал", "missed"), lg[0]) + "</div></section>" : "")
+      + '<h3 class="jd-h3">' + h(L("Лестница повторения", "Review ladder")) + '</h3><div class="jl-steps">' + [1, 2, 3, 4].map(step).join("")
+      + '<div class="jl-zone"><span class="jl-zl">' + h(L("Освоено", "Mastered")) + "</span>" + [5, 6, 7].map(step).join("") + "</div></div>"
+      + '<p class="jl-note">' + h(L("Тап по ступени — её карточки. «Знал» поднимает на ступень, «не знал» опускает на две.", "Tap a step to see its cards. “Knew it” moves a card up one step, “missed” — down two.")) + '</p><div class="jl-list" hidden></div></div>';
     (stg.firstElementChild || stg).insertAdjacentHTML("afterbegin", html);   /* внутрь колонки: #progStage — флекс-строка */
+    /* разделы сайта ниже — иконки набора вместо эмодзи в заголовках и кнопках */
+    stg.querySelectorAll(".prog-sub, .cname, .exam-head, .prog-foot").forEach(deEmoji);
+    withIcon($q("#drillWeak"), "heal"); withIcon($q("#expBtn"), "download"); withIcon($q("#impBtn"), "upload"); withIcon($q("#printBtn"), "printer");
   };
   document.addEventListener("click", e => {
     const r = e.target.closest(".jl-row"); if (!r) return;
@@ -337,11 +449,23 @@
     list.querySelector(".jl-go") && (list.querySelector(".jl-go").onclick = () => { resetFilter(); cramEl.checked = false; drillList = ids; setMode("drill"); });
   });
 
+  /* ---------- «Игра»: иконки набора вместо эмодзи; тон — группа режима (аркады, суждение, вдвоём, быстрые) ---------- */
+  const GAME_IC = { mTank: ["shield", "t-vio"], mInv: ["ghost", "t-vio"], mArcade: ["joy", "t-vio"], mDesign: ["columns", "t-acc"], mRev: ["eye", "t-acc"], mDiag: ["pulse", "t-acc"],
+    mWp: ["printer", "t-acc"], mMock: ["target", "t-acc"], mDuo: ["users", "t-cy"], mDuel: ["cross", "t-cy"], mBlitz: ["zap", "t-org"], mMatch: ["link", "t-org"], mDrop: ["tray", "t-org"],
+    mTF: ["tf", "t-org"], mOrder: ["order", "t-org"], mGuess: ["image", "t-org"], mRecall: ["keys", "t-org"], mAcr: ["type", "t-org"], mBugs: ["bug", "t-org"] };
+  function gameIcons() {
+    const menu = $q("#gameStage .game-menu"); if (!menu) return;
+    const cards = menu.querySelectorAll(".mode-card"); deEmoji(menu.querySelector(".g-cat.all"));
+    menu.dataset.k = cards.length + " " + L(plural(cards.length, "режим", "режима", "режимов"), plural(cards.length, "mode", "modes"));
+    cards.forEach(c => { const m = GAME_IC[c.id], e = c.querySelector(".mc-emoji"); if (!m || !e || e.dataset.jd) return; e.dataset.jd = 1; e.className = "mc-emoji " + m[1]; e.innerHTML = ic(m[0]); });
+  }
+  if ($q("#gameStage")) new MutationObserver(gameIcons).observe($q("#gameStage"), { childList: true, subtree: true });
+
   /* ---------- нижняя панель: пять разделов под большой палец ---------- */
   const BAR = () => [["today", "home", L("Сегодня", "Today")], ["learn", "learn", L("Учить", "Learn")], ["cards", "cards", L("Карточки", "Cards")], ["game", "game", L("Игра", "Games")], ["prog", "prog", L("Прогресс", "Progress")]];
   const SECTION = { today: "today", learn: "learn", cards: "cards", terms: "cards", game: "game", prog: "prog" };
   const bb = document.createElement("nav"); bb.className = "jd-bb"; bb.setAttribute("aria-label", "Разделы");
-  function buildBar() { bb.innerHTML = BAR().map(b => '<button data-m="' + b[0] + '">' + ic(b[1]) + "<span>" + h(b[2]) + "</span></button>").join(""); syncBar(); chrome(); }
+  function buildBar() { bb.innerHTML = BAR().map(b => '<button data-m="' + b[0] + '"><span class="jd-pi">' + ic(b[1]) + "</span><span>" + h(b[2]) + "</span></button>").join(""); syncBar(); chrome(); }
   /* шапка: поиск и «как заниматься» — те же иконки, что в панели; в полях поиска разделов — без эмодзи */
   /* сайт ставит подсказки полей заново (язык, открытие поиска) — эмодзи-лупу снимаем, когда поле получает фокус */
   document.addEventListener("focusin", e => { const i = e.target; if (i && i.matches && i.matches("#gsInput,#fpSearch,#termSearch,#prinSearch,#basSearch")) i.placeholder = i.placeholder.replace(/^🔍\s*/, ""); });
@@ -352,7 +476,9 @@
   }
   function syncBar() { const s = SECTION[mode] || (mode === "drill" ? "today" : "learn"); bb.querySelectorAll("button").forEach(b => { const on = b.dataset.m === s; b.classList.toggle("on", on); b.setAttribute("aria-current", on ? "page" : "false"); }); topTitle(); }
   /* внутренние экраны («На пальцах», «Термины»…): в шапке «‹ название» вместо логотипа — видно, где ты, и есть путь в свой раздел */
-  const brand = $q(".topbar .brand"), brandHTML = brand ? brand.innerHTML : "", TOP = ["today", "learn", "cards", "game", "prog", "drill"];
+  const brand = $q(".topbar .brand"), TOP = ["today", "learn", "cards", "game", "prog", "drill"];
+  if (brand) brand.innerHTML = MARK + "Java<span>Drill</span>";
+  const brandHTML = brand ? brand.innerHTML : "";
   function topTitle() {
     if (!brand) return;
     if (TOP.includes(mode)) { if (brand.dataset.sub) { brand.innerHTML = brandHTML; delete brand.dataset.sub; } return; }
@@ -364,8 +490,13 @@
   }
   bb.onclick = e => { const b = e.target.closest("button[data-m]"); if (b) setMode(b.dataset.m); };
   document.body.appendChild(bb); buildBar();
-  /* язык поменялся — подписи и экраны тоже */
-  document.addEventListener("click", e => { if (e.target.closest("#langTog")) setTimeout(() => { buildBar(); if (OWN[mode]) draw[mode](); }, 700); });
+  /* язык поменялся — подписи и экраны тоже. Не по таймеру после нажатия: первый переход на EN грузит словарь
+     (i18n-en.js) дольше 0.7 с, и панель собиралась ещё по-русски — «Сегодня | Учить | Cards | Game | Прогресс».
+     setLang по готовности словаря зовёт сама себя через глобальное имя, то есть и эту обёртку. */
+  if (typeof window.setLang === "function") {
+    const origSetLang = window.setLang;
+    window.setLang = function (l) { const r = origSetLang.apply(this, arguments); if (typeof LANG !== "undefined" && LANG === l) { buildBar(); if (OWN[mode]) draw[mode](); } return r; };
+  }
 
   /* «Назад»: меню карточки — первым (вызывает app-native.js) */
   window.jdNative = { back: () => closeMenu(), session: () => NS, plan };
