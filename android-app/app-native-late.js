@@ -21,6 +21,26 @@
   const NSKEY = "jdNativeSess", LOGKEY = "jdNativeLog";
   const byId = new Map(CARDS.map(c => [c.id, c]));
   const plural = (n, a, b, c) => { if (EN()) return n === 1 ? a : b; const m = n % 10, d = n % 100; return m === 1 && d !== 11 ? a : m >= 2 && m <= 4 && (d < 10 || d >= 20) ? b : c; };
+  /* Иконки слоя — один линейный набор (24×24, обводка 1.8, currentColor) вместо эмодзи разного стиля */
+  const IC = {
+    home: '<path d="M3.5 10.5 12 3.5l8.5 7V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/>',
+    learn: '<path d="M2.5 5h6a3.5 3.5 0 0 1 3.5 3.5V20a2.5 2.5 0 0 0-2.5-2.5h-7z"/><path d="M21.5 5h-6A3.5 3.5 0 0 0 12 8.5V20a2.5 2.5 0 0 1 2.5-2.5h7z"/>',
+    cards: '<rect x="3" y="7" width="13" height="14" rx="2.5"/><path d="M7.5 3.5h11a2 2 0 0 1 2 2V17"/>',
+    game: '<rect x="2.5" y="7" width="19" height="11.5" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.5" r=".9" fill="currentColor"/><circle cx="17.8" cy="14" r=".9" fill="currentColor"/>',
+    prog: '<path d="M5 20v-8M12 20V5M19 20v-5"/><path d="M3 20.5h18"/>',
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
+    bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.8.6 1.3 1.4 1.4 2.2h4.4c.1-.8.6-1.6 1.4-2.2A6 6 0 0 0 12 3z"/>',
+    star: '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+    alert: '<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4.5"/><circle cx="12" cy="17.3" r=".6" fill="currentColor"/>',
+    down: '<path d="m3 7 6.5 6.5 4-4L21 17"/><path d="M21 11.5V17h-5.5"/>',
+    zap: '<path d="M13 2.5 4.5 13.5h6.5l-1 8 8.5-11h-6.5z"/>',
+    book: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/>',
+    map: '<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6z"/><path d="M9 4v14M15 6v14"/>',
+    flame: '<path d="M12 21.5c3.9 0 6.5-2.6 6.5-6.1 0-3.2-2.4-5.4-3.6-8.4-.4 1.9-1.4 3-2.4 3.6-.2-2.6-1.6-4.9-3.6-6.1.3 2.6-.7 4.4-1.9 6.1-1 1.5-1.5 3-1.5 4.8 0 3.5 2.6 6.1 6.5 6.1z"/>',
+    check: '<circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.8 2.8L16.2 9.6"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>'
+  };
+  const ic = (n, cls) => '<svg class="jd-svg ' + (cls || "") + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (IC[n] || "") + "</svg>";
   const inDays = n => n <= 0 ? L("сегодня", "today") : n === 1 ? L("завтра", "tomorrow") : L("через " + n + " " + plural(n, "день", "дня", "дней"), "in " + n + " days");
 
   /* ---------- состояние занятия ---------- */
@@ -73,10 +93,10 @@
     if (!NS) { sbar.querySelector(".jd-pn").textContent = ""; return; }
     const left = idsNow().length, done = NS.done, pct = done + left ? Math.round(done / (done + left) * 100) : 100;
     sbar.querySelector(".jd-p i").style.width = pct + "%"; sbar.querySelector(".jd-p").setAttribute("aria-valuenow", pct);
-    sbar.querySelector(".jd-pn").textContent = left ? done + " · " + L("ещё", "left") + " " + left : String(done);
+    sbar.querySelector(".jd-pn").textContent = left ? (done + 1) + " / " + (done + left) : L("Готово", "Done");
   }
   const greet = () => { const hr = new Date().getHours(); return hr < 5 ? L("Доброй ночи", "Good night") : hr < 12 ? L("Доброе утро", "Good morning") : hr < 18 ? L("Добрый день", "Good afternoon") : L("Добрый вечер", "Good evening"); };
-  const row = (attrs, ico, title, sub, right) => '<button class="jd-row" ' + attrs + '><span class="jd-ico">' + ico + '</span><span class="jd-rt"><b>' + h(title) + "</b>" + (sub ? "<small>" + h(sub) + "</small>" : "") + "</span>" + (right != null ? '<span class="jd-n">' + right + "</span>" : "") + '<span class="jd-chev">›</span></button>';
+  const row = (attrs, ico, title, sub, right, tone) => '<button class="jd-row" ' + attrs + '><span class="jd-ico ' + (tone || "") + '">' + (IC[ico] ? ic(ico) : ico) + '</span><span class="jd-rt"><b>' + h(title) + "</b>" + (sub ? "<small>" + h(sub) + "</small>" : "") + "</span>" + (right != null ? '<span class="jd-n">' + right + "</span>" : "") + '<span class="jd-chev">›</span></button>';
   const bar = (pct, cls) => '<span class="jd-bar ' + (cls || "") + '"><i style="width:' + Math.max(0, Math.min(100, pct)) + '%"></i></span>';
 
   const draw = {
@@ -90,16 +110,16 @@
         + '<div class="jt-main"><div class="jt-nums">'
         + "<div><b>" + (res ? NS.ids.length : p.rep) + "</b><span>" + h(res ? L("осталось", "left") : L("к повтору", "to review")) + "</span></div>"
         + "<div><b>" + (res ? NS.done : p.fresh) + "</b><span>" + h(res ? L("пройдено", "done") : L("новых", "new")) + "</span></div>"
-        + "<div><b>" + done + "</b><span>" + h(L("за день", "today")) + "</span></div></div>"
-        + bar(pct, "jt-bar")
+        + "<div><b>" + done + "</b><span>" + h(L("сделано", "done")) + "</span></div></div>"
+        + bar(pct, "jt-bar") + '<p class="jt-cap">' + h(total ? done + " " + L("из", "of") + " " + total + " " + L("на сегодня", "for today") : L("на сегодня ничего", "nothing for today")) + "</p>"
         + (left
           ? '<button class="btn primary jt-go" id="jtGo"><span>' + h(res ? L("Продолжить занятие", "Continue session") : L("Начать занятие", "Start session")) + "</span><small>" + h((res ? NS.done + " " + L("из", "of") + " " + (NS.done + NS.ids.length) + " · " : "") + "≈ " + mins + " " + L("мин", "min")) + "</small></button>"
           : '<p class="jt-done">' + h(L("На сегодня всё. Интервалы сделают своё — новые повторы придут сами.", "All done for today. New reviews will come on schedule.")) + "</p>"
             + '<button class="btn jt-go" data-go="weak"><span>' + h(L("Подтянуть слабые места", "Practice weak spots")) + "</span><small>" + h(L("до 40 карточек", "up to 40 cards")) + "</small></button>")
         + "</div>"
-        + '<div class="jt-chips"><span class="jd-chip">🔥 ' + streak + " " + h(L(plural(streak, "день подряд", "дня подряд", "дней подряд"), plural(streak, "day streak", "days streak"))) + '</span><span class="jd-chip">✅ ' + h(L("освоено", "mastered")) + " " + mast + " / " + CARDS.length + "</span></div>"
-        + (weak.length ? '<h3 class="jd-h3">' + h(L("Слабые темы", "Weak topics")) + '</h3><div class="jd-list">' + weak.map(w => row('data-topic="' + h(w.t) + '"', "🩹", clName(w.t), L("освоено", "mastered") + " " + w.pct + "%" + (w.lapses ? " · " + L("провалов", "lapses") + " " + w.lapses : ""), null)).join("") + "</div>" : "")
-        + (leech ? '<div class="jd-list" style="margin-top:10px">' + row('data-go="leech"', "🩸", L("Проблемные карточки", "Problem cards"), L("провалены 4 раза и больше — добей их отдельно", "failed 4+ times — drill them separately"), leech) + "</div>" : "");
+        + '<div class="jt-chips"><span class="jd-chip">' + ic("flame", "fl") + streak + " " + h(L(plural(streak, "день подряд", "дня подряд", "дней подряд"), plural(streak, "day streak", "days streak"))) + '</span><span class="jd-chip">' + ic("check", "ok") + h(L("освоено", "mastered")) + " " + mast + " / " + CARDS.length + "</span></div>"
+        + (weak.length ? '<h3 class="jd-h3">' + h(L("Слабые темы", "Weak topics")) + '</h3><div class="jd-list">' + weak.map(w => '<button class="jd-row jd-topic" data-topic="' + h(w.t) + '"><span class="jd-pct">' + w.pct + '<small>%</small></span><span class="jd-rt"><b>' + h(clName(w.t)) + "</b><small>" + h(w.lapses ? L("провалов", "lapses") + ": " + w.lapses : L("освоено мало", "little mastered")) + "</small>" + bar(w.pct) + '</span><span class="jd-chev">›</span></button>').join("") + "</div>" : "")
+        + (leech ? '<div class="jd-list" style="margin-top:10px">' + row('data-go="leech"', "alert", L("Проблемные карточки", "Problem cards"), L("провалены 4 раза и больше", "failed 4+ times"), leech, "t-bad") + "</div>" : "");
     },
     learn() {
       const S = [["zero", "🌱", L("С нуля", "From zero"), L("путь от первой программы до сеньора", "from first program to senior")],
@@ -114,22 +134,22 @@
         ["money", "💰", L("Деньги", "Money"), L("экономика и рынки", "economics and markets")],
         ["mus", "🎵", L("Музыка", "Music"), L("бонус", "bonus")]];
       $q("#viewLearn").innerHTML = '<header class="jt-head"><span>' + h(L("Разделы", "Sections")) + "</span><h1>" + h(L("Учить", "Learn")) + '</h1></header><div class="jd-tiles">'
-        + S.map(s => '<button class="jd-tile" data-mode="' + s[0] + '"><b>' + s[1] + "</b><span>" + h(s[2]) + "</span><small>" + h(s[3]) + "</small></button>").join("") + "</div>";
+        + S.map(s => '<button class="jd-tile" data-mode="' + s[0] + '"><b class="jd-tile-ico" aria-hidden="true">' + s[1] + "</b><span>" + h(s[2]) + "</span><small>" + h(s[3]) + "</small></button>").join("") + "</div>";
     },
     cards() {
       const fav = CARDS.filter(c => isFav(c.id) && !isHidden(c.id)).length, leech = CARDS.filter(c => isLeech(c.id) && !isHidden(c.id)).length;
       const trick = CARDS.filter(c => isTricky(c.id) && !isHidden(c.id)).length;
       $q("#viewCards").innerHTML = '<header class="jt-head"><span>' + CARDS.length + " " + h(L("карточек", "cards")) + "</span><h1>" + h(L("Карточки", "Cards")) + "</h1></header>"
-        + '<button class="jd-search" data-go="search">🔍 <span>' + h(L("Поиск по всему", "Search everything")) + "</span></button>"
+        + '<button class="jd-search" data-go="search">' + ic("search") + '<span>' + h(L("Поиск по всему", "Search everything")) + "</span></button>"
         + '<div class="jd-list">'
-        + row('data-go="fav"', "⭐", L("Избранное", "Favorites"), L("отмеченные звёздочкой", "starred cards"), fav)
-        + row('data-go="leech"', "🩸", L("Проблемные", "Problem cards"), L("провалены 4 раза и больше", "failed 4+ times"), leech)
-        + row('data-go="weak"', "🩹", L("Слабые места", "Weak spots"), L("ниже пятой ступени, до 40", "below step 5, up to 40"), null)
-        + row('data-go="trick"', "🦊", L("Коварные", "Tricky"), L("частые ловушки собеседований", "common interview traps"), trick)
-        + row('data-go="terms"', "📖", L("Термины", "Glossary"), L("словарь с аналогиями", "glossary with analogies"), null)
-        + row('data-go="map"', "🗺", L("Карта тем", "Topic map"), L("дерево всех тем", "tree of all topics"), null)
+        + row('data-go="fav"', "star", L("Избранное", "Favorites"), L("отмеченные звёздочкой", "starred cards"), fav, "t-warn")
+        + row('data-go="leech"', "alert", L("Проблемные", "Problem cards"), L("провалены 4 раза и больше", "failed 4+ times"), leech, "t-bad")
+        + row('data-go="weak"', "down", L("Слабые места", "Weak spots"), L("ниже пятой ступени, до 40", "below step 5, up to 40"), null, "t-org")
+        + row('data-go="trick"', "zap", L("Коварные", "Tricky"), L("частые ловушки собеседований", "common interview traps"), trick, "t-vio")
+        + row('data-go="terms"', "book", L("Термины", "Glossary"), L("словарь с аналогиями", "glossary with analogies"), null, "t-acc")
+        + row('data-go="map"', "map", L("Карта тем", "Topic map"), L("дерево всех тем", "tree of all topics"), null, "t-cy")
         + "</div>"
-        + '<label class="jd-switch"><input type="checkbox" id="jdCram"' + (cramEl.checked ? " checked" : "") + "><span>" + h(L("Темы — подряд, без интервалов", "Topics in order, no intervals")) + "</span></label>"
+        + '<label class="jd-switch"><input type="checkbox" role="switch" id="jdCram"' + (cramEl.checked ? " checked" : "") + "><span>" + h(L("Темы — подряд, без интервалов", "Topics in order, no intervals")) + "</span></label>"
         + '<h3 class="jd-h3">' + h(L("Темы", "Topics")) + '</h3><div class="jd-list">'
         + topics().map(t => '<button class="jd-row" data-topic="' + h(t.t) + '"><span class="jd-rt"><b>' + h(clName(t.t)) + "</b><small>" + h(L("освоено", "mastered") + " " + t.mast + " / " + t.total + (t.due ? " · " + L("к повтору", "due") + " " + t.due : "")) + "</small>" + bar(t.mast / t.total * 100) + '</span><span class="jd-chev">›</span></button>').join("") + "</div>";
     }
@@ -199,16 +219,18 @@
   const origRender = window.render;
   window.render = function () {
     const old = actBar.querySelector("#act"); if (old) old.remove();
-    origRender(); lock = false;
+    origRender(); lock = false; document.body.classList.remove("jd-revealed");
     const act = $q("#drillStage #act"); if (act) actBar.replaceChildren(act);
     const rb = $q("#btnReveal"); if (rb) rb.innerHTML = "<span>" + h(feynEl.checked ? L("Показать эталон", "Show reference") : L("Показать ответ", "Show answer")) + "</span>";
     const tags = $q("#drillStage .card-tags");
     if (tags && !tags.querySelector(".jd-more")) tags.insertAdjacentHTML("beforeend", '<button class="jd-more" aria-label="' + h(L("Действия с карточкой", "Card actions")) + '" aria-haspopup="menu">⋯</button>');
+    /* до ответа под вопросом — тихая подсказка из «Как заниматься»: вспомнить вслух, потом открыть */
+    const qq = $q("#drillStage .card .q"); if (qq && !feynEl.checked) qq.insertAdjacentHTML("afterend", '<p class="jd-hint">' + h(L("Ответь вслух своими словами — потом открой ответ", "Answer out loud in your own words — then reveal")) + "</p>");
     window.scrollTo(0, 0);
   };
   const origReveal = window.reveal;
   window.reveal = function () {
-    origReveal();
+    origReveal(); document.body.classList.add("jd-revealed");
     if (!cur) return;
     const b = stR(cur.id).box, knew = BOX_DAYS[Math.min(b + 1, BOX_MAX)], almost = Math.max(1, Math.round(BOX_DAYS[b] / 2));
     const set = (sel, t, s) => { const e = $q(sel); if (e) { e.innerHTML = "<span>" + h(t) + "</span><small>" + h(s) + "</small>"; e.setAttribute("aria-label", t + ", " + s); } };
@@ -269,7 +291,7 @@
       + (strong.length ? '<p class="jr-p">' + h(L("Увереннее всего: ", "Strongest: ")) + "<b>" + h(strong.join(", ")) + "</b></p>" : "")
       + (leech ? '<p class="jr-p">🩸 ' + h(L("Проблемных среди них: ", "Problem cards among them: ") + leech) + "</p>" : "")
       + '<p class="jr-p jr-next">' + h(left ? L("Ещё к повтору сегодня: ", "Still due today: ") + left : L("Завтра к повтору: ", "Due tomorrow: ") + tomorrow) + "</p></div>";
-    actBar.innerHTML = '<div class="actions" id="act">' + (left ? '<button class="btn" id="jrHome"><span>' + h(L("На главную", "Home")) + '</span></button><button class="btn primary" id="jrMore"><span>' + h(L("Продолжить", "Continue")) + "</span><small>" + left + "</small></button>" : '<button class="btn primary" id="jrHome"><span>' + h(L("На главную", "Home")) + "</span></button>") + "</div>";
+    actBar.innerHTML = '<div class="actions" id="act">' + (left ? '<button class="btn" id="jrHome"><span>' + h(L("На главную", "Home")) + '</span></button><button class="btn primary" id="jrMore"><span>' + h(L("Продолжить", "Continue")) + "</span><small>" + h(L("ещё " + left + " к повтору", left + " more due")) + "</small></button>" : '<button class="btn primary" id="jrHome"><span>' + h(L("На главную", "Home")) + "</span></button>") + "</div>";
     $q("#jrHome").onclick = () => { NS = null; nsSave(); setMode("today"); };
     const more = $q("#jrMore"); if (more) more.onclick = () => { NS = null; nsSave(); startSession(); };
     drawSbar();
@@ -298,7 +320,7 @@
     const cnt = [0, 0, 0, 0, 0, 0, 0, 0]; let fresh = 0;
     CARDS.forEach(c => { if (isHidden(c.id)) return; const p = prog[c.id]; if (p) cnt[Math.min(BOX_MAX, Math.max(1, p.box))]++; else fresh++; });
     const max = Math.max(1, ...cnt), lg = logGet()[today()] || [0, 0, 0], tot = lg[0] + lg[1] + lg[2];
-    const html = '<div class="jl"><h3 class="jd-h3">' + h(L("Лестница повторения", "Review ladder")) + "</h3>"
+    const html = '<header class="jt-head jl-head"><span>' + h(L("лестница, точность, темы", "ladder, accuracy, topics")) + "</span><h1>" + h(L("Прогресс", "Progress")) + '</h1></header><div class="jl"><h3 class="jd-h3">' + h(L("Лестница повторения", "Review ladder")) + "</h3>"
       + (tot ? '<p class="jl-acc">' + h(L("Сегодня", "Today") + ": " + L("знал", "knew") + " " + lg[2] + " · " + L("почти", "almost") + " " + lg[1] + " · " + L("не знал", "missed") + " " + lg[0] + " — " + L("точность", "accuracy") + " " + Math.round(lg[2] / tot * 100) + "%") + "</p>" : "")
       + [1, 2, 3, 4, 5, 6, 7].map(b => '<button class="jl-row' + (b >= 5 ? " m" : "") + '" data-box="' + b + '"><span class="jl-b">' + b + '</span><span class="jl-d">' + h(inDays(BOX_DAYS[b])) + "</span>" + bar(cnt[b] / max * 100) + '<span class="jl-n">' + cnt[b] + "</span></button>").join("")
       + '<p class="jl-note">' + h(L("Ступени 5–7 — освоено. Не начатых: ", "Steps 5–7 are mastered. Not started: ") + fresh) + '</p><div class="jl-list" hidden></div></div>';
@@ -316,11 +338,30 @@
   });
 
   /* ---------- нижняя панель: пять разделов под большой палец ---------- */
-  const BAR = () => [["today", "🏠", L("Сегодня", "Today")], ["learn", "🧭", L("Учить", "Learn")], ["cards", "🗂", L("Карточки", "Cards")], ["game", "🎮", L("Игра", "Games")], ["prog", "📊", L("Прогресс", "Progress")]];
+  const BAR = () => [["today", "home", L("Сегодня", "Today")], ["learn", "learn", L("Учить", "Learn")], ["cards", "cards", L("Карточки", "Cards")], ["game", "game", L("Игра", "Games")], ["prog", "prog", L("Прогресс", "Progress")]];
   const SECTION = { today: "today", learn: "learn", cards: "cards", terms: "cards", game: "game", prog: "prog" };
   const bb = document.createElement("nav"); bb.className = "jd-bb"; bb.setAttribute("aria-label", "Разделы");
-  function buildBar() { bb.innerHTML = BAR().map(b => '<button data-m="' + b[0] + '"><b aria-hidden="true">' + b[1] + "</b><span>" + h(b[2]) + "</span></button>").join(""); syncBar(); }
-  function syncBar() { const s = SECTION[mode] || (mode === "drill" ? "today" : "learn"); bb.querySelectorAll("button").forEach(b => { const on = b.dataset.m === s; b.classList.toggle("on", on); b.setAttribute("aria-current", on ? "page" : "false"); }); }
+  function buildBar() { bb.innerHTML = BAR().map(b => '<button data-m="' + b[0] + '">' + ic(b[1]) + "<span>" + h(b[2]) + "</span></button>").join(""); syncBar(); chrome(); }
+  /* шапка: поиск и «как заниматься» — те же иконки, что в панели; в полях поиска разделов — без эмодзи */
+  /* сайт ставит подсказки полей заново (язык, открытие поиска) — эмодзи-лупу снимаем, когда поле получает фокус */
+  document.addEventListener("focusin", e => { const i = e.target; if (i && i.matches && i.matches("#gsInput,#fpSearch,#termSearch,#prinSearch,#basSearch")) i.placeholder = i.placeholder.replace(/^🔍\s*/, ""); });
+  function chrome() {
+    const gs = $q("#gsBtn"), tp = $q("#tipBtn");
+    if (gs) gs.innerHTML = ic("search"); if (tp) tp.innerHTML = ic("bulb");
+    ["#fpSearch", "#termSearch", "#prinSearch", "#basSearch", "#gsInput"].forEach(sel => { const i = $q(sel); if (i) i.placeholder = i.placeholder.replace(/^🔍\s*/, ""); });
+  }
+  function syncBar() { const s = SECTION[mode] || (mode === "drill" ? "today" : "learn"); bb.querySelectorAll("button").forEach(b => { const on = b.dataset.m === s; b.classList.toggle("on", on); b.setAttribute("aria-current", on ? "page" : "false"); }); topTitle(); }
+  /* внутренние экраны («На пальцах», «Термины»…): в шапке «‹ название» вместо логотипа — видно, где ты, и есть путь в свой раздел */
+  const brand = $q(".topbar .brand"), brandHTML = brand ? brand.innerHTML : "", TOP = ["today", "learn", "cards", "game", "prog", "drill"];
+  function topTitle() {
+    if (!brand) return;
+    if (TOP.includes(mode)) { if (brand.dataset.sub) { brand.innerHTML = brandHTML; delete brand.dataset.sub; } return; }
+    const tab = $q("#tab" + mode.charAt(0).toUpperCase() + mode.slice(1));
+    const name = tab ? tab.textContent.replace(/^[^\p{L}\d]+/u, "").replace(/\s*·.*$/, "").trim() : "";
+    brand.dataset.sub = mode;
+    brand.innerHTML = '<button class="jd-up" aria-label="' + h(L("Назад", "Back")) + '">' + ic("back") + "<span>" + h(name) + "</span></button>";
+    brand.querySelector(".jd-up").onclick = e => { e.stopPropagation(); setMode(SECTION[mode] || "learn"); };
+  }
   bb.onclick = e => { const b = e.target.closest("button[data-m]"); if (b) setMode(b.dataset.m); };
   document.body.appendChild(bb); buildBar();
   /* язык поменялся — подписи и экраны тоже */
