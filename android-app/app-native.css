@@ -1,0 +1,140 @@
+/* Стили Android-приложения. Всё под html.native-app — на сайте этого файла нет, а если бы и был, правила бы не сработали.
+ * Подключается в <head> после стилей сайта (android-app/bundle.js), поэтому при равной специфичности перекрывает их.
+ * Цвета — токены сайта (--acc, --good, --bad, --warn, --grad): один стиль на сайте и в приложении. */
+
+/* ---------- что на телефоне лишнее ---------- */
+html.native-app .tabs, html.native-app .kpis, html.native-app .hint-keys, html.native-app .onb, html.native-app #rmFab { display: none !important; }
+html.native-app kbd { display: none !important; }                        /* Space и 1/2/3 — подсказки для клавиатуры */
+html.native-app .card .fav-btn, html.native-app .card .hide-btn { display: none !important; }   /* — в меню «⋯» */
+html.native-app body { padding-bottom: calc(70px + env(safe-area-inset-bottom)); }
+html.native-app .toast { bottom: calc(84px + env(safe-area-inset-bottom)) !important; }
+html.native-app button, html.native-app .btn { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+/* ---------- нижняя панель ---------- */
+.jd-bb { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: flex; background: #0c0f18; border-top: 1px solid var(--line);
+  padding: 4px calc(4px + env(safe-area-inset-right)) calc(4px + env(safe-area-inset-bottom)) calc(4px + env(safe-area-inset-left)); }
+.jd-bb button { flex: 1; min-width: 0; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 2px;
+  border: 0; border-radius: 14px; background: transparent; color: #8d95a8; font: 600 11.5px/1.1 var(--sans); transition: color .15s, background .15s; }
+.jd-bb button b { font-size: 21px; line-height: 1; font-weight: 400; }
+.jd-bb button.on { color: #fff; background: rgba(110, 168, 254, .14); }
+.jd-bb button:active { transform: scale(.95); }
+
+/* ---------- экраны слоя: Сегодня, Учить, Карточки ---------- */
+.jd-view { width: 100%; max-width: 680px; margin: 0 auto; padding: 8px 16px 24px; box-sizing: border-box; }   /* флекс-элемент с auto-полями сжимается по содержимому */
+.jt-head { padding: 10px 2px 14px; }
+.jt-head span { color: var(--mut); font-size: 14px; }
+.jt-head h1 { margin: 2px 0 0; font-size: 30px; line-height: 1.15; font-weight: 750; letter-spacing: -.3px; }
+.jt-main { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 18px; box-shadow: var(--shadow); }
+.jt-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+.jt-nums b { display: block; font: 750 32px/1.1 var(--mono); }
+.jt-nums span { color: var(--mut); font-size: 13px; }
+.jd-bar { display: block; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.jd-bar i { display: block; height: 100%; border-radius: 4px; background: var(--grad); transition: width .3s ease; }
+.jt-bar { margin: 16px 0 14px; }
+.jt-go { width: 100%; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 17px; font-weight: 700; border-radius: 16px; }
+.jt-go small { font: 500 12.5px var(--sans); opacity: .8; }
+.jt-done { color: var(--read); margin: 0 0 12px; line-height: 1.5; }
+.jt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+.jd-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border-radius: 18px; background: var(--panel-2); border: 1px solid var(--line-2); color: var(--read); font-size: 14px; }
+.jd-h3 { margin: 22px 2px 10px; font-size: 13px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--mut); }
+.jd-list { display: flex; flex-direction: column; gap: 8px; }
+.jd-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 10px 14px; border-radius: 16px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--txt); text-align: left; font: inherit; }
+.jd-row:active { transform: scale(.985); background: rgba(255, 255, 255, .07); }
+.jd-ico { font-size: 22px; width: 30px; text-align: center; flex: none; }
+.jd-rt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.jd-rt b { font-size: 16px; font-weight: 650; }
+.jd-rt small { color: var(--mut); font-size: 13px; line-height: 1.35; }
+.jd-rt .jd-bar { height: 5px; margin-top: 4px; }
+.jd-n { font: 700 15px var(--mono); color: var(--read); }
+.jd-chev { color: var(--mut); font-size: 22px; flex: none; }
+.jd-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.jd-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-height: 112px; padding: 14px; border-radius: 18px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--txt); text-align: left; font: inherit; }
+.jd-tile b { font-size: 26px; font-weight: 400; line-height: 1; margin-bottom: 4px; }
+.jd-tile span { font-size: 16px; font-weight: 650; }
+.jd-tile small { color: var(--mut); font-size: 12.5px; line-height: 1.35; }
+.jd-tile:active { transform: scale(.97); }
+.jd-search { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 0 16px; margin-bottom: 12px; border-radius: 26px; border: 1px solid var(--line);
+  background: var(--panel-2); color: var(--mut); font: 500 15px var(--sans); text-align: left; }
+.jd-switch { display: flex; align-items: center; gap: 12px; min-height: 52px; margin: 14px 2px 0; color: var(--read); font-size: 15px; }
+.jd-switch input { width: 22px; height: 22px; accent-color: var(--acc); flex: none; }
+
+/* ---------- занятие: фокус, полоса прогресса сверху, действия снизу под большим пальцем ---------- */
+.jd-sbar, #jdAct { display: none; }
+html.native-app body.jd-focus { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
+html.native-app body.jd-focus .topbar, html.native-app body.jd-focus .filt-bar, html.native-app body.jd-focus .subbar, html.native-app body.jd-focus .jd-bb { display: none !important; }
+html.native-app body.jd-focus .jd-sbar { display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 55;
+  padding: calc(env(safe-area-inset-top) + 6px) 14px 8px 6px; background: rgba(7, 8, 14, .94); border-bottom: 1px solid var(--line-2); }
+.jd-sbar .jd-x { width: 48px; height: 48px; flex: none; border: 0; border-radius: 24px; background: transparent; color: var(--read); font-size: 20px; }
+.jd-sbar .jd-x:active { background: rgba(255, 255, 255, .08); }
+.jd-sbar .jd-p { flex: 1; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.jd-sbar .jd-p i { display: block; height: 100%; width: 0; background: var(--grad); border-radius: 4px; transition: width .25s ease; }
+.jd-sbar .jd-pn { font: 600 13px var(--mono); color: var(--mut); white-space: nowrap; }
+html.native-app body.jd-focus #jdAct { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 56;
+  padding: 10px calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
+  background: #0a0c14; border-top: 1px solid var(--line); }   /* непрозрачная: при 97% сквозь неё читался ответ */
+#jdAct .actions { display: flex; gap: 8px; margin: 0 !important; max-width: 680px; margin-inline: auto !important; }
+#jdAct .btn { flex: 1; min-width: 0; min-height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  padding: 6px 4px; font-size: 16px; font-weight: 700; border-radius: 16px; animation: none; }
+#jdAct .btn small { font: 500 12px/1.2 var(--sans); opacity: .82; white-space: nowrap; }
+#jdAct .btn.bad { background: rgba(255, 122, 133, .10); border: 1px solid rgba(255, 122, 133, .40); }
+#jdAct .btn.mid { background: rgba(255, 207, 110, .09); border: 1px solid rgba(255, 207, 110, .36); }
+#jdAct .btn.good { background: rgba(70, 214, 160, .11); border: 1px solid rgba(70, 214, 160, .42); }
+#jdAct .btn:active { transform: scale(.97); }
+#jdAct .btn:disabled { opacity: .5; }
+html.native-app body.jd-focus #viewDrill { padding-top: 6px; }
+/* карточка — от верха, а не по центру: при раскрытии ответа она не прыгает */
+html.native-app body.jd-focus #drillStage { align-items: flex-start; justify-content: flex-start; min-height: 0; padding-top: 10px; }
+/* карточка открывается чуть быстрее, ответ раскрывается за ~220 мс */
+html.native-app body.jd-focus #drillStage .card { animation-duration: .22s; }
+html.native-app body.jd-focus #drillStage .ans.show { animation-duration: .22s; }
+
+/* меню карточки «⋯» */
+.jd-more { position: absolute; top: -12px; right: -14px; min-width: 48px; min-height: 48px; border: 0; border-radius: 24px; background: transparent; color: var(--read); font-size: 22px; line-height: 1; }
+html.native-app .card-tags { padding-right: 40px; }   /* место под «⋯»: теги переносятся, а кнопка остаётся в углу */
+.jd-more:active { background: rgba(255, 255, 255, .08); }
+.card-tags { position: relative; }
+.jd-pop { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 230px; padding: 6px; border-radius: 16px; background: #151a27; border: 1px solid var(--line); box-shadow: var(--shadow); }
+.jd-pop button { display: block; width: 100%; min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: transparent; color: var(--txt); font: 600 15px var(--sans); text-align: left; }
+.jd-pop button:active { background: rgba(255, 255, 255, .07); }
+
+/* итоги занятия */
+.jr { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 22px 18px; margin-top: 6px; }
+.jr h2 { margin: 0 0 6px; font-size: 24px; line-height: 1.2; }
+.jr-lead { color: var(--mut); margin: 0 0 16px; }
+.jr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.jr-grid div { text-align: center; padding: 12px 4px; border-radius: 14px; background: var(--panel-2); }
+.jr-grid b { display: block; font: 750 28px/1.1 var(--mono); }
+.jr-grid span { color: var(--mut); font-size: 13px; }
+.jr-grid .g b { color: var(--good); } .jr-grid .m b { color: var(--warn); } .jr-grid .b b { color: var(--bad); }
+.jr-p { color: var(--read); line-height: 1.5; margin: 8px 0 0; }
+.jr-next { color: var(--mut); }
+
+/* лестница в «Прогрессе» */
+.jl { margin-bottom: 18px; }
+.jl-acc { color: var(--read); margin: 0 2px 10px; }
+.jl-row { display: grid; grid-template-columns: 34px 92px 1fr 44px; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 6px 12px; margin-bottom: 6px;
+  border-radius: 14px; border: 1px solid var(--line-2); background: var(--panel); color: var(--txt); font: inherit; text-align: left; }
+.jl-row .jl-b { font: 750 16px var(--mono); text-align: center; }
+.jl-row .jl-d { color: var(--mut); font-size: 13px; }
+.jl-row .jl-n { font: 700 15px var(--mono); text-align: right; }
+.jl-row.m { border-color: rgba(70, 214, 160, .3); }
+.jl-row.m .jd-bar i { background: var(--good); }
+.jl-note { color: var(--mut); font-size: 13px; margin: 6px 2px; }
+.jl-list { margin-top: 8px; }
+.jl-list .jl-go { width: 100%; min-height: 52px; margin-bottom: 8px; }
+.jl-q { padding: 10px 12px; border-bottom: 1px solid var(--line-2); color: var(--read); font-size: 14px; line-height: 1.4; }
+.jl-q small { display: block; color: var(--mut); font-size: 12px; }
+
+/* меньше движения — по системе и по своей настройке: никаких въездов и каскадов */
+@media (prefers-reduced-motion: reduce) {
+  html.native-app .jd-view.enter, html.native-app #drillStage .card, html.native-app #drillStage .ans.show, html.native-app #drillStage .ans.show * { animation: none !important; }
+  .jd-bar i, .jd-sbar .jd-p i { transition: none; }
+}
+/* телефон боком: панель действий ниже, полоса сессии тоньше */
+@media (orientation: landscape) and (max-height: 520px) {
+  #jdAct .btn { min-height: 48px; }
+  html.native-app body.jd-focus { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+  .jt-head h1 { font-size: 24px; }
+}
