@@ -52,6 +52,9 @@ html.native-app .view.enter { animation: jdViewIn var(--jd-m) var(--jd-e) both; 
    высоту меряет app-native-late.js (--jd-top, --jd-stop). Фон — с !important: fx-lite сайта ставит 97% с !important,
    и сквозь шапку читался прокрученный текст (правка 1.4 без него не действовала). */
 html.native-app .topbar { position: fixed !important; top: 0; left: 0; right: 0; background: var(--jd-chrome) !important; border-bottom-color: var(--jd-b1); }
+/* под строкой времени и заряда: сайт на узких экранах ставит шапке padding 8px 9px без safe-area, и на телефоне со свежим WebView
+   (140+, рисует под системную строку) «Java Drill» стоял на одной линии с часами. Фон шапки уходит под строку, текст — ниже её. */
+html.native-app .topbar { padding: calc(8px + env(safe-area-inset-top)) calc(9px + env(safe-area-inset-right)) 8px calc(9px + env(safe-area-inset-left)) !important; }
 html.native-app body:not(.jd-focus) { padding-top: var(--jd-top, 55px); }
 html.native-app body.jd-focus { padding-top: var(--jd-stop, 63px); }
 html.native-app .tools { background: transparent; border: 0; padding: 0; gap: 0; }
@@ -460,7 +463,7 @@ html.native-app .kb-pin, html.native-app .kb-clr, html.native-app .kb-midi { wid
 @media (orientation: landscape) and (max-height: 520px) {
   html.native-app body { padding-bottom: calc(52px + env(safe-area-inset-bottom)); }
   html.native-app body.jd-focus { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
-  html.native-app .topbar { padding-top: 0 !important; padding-bottom: 0 !important; }
+  html.native-app .topbar { padding-top: env(safe-area-inset-top) !important; padding-bottom: 0 !important; }
   .jd-bb { padding-top: 2px; padding-bottom: calc(2px + env(safe-area-inset-bottom)); }
   .jd-bb button { min-height: 44px; flex-direction: row; gap: 6px; font-size: 12.5px; }
   .jd-bb .jd-pi { width: 44px; height: 28px; }
@@ -481,3 +484,71 @@ html.native-app .kb-pin, html.native-app .kb-clr, html.native-app .kb-midi { wid
   html.native-app .jl-row, .jl-dist i, .jt-ring .pr, .jr-pct .pr, .jr, .jd-steps i.nx, .jd-pop { animation: none !important; }
   html.native-app body.jd-focus.jd-revealed #drillStage, .jd-bar i, .jd-sbar .jd-p i, .jd-bb .jd-pi, #jdAct .btn, .jd-row, .jd-tile, .jd-switch input, .jd-switch input::after { transition: none !important; }
 }
+
+/* ---------- 12. ответ вариантами: переключатель и четыре кнопки ---------- */
+.jd-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 0 0 12px; border-radius: 16px; background: rgba(255, 255, 255, .05); border: 1px solid var(--jd-b1); }
+.jd-seg button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; border: 0; border-radius: 12px; background: transparent; color: var(--jd-t3);
+  font: 650 14.5px var(--sans); transition: background-color var(--jd-q) var(--jd-e), color var(--jd-q) var(--jd-e); }
+.jd-seg button .jd-svg { width: 18px; height: 18px; }
+.jd-seg button[aria-checked="true"] { background: var(--jd-s3); color: var(--jd-t1); box-shadow: 0 1px 0 rgba(255, 255, 255, .06) inset, 0 6px 16px -8px rgba(0, 0, 0, .8); }
+.jd-quiz { display: flex; flex-direction: column; gap: 10px; margin: 20px 0 0; }
+.jd-opt { display: flex; align-items: flex-start; gap: 14px; width: 100%; min-height: 56px; padding: 14px 16px; border-radius: var(--jd-r2); border: 1.5px solid var(--jd-b2);
+  background: var(--jd-s1); color: var(--jd-t1); font: 500 calc(15.5px * var(--ts, 1))/1.42 var(--sans); text-align: left;
+  transition: transform var(--jd-q) var(--jd-e), background-color var(--jd-m) var(--jd-e), border-color var(--jd-m) var(--jd-e), opacity var(--jd-m) var(--jd-e); animation: jdUp 240ms var(--jd-e) both; }
+.jd-opt:nth-child(2) { animation-delay: 40ms; } .jd-opt:nth-child(3) { animation-delay: 80ms; } .jd-opt:nth-child(4) { animation-delay: 120ms; }
+.jd-opt:active { transform: scale(.985); background: var(--jd-s2); }
+.jd-opt .jd-ol { flex: none; display: grid; place-items: center; width: 28px; height: 28px; margin-top: -2px; border-radius: 9px; background: rgba(255, 255, 255, .07); color: var(--jd-t3); font: 700 13px var(--sans); }
+.jd-opt .jd-ol .jd-svg { width: 16px; height: 16px; }
+.jd-quiz.done .jd-opt { animation: none; }
+.jd-quiz.done .jd-opt:not(.ok):not(.no) { opacity: .45; }
+.jd-opt.ok { border-color: rgba(70, 214, 160, .7); background: rgba(70, 214, 160, .1); }
+.jd-opt.ok .jd-ol { background: var(--jd-good); color: #0a0b14; }
+.jd-opt.no { border-color: rgba(255, 122, 133, .7); background: rgba(255, 122, 133, .1); }
+.jd-opt.no .jd-ol { background: var(--jd-bad); color: #0a0b14; }
+.jd-quiz-tag { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 8px 12px; border-radius: 12px; font: 650 14px var(--sans); }
+.jd-quiz-tag .jd-svg { width: 18px; height: 18px; }
+.jd-quiz-tag.ok { color: var(--jd-good); background: rgba(70, 214, 160, .1); } .jd-quiz-tag.no { color: var(--jd-bad); background: rgba(255, 122, 133, .1); }
+#jdAct .btn.jd-off { display: none !important; }
+#jdAct .btn.jd-ghost { background: transparent; border: 1.5px solid var(--jd-b2); color: var(--jd-t2); box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .jd-opt { animation: none !important; transition: none !important; } }
+
+/* ---------- 13. «С нуля»: маршрут деревом в шторке ---------- */
+html.native-app #zeroChips { display: none !important; }
+.jd-route { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 12px; width: calc(100% + 32px); margin: 0 -16px 10px; padding: 10px 16px; border: 0;
+  border-bottom: 1px solid var(--jd-b1); background: var(--jd-s0); color: var(--jd-t1); font: inherit; text-align: left; }
+.jd-route .jd-ico { width: 42px; height: 42px; }
+.jd-route .jd-rt small { color: var(--jd-t3); font-size: 12.5px; letter-spacing: .3px; }
+.jd-route .jd-rt b { font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jd-route .jd-chev { transform: rotate(90deg); }
+.jd-route:active { background: var(--jd-s1); }
+.jd-sheet { position: fixed; inset: 0; z-index: 80; }
+.jd-sheet[hidden] { display: none; }
+.jd-sheet-bg { position: absolute; inset: 0; background: rgba(3, 4, 9, .7); opacity: 0; transition: opacity var(--jd-m) var(--jd-e); }
+.jd-sheet-panel { position: absolute; left: 0; right: 0; bottom: 0; max-height: 82vh; display: flex; flex-direction: column; border-radius: 24px 24px 0 0; background: var(--jd-s1);
+  border-top: 1px solid var(--jd-b2); box-shadow: 0 -20px 60px -20px rgba(0, 0, 0, .9); transform: translateY(100%); transition: transform var(--jd-l) var(--jd-e);
+  padding-bottom: env(safe-area-inset-bottom); }
+.jd-sheet.on .jd-sheet-bg { opacity: 1; } .jd-sheet.on .jd-sheet-panel { transform: none; }
+.jd-sheet-grip { width: 40px; height: 4px; margin: 10px auto 2px; border-radius: 2px; background: rgba(255, 255, 255, .2); flex: none; }
+.jd-sheet-head { display: flex; align-items: center; gap: 10px; padding: 6px 8px 10px 20px; flex: none; border-bottom: 1px solid var(--jd-b1); }
+.jd-sheet-head b { font: 750 20px var(--sans); letter-spacing: -.2px; }
+.jd-sheet-head span { flex: 1; color: var(--jd-t3); font-size: 14px; }
+.jd-sheet-x { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 22px; background: transparent; color: var(--jd-t2); }
+.jd-sheet-x .jd-svg { width: 22px; height: 22px; }
+.jd-sheet-body { overflow-y: auto; overscroll-behavior: contain; padding: 8px 12px 16px; }
+html.native-app .jd-sheet .zero-nav { display: block !important; position: static; max-height: none; overflow: visible; border: 0; background: none; padding: 0; flex: none; }
+html.native-app .jd-sheet .zero-nav h4 { display: none; }
+html.native-app .jd-sheet .zn-item { min-height: 54px; padding: 8px 10px; gap: 12px; border-radius: 14px; font: 650 16px var(--sans); color: var(--jd-t1); }
+html.native-app .jd-sheet .zn-item.on { background: rgba(110, 168, 254, .1); color: var(--jd-t1); }
+html.native-app .jd-sheet .zn-item .zn-n { width: 30px; height: 30px; font: 700 13px var(--sans); display: grid; place-items: center; }
+html.native-app .jd-sheet .zn-item.on .zn-n { border-color: var(--jd-acc); color: var(--jd-acc); }
+html.native-app .jd-sheet .zn-item .zn-c { font: 650 13px var(--sans); color: var(--jd-t3); font-variant-numeric: tabular-nums; }
+html.native-app .jd-sheet .zn-item .zn-ar { font-size: 0; width: 18px; height: 18px; flex: none; background: currentColor; color: var(--jd-t4);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E") center / contain no-repeat; }
+html.native-app .jd-sheet .zn-sub { margin: 2px 0 8px 25px; padding-left: 14px; border-left: 2px solid var(--jd-b1); }
+html.native-app .jd-sheet .zn-s { min-height: 44px; padding: 10px 10px; gap: 10px; border-radius: 12px; font: 500 15px/1.35 var(--sans); color: var(--jd-t2); align-items: flex-start; }
+html.native-app .jd-sheet .zn-s i { font: 650 12px var(--sans); color: var(--jd-t4); min-width: 18px; padding-top: 2px; }
+html.native-app .jd-sheet .zn-s.on { background: rgba(110, 168, 254, .12); color: var(--jd-t1); }
+html.native-app .jd-sheet .zn-s.on i { color: var(--jd-acc); }
+html.native-app .jd-sheet .zn-s.done { color: var(--jd-good); }
+@media (prefers-reduced-motion: reduce) { .jd-sheet-panel, .jd-sheet-bg { transition: none; } }

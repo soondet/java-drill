@@ -116,6 +116,46 @@ let kill = () => {};                                   /* гасит Chrome пр
   const l4 = await one(`{box:2,due:today(),reps:5,lapses:3}`, 0);
   check("четвёртый провал — «проблемная»", l4.lapses === 4 && await ev(`isLeech(CARDS[40].id)`), JSON.stringify(l4));
 
+  console.log("\n— ответ вариантами");
+  await ev(`setMode("today"); true`); await sleep(150);
+  const QDECK = `(function(){ drillTokens.clear(); cramEl.checked=false; drillList=CARDS.slice(120,124).map(c=>c.id); setMode("drill"); return true })()`;
+  await tap("[data-am=quiz]"); await sleep(80); await ev(QDECK); await sleep(350);
+  const QV = `JSON.stringify([...document.querySelectorAll("#jdAct .btn")].filter(b=>getComputedStyle(b).display!=="none").map(b=>b.querySelector("span").textContent))`;
+  const pickQ = good => ev(`(function(){ const want=T("cards",cur.id,"quizCorrect",QUIZ[cur.id].correct), o=[...document.querySelectorAll(".jd-opt")];
+    const b=o.find(x=>(x.querySelector("span:last-child").textContent===want)===${good}); b.click(); return JSON.stringify({n:o.length, right:o.filter(x=>x.querySelector("span:last-child").textContent===want).length}) })()`).then(JSON.parse);
+  const q1 = await ev("cur.id"), qb1 = (await st(q1) || { box: 1 }).box || 1, qo = await pickQ(true); await sleep(120);
+  const qv1 = JSON.parse(await ev(QV));
+  check("4 варианта: под вопросом четыре кнопки, верная ровно одна; угадал — «Знал» или «Угадал»", qo.n === 4 && qo.right === 1 && qv1.join("|") === "Угадал|Знал", JSON.stringify(qo) + " · " + qv1.join(" | "));
+  await tap("#btnGood"); await settle();
+  const qs1 = await st(q1);
+  check("верно → «Знал»: ступень +1 по тем же правилам", qs1 && qs1.box === Math.min(7, qb1 + 1) && qs1.due === T + BD[qs1.box], "ступень " + qb1 + " → " + (qs1 && qs1.box));
+  const q2 = await ev("cur.id"); await pickQ(false); await sleep(120);
+  const qv2 = JSON.parse(await ev(QV)), marks = JSON.parse(await ev(`JSON.stringify([document.querySelectorAll(".jd-opt.ok").length, document.querySelectorAll(".jd-opt.no").length])`));
+  await tap("#btnBad"); await settle();
+  const qs2 = await st(q2), lastQ = await ev("queue.length ? queue[queue.length-1].id : ''");
+  check("неверно → только «Не знал», верный зелёным, свой красным; карточка вернётся в конце", qv2.join("|") === "Не знал" && marks[0] === 1 && marks[1] === 1 && qs2.lapses >= 1 && lastQ === q2, qv2.join("|") + " · " + JSON.stringify(marks) + " · последняя — она: " + (lastQ === q2));
+  await tap("#btnReveal"); await sleep(120);
+  const qv3 = JSON.parse(await ev(QV));
+  await ev(`setMode("today"); true`); await sleep(150); await tap("[data-am=self]"); await sleep(80); await ev(QDECK); await sleep(300);
+  const selfOk = await ev(`!document.querySelector(".jd-opt") && /Показать ответ/.test(document.querySelector("#btnReveal").textContent)`);
+  check("«Не знаю — показать ответ» → только «Не знал»; переключатель обратно — обычный режим", qv3.join("|") === "Не знал" && selfOk, qv3.join("|") + " · обычный: " + selfOk);
+  await ev(`setMode("today"); true`); await sleep(150);
+
+  console.log("\n— «С нуля» и шапка");
+  await ev(`setMode("zero"); true`); await sleep(900);
+  await tap(".jd-route"); await sleep(450);
+  const zs = JSON.parse(await ev(`JSON.stringify({open:!document.querySelector(".jd-sheet").hidden, topics:document.querySelectorAll(".jd-sheet .zn-item").length, chips:getComputedStyle(document.querySelector("#zeroChips")).display})`));
+  await ev(`(function(){ document.querySelector('.jd-sheet .zn-item[data-k="zg2"]').click(); return true })()`); await sleep(250);
+  const target = await ev(`(function(){ const b=document.querySelector('.jd-sheet .zn-sub .zn-s[data-s]'); const s=[...document.querySelectorAll('.jd-sheet .zn-item[data-k="zg2"] + .zn-sub .zn-s')][1]; s.click(); return s.dataset.s })()`);
+  await sleep(1600);
+  const zs2 = JSON.parse(await ev(`JSON.stringify({closed:document.querySelector(".jd-sheet").hidden, top:Math.round(document.getElementById("zs${target}").getBoundingClientRect().top), h:innerHeight, bar:document.querySelector(".jd-route").textContent})`));
+  check("«С нуля»: строка «Маршрут» открывает дерево всех тем, тап по шагу — переход к нему, шторка закрыта, строка показывает тему", zs.open && zs.topics >= 60 && zs.chips === "none" && zs2.closed && zs2.top > 0 && zs2.top < zs2.h && / 3 \/ /.test(zs2.bar), JSON.stringify(zs) + " · шаг " + target + " на " + zs2.top + " · " + zs2.bar);
+  await ev(`setMode("today"); true`); await sleep(150);
+  await raw("Emulation.setSafeAreaInsetsOverride", { insets: { top: 40, bottom: 24 } }); await sleep(250);
+  const hdr = JSON.parse(await ev(`JSON.stringify({bar:Math.round(document.querySelector(".topbar").getBoundingClientRect().top), brand:Math.round(document.querySelector(".topbar .brand").getBoundingClientRect().top), h1:Math.round(document.querySelector("#viewToday h1").getBoundingClientRect().top), bb:Math.round(innerHeight-document.querySelector(".jd-bb button").getBoundingClientRect().bottom)})`));
+  await raw("Emulation.setSafeAreaInsetsOverride", { insets: {} }); await sleep(150);
+  check("шапка под строкой времени и заряда: фон с самого верха, «Java Drill» ниже строки, панель над жестами", hdr.bar === 0 && hdr.brand >= 40 && hdr.h1 > hdr.brand && hdr.bb >= 24, JSON.stringify(hdr));
+
   console.log("\n— разделы и ширины");
   const nav = [];
   for (const m of ["learn", "cards", "prog", "game", "today"]) { await ev(`document.querySelector('.jd-bb [data-m="${m}"]').click(); true`); await sleep(350); nav.push(m + ":" + (await ev("mode"))); }
@@ -123,7 +163,7 @@ let kill = () => {};                                   /* гасит Chrome пр
   check("панель ведёт в разделы; «Учить» — 11 разделов, «Карточки» — все темы, «Прогресс» — лестница из 7 ступеней", nav.every(x => x.split(":")[0] === x.split(":")[1]) && hub.tiles === 11 && hub.topics >= 15 && hub.ladder === 7, nav.join(" ") + " · " + JSON.stringify(hub));
   const AUD = `(function(){ const W=innerWidth, out=[];
     if (document.scrollingElement.scrollWidth>W+1) out.push("вбок "+document.scrollingElement.scrollWidth+">"+W);
-    document.querySelectorAll(".jd-bb button,#jdAct .btn,.jd-row,.jd-tile,.jd-more,.jd-sbar button,.jl-row,.jd-search").forEach(b=>{ if(!b.getClientRects().length) return; const r=b.getBoundingClientRect();
+    document.querySelectorAll(".jd-bb button,#jdAct .btn,.jd-row,.jd-tile,.jd-more,.jd-sbar button,.jl-row,.jd-search,.jd-seg button,.jd-opt,.jd-route").forEach(b=>{ if(!b.getClientRects().length) return; const r=b.getBoundingClientRect();
       if (r.height<44||r.width<44) out.push("мелко "+Math.round(r.width)+"×"+Math.round(r.height)+" "+(b.className||b.tagName)); if (r.right>W+1||r.left<-1) out.push("за край "+(b.className||b.tagName)); });
     return JSON.stringify(out.slice(0,6)); })()`;
   const widths = [[360, 780], [390, 844], [412, 915], [844, 390]], bad = [];

@@ -79,6 +79,9 @@
     download: '<path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M4.5 19.5h15"/>',
     upload: '<path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4.5 19.5h15"/>',
     clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+    tree: '<circle cx="5.5" cy="5" r="1.8"/><path d="M5.5 6.8V16a2.5 2.5 0 0 0 2.5 2.5h3M5.5 10.5H11"/><rect x="12" y="8" width="8.5" height="5" rx="1.6"/><rect x="12" y="16" width="8.5" height="5" rx="1.6"/>',
+    choice: '<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/><path d="m15.5 17 1.5 1.5 3-3.5"/>',
+    self: '<path d="M8 12.5 11 15.5 16.5 9"/><circle cx="12" cy="12" r="9"/>',
     heal: '<path d="M10.5 13.5 13.5 10.5"/><rect x="2.8" y="8.3" width="18.4" height="7.4" rx="3.7" transform="rotate(-45 12 12)"/>'
   };
   /* знак продукта — ступени лестницы повторения, в градиенте сайта */
@@ -99,6 +102,23 @@
   const MARK = '<i class="jd-mark" aria-hidden="true"></i>';
   const ic = (n, cls) => '<i class="jd-svg i-' + n + (cls ? " " + cls : "") + '" aria-hidden="true"></i>';
   const inDays = n => n <= 0 ? L("сегодня", "today") : n === 1 ? L("завтра", "tomorrow") : L("через " + n + " " + plural(n, "день", "дня", "дней"), "in " + n + " days");
+
+  /* ---------- режим ответа: сам оцениваю или 4 варианта (готовые варианты сайта из QUIZ, как в «Блице») ---------- */
+  const AMKEY = "jdAnswerMode";
+  let answerMode = (() => { try { return localStorage.getItem(AMKEY) === "quiz" ? "quiz" : "self"; } catch (e) { return "self"; } })();
+  const setAnswerMode = m => { answerMode = m; try { localStorage.setItem(AMKEY, m); } catch (e) {} };
+  function quizFor(c) {
+    const q = c && window.QUIZ && QUIZ[c.id];
+    if (!q || !q.correct || !Array.isArray(q.wrong) || q.wrong.length < 3) return null;
+    const tt = typeof T === "function" ? T : (k, id, f, ru) => ru, ta = typeof Ta === "function" ? Ta : (k, id, f, ru) => ru;
+    return { ok: tt("cards", c.id, "quizCorrect", q.correct), wrong: ta("cards", c.id, "quizWrong", q.wrong).slice(0, 3) };
+  }
+  const quizActive = () => answerMode === "quiz" && !feynEl.checked && !!quizFor(cur);
+  let QS = null, quizKeep = false;
+  let closeSheet = () => false;      /* шторка «Маршрут» в «С нуля» — ставится ниже, когда раздел есть */   /* QS — варианты текущей карточки и выбор: res = "ok" | "no" | "skip" */
+  const segAnswer = () => '<div class="jd-seg" role="radiogroup" aria-label="' + h(L("Как отвечать", "Answer mode")) + '">'
+    + [["self", "self", L("Сам оцениваю", "Self-grade")], ["quiz", "choice", L("4 варианта", "4 options")]].map(([m, i, t]) =>
+      '<button role="radio" data-am="' + m + '" aria-checked="' + (answerMode === m) + '">' + ic(i) + "<span>" + h(t) + "</span></button>").join("") + "</div>";
 
   /* ---------- состояние занятия ---------- */
   let NS = (() => { try { return JSON.parse(localStorage.getItem(NSKEY)) || null; } catch (e) { return null; } })();
@@ -178,13 +198,14 @@
         + num("r", res ? NS.ids.filter(id => prog[id]).length : p.rep, L("к повтору", "to review"))   /* в продолженном занятии — разбивка остатка очереди */
         + num("n", res ? NS.ids.filter(id => !prog[id]).length : p.fresh, L("новых", "new"))
         + num("d", done, L("сделано", "done")) + "</div></div>"
+        + (left ? segAnswer() : "")
         + (left
           ? '<button class="btn primary jt-go" id="jtGo"><span>' + h(res ? L("Продолжить занятие", "Continue session") : L("Начать занятие", "Start session")) + "</span><small>" + h((res ? NS.done + " " + L("из", "of") + " " + (NS.done + NS.ids.length) + " · " : "") + "≈ " + mins + " " + L("мин", "min")) + "</small></button>"
           : '<p class="jt-done">' + h(L("На сегодня всё. Интервалы сделают своё — новые повторы придут сами.", "All done for today. New reviews will come on schedule.")) + "</p>"
             + '<button class="btn jt-go" data-go="weak"><span>' + h(L("Подтянуть слабые места", "Practice weak spots")) + "</span><small>" + h(L("до 40 карточек", "up to 40 cards")) + "</small></button>")
         + "</div>"
         + '<div class="jt-stats"><div class="jt-stat"><div class="jt-sv">' + ic("flame", "fl") + "<b>" + streak + "</b></div><span>" + h(L(plural(streak, "день подряд", "дня подряд", "дней подряд"), plural(streak, "day streak", "days streak"))) + '</span><div class="jt-week" aria-hidden="true">' + week + "</div></div>"
-        + '<div class="jt-stat"><div class="jt-sv">' + ic("check", "ok") + "<b>" + mast + "</b><small>/ " + CARDS.length + "</small></div><span>" + h(L("освоено — ступени 5–7", "mastered — steps 5–7")) + "</span>" + bar(mast / CARDS.length * 100) + "</div></div>"
+        + '<div class="jt-stat"><div class="jt-sv">' + ic("check", "ok") + "<b>" + mast + "</b><small>/ " + CARDS.length + "</small></div><span>" + h(L("освоено — ступени 5–\u20607", "mastered — steps 5–\u20607")) + "</span>" + bar(mast / CARDS.length * 100) + "</div></div>"
         + (weak.length ? '<h3 class="jd-h3">' + h(L("Слабые темы", "Weak topics")) + '</h3><div class="jd-list">' + weak.map(w => '<button class="jd-row jd-topic" data-topic="' + h(w.t) + '"><span class="jd-pct">' + w.pct + '<small>%</small></span><span class="jd-rt"><b>' + h(clName(w.t)) + "</b><small>" + h(w.lapses ? L("провалов", "lapses") + ": " + w.lapses : L("освоено мало", "little mastered")) + "</small>" + bar(w.pct) + '</span><span class="jd-chev">›</span></button>').join("") + "</div>" : "")
         + (leech ? '<div class="jd-list" style="margin-top:8px">' + row('data-go="leech"', "alert", L("Проблемные карточки", "Problem cards"), L("провалены 4 раза и больше", "failed 4+ times"), leech, "t-bad") + "</div>" : "");
     },
@@ -216,7 +237,8 @@
         + row('data-go="terms"', "book", L("Термины", "Glossary"), L("словарь с аналогиями", "glossary with analogies"), null, "t-acc")
         + row('data-go="map"', "map", L("Карта тем", "Topic map"), L("дерево всех тем", "tree of all topics"), null, "t-cy")
         + "</div>"
-        + '<label class="jd-switch"><input type="checkbox" role="switch" id="jdCram"' + (cramEl.checked ? " checked" : "") + "><span>" + h(L("Темы — подряд, без интервалов", "Topics in order, no intervals")) + "</span></label>"
+        + '<label class="jd-switch"><input type="checkbox" role="switch" id="jdQuiz"' + (answerMode === "quiz" ? " checked" : "") + "><span>" + h(L("Отвечать вариантами — 4 на выбор", "Answer with 4 options")) + "</span></label>"
+        + '<label class="jd-switch" style="margin-top:0"><input type="checkbox" role="switch" id="jdCram"' + (cramEl.checked ? " checked" : "") + "><span>" + h(L("Темы — подряд, без интервалов", "Topics in order, no intervals")) + "</span></label>"
         + '<h3 class="jd-h3">' + h(L("Темы", "Topics")) + '</h3><div class="jd-list">'
         + topics().map(t => '<button class="jd-row" data-topic="' + h(t.t) + '"><span class="jd-rt"><b>' + h(clName(t.t)) + "</b><small>" + h(L("освоено", "mastered") + " " + t.mast + " / " + t.total + (t.due ? " · " + L("к повтору", "due") + " " + t.due : "")) + "</small>" + bar(t.mast / t.total * 100) + '</span><span class="jd-chev">›</span></button>').join("") + "</div>";
     }
@@ -234,8 +256,10 @@
     setMode("drill");
   }
   document.addEventListener("click", e => {
-    const t = e.target.closest("#jtGo,[data-go],[data-topic],[data-mode],#jdCram"); if (!t || !t.closest(".jd-view")) return;
+    const t = e.target.closest("#jtGo,[data-go],[data-topic],[data-mode],#jdCram,#jdQuiz,[data-am]"); if (!t || !t.closest(".jd-view")) return;
     if (t.id === "jdCram") { cramEl.checked = t.checked; return; }
+    if (t.id === "jdQuiz") { setAnswerMode(t.checked ? "quiz" : "self"); return; }
+    if (t.dataset.am) { setAnswerMode(t.dataset.am); t.parentNode.querySelectorAll("[data-am]").forEach(b => b.setAttribute("aria-checked", String(b === t))); return; }
     if (t.id === "jtGo") return startSession();
     if (t.dataset.mode) return openMode(t.dataset.mode);
     if (t.dataset.topic) return startList("topic", t.dataset.topic);
@@ -252,7 +276,7 @@
      прячет все разделы и гасит игры, звук и микрофон — уборка та же, что при любом переходе. */
   const origSetMode = window.setMode;
   window.setMode = function (m) {
-    closeMenu();
+    closeMenu(); closeSheet();
     if (m !== "drill") { if (undo && typeof hideToast === "function") hideToast(); undo = null; if (NS && !resumable() && NS.done) { NS = null; nsSave(); } }
     document.body.classList.toggle("jd-focus", m === "drill");
     Object.values(OWN).forEach(id => { $q("#" + id).hidden = true; });
@@ -294,10 +318,32 @@
     const tags = $q("#drillStage .card-tags");
     if (tags && !tags.querySelector(".jd-more")) tags.insertAdjacentHTML("beforeend", '<button class="jd-more" aria-label="' + h(L("Действия с карточкой", "Card actions")) + '" aria-haspopup="menu">' + ic("dots") + "</button>");
     /* до ответа под вопросом — тихая подсказка из «Как заниматься»: вспомнить вслух, потом открыть */
-    const qq = $q("#drillStage .card .q"); if (qq && !feynEl.checked) qq.insertAdjacentHTML("afterend", '<p class="jd-hint">' + ic("mic") + h(L("Ответь вслух своими словами — потом открой ответ", "Answer out loud in your own words — then reveal")) + "</p>");
+    const qq = $q("#drillStage .card .q");
+    if (quizActive()) drawQuiz(qq, rb);
+    else { QS = null; if (qq && !feynEl.checked) qq.insertAdjacentHTML("afterend", '<p class="jd-hint">' + ic("mic") + h(L("Ответь вслух своими словами — потом открой ответ", "Answer out loud in your own words — then reveal")) + "</p>"); }
+    quizKeep = false;
     dress();
     window.scrollTo(0, 0);
   };
+  /* четыре варианта под вопросом; «Показать ответ» становится «Не знаю — показать ответ» */
+  function drawQuiz(qq, rb) {
+    if (!(quizKeep && QS && QS.id === cur.id)) { const q = quizFor(cur); QS = { id: cur.id, res: null, pick: -1, opts: shuffle([{ t: q.ok, ok: 1 }].concat(q.wrong.map(w => ({ t: w, ok: 0 })))) }; }
+    if (rb) { rb.classList.add("jd-ghost"); rb.innerHTML = "<span>" + h(L("Не знаю — показать ответ", "Don't know — show answer")) + "</span>"; rb.onclick = () => { if (!QS.res) { QS.res = "skip"; window.reveal(); } }; }
+    if (!qq) return;
+    const box = document.createElement("div"); box.className = "jd-quiz" + (QS.res ? " done" : ""); box.setAttribute("role", "group");
+    box.innerHTML = QS.opts.map((o, i) => '<button class="jd-opt' + (QS.res && o.ok ? " ok" : "") + (QS.res && i === QS.pick && !o.ok ? " no" : "") + '" data-i="' + i + '"' + (QS.res ? " disabled" : "") + '><span class="jd-ol">'
+      + (QS.res && o.ok ? ic("done") : QS.res && i === QS.pick ? ic("x") : "ABCD"[i]) + "</span><span>" + h(o.t) + "</span></button>").join("");
+    qq.after(box);
+    box.onclick = e => {
+      const b = e.target.closest(".jd-opt"); if (!b || QS.res) return;
+      const i = +b.dataset.i, ok = !!QS.opts[i].ok; QS.res = ok ? "ok" : "no"; QS.pick = i;
+      box.classList.add("done"); box.querySelectorAll(".jd-opt").forEach((x, j) => { x.disabled = true; if (QS.opts[j].ok) { x.classList.add("ok"); x.querySelector(".jd-ol").innerHTML = ic("done"); } });
+      if (!ok) { b.classList.add("no"); b.querySelector(".jd-ol").innerHTML = ic("x"); }
+      box.insertAdjacentHTML("afterend", '<p class="jd-quiz-tag ' + (ok ? "ok" : "no") + '">' + ic(ok ? "check" : "alert") + h(ok ? L("Верно", "Correct") : L("Неверно — правильный отмечен зелёным", "Wrong — the right one is green")) + "</p>");
+      if (window.jdHaptic) jdHaptic(ok ? "good" : "bad");
+      window.reveal();
+    };
+  }
   /* карточка в языке приложения: ступени вместо точек, иконки набора вместо эмодзи у аналогии, нюанса, действий и источника */
   function dress() {
     const card = $q("#drillStage .card"); if (!card || !cur) return;
@@ -326,6 +372,12 @@
     set("#btnBad", L("Не знал", "Didn't know"), cramEl.checked ? L("шаг назад", "step back") : L("ещё раз сегодня", "again today"));
     set("#btnMid", L("Почти", "Almost"), inDays(almost));
     set("#btnGood", L("Знал", "Knew it"), inDays(knew));
+    /* вариантами: верно — «Знал» или «Угадал» (= «Почти»: узнавание из четырёх слабее воспоминания); неверно или «не знаю» — только «Не знал» */
+    if (QS && QS.id === cur.id && QS.res) {
+      const off = sel => { const e = $q(sel); if (e) e.classList.add("jd-off"); };
+      if (QS.res === "ok") { off("#btnBad"); set("#btnMid", L("Угадал", "Guessed"), inDays(almost)); }
+      else { off("#btnMid"); off("#btnGood"); }
+    }
   };
   const RAW = () => ["jdNewDay", SKEY, HKEY, LOGKEY];
   const origGrade = window.grade;
@@ -357,7 +409,7 @@
       queue = u.qids.map(id => byId.get(id)).filter(Boolean); cur = u.card; revealed = false;
       NS = u.ns; nsSave();
       if (mode !== "drill") { setMode("drill"); return; }   /* через rebuild: продолжит с восстановленного NS */
-      window.render(); window.reveal(); updateKpis(); drawSbar();
+      quizKeep = true; window.render(); window.reveal(); updateKpis(); drawSbar();
     };
     if (GRADING) setTimeout(apply, 220); else apply();
   }
@@ -461,6 +513,60 @@
   }
   if ($q("#gameStage")) new MutationObserver(gameIcons).observe($q("#gameStage"), { childList: true, subtree: true });
 
+  /* ---------- «С нуля»: маршрут деревом. Дерево — сайтовое #zeroNav (на телефоне сайт его прячет), переезжает в шторку;
+     zeroNavUI и подсветка по прокрутке находят его по id и работают как раньше. Строка чипов (69 тем вбок) — вместо неё строка «Маршрут». ---------- */
+  const zView = $q("#viewZero"), zNav = $q("#zeroNav"), zChips = $q("#zeroChips");
+  if (zView && zNav && zChips) {
+    const sheet = document.createElement("div"); sheet.className = "jd-sheet"; sheet.hidden = true;
+    sheet.innerHTML = '<div class="jd-sheet-bg"></div><div class="jd-sheet-panel" role="dialog" aria-modal="true"><div class="jd-sheet-grip"></div><div class="jd-sheet-head"><b></b><span></span>'
+      + '<button class="jd-sheet-x" aria-label="' + h(L("Закрыть", "Close")) + '">' + ic("x") + '</button></div><div class="jd-sheet-body"></div></div>';
+    document.body.appendChild(sheet);
+    const body = sheet.querySelector(".jd-sheet-body"); body.appendChild(zNav);
+    const zScroll = zView.querySelector(".terms-wrap");
+    const bar = document.createElement("button"); bar.className = "jd-route"; bar.setAttribute("aria-haspopup", "dialog");
+    zChips.before(bar);
+    const routeUI = () => {
+      /* текущая тема: сайт после пересборки дерева теряет .on у темы (а у шага — нет), поэтому сначала тема с отмеченным шагом */
+      const items = [...zNav.querySelectorAll(".zn-item")], stepOn = zNav.querySelector(".zn-s.on"), stepItem = stepOn && stepOn.closest(".zn-sub") && stepOn.closest(".zn-sub").previousElementSibling;
+      const on = zNav.querySelector(".zn-item.on") || stepItem || zNav.querySelector(".zn-item.open") || items[0]; if (!on) return;
+      const n = items.indexOf(on) + 1, name = (on.querySelector("span:nth-child(2)") || on).textContent.trim();
+      const sub = on.nextElementSibling, steps = sub ? sub.querySelectorAll(".zn-s") : [], si = sub ? [...steps].findIndex(x => x.classList.contains("on")) : -1;
+      bar.innerHTML = '<span class="jd-ico t-acc">' + ic("tree") + '</span><span class="jd-rt"><small>' + h(L("Маршрут", "Route") + " · " + n + " / " + items.length) + "</small><b>" + h(name)
+        + "</b></span>" + (steps.length ? '<span class="jd-n">' + (si >= 0 ? si + 1 : 1) + "/" + steps.length + "</span>" : "") + '<span class="jd-chev">›</span>';
+      bar.setAttribute("aria-label", L("Маршрут: ", "Route: ") + name);
+    };
+    let raf = 0; const later = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; routeUI(); }); };
+    new MutationObserver(later).observe(zNav, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
+    /* подсветка темы по прокрутке: сайт слушает прокрутку окна, а на телефоне листается внутренний блок — подсветка стояла на первой теме */
+    let sraf = 0;
+    if (zScroll && typeof zeroSpy === "function") zScroll.addEventListener("scroll", () => { if (!sraf) sraf = requestAnimationFrame(() => { sraf = 0; if (mode === "zero") zeroSpy(); }); }, { passive: true });
+    const openSheet = () => {
+      sheet.querySelector(".jd-sheet-head b").textContent = L("Маршрут", "Route");
+      sheet.querySelector(".jd-sheet-head span").textContent = zNav.querySelectorAll(".zn-item.full").length + " / " + zNav.querySelectorAll(".zn-item").length + " " + L("тем пройдено", "topics done");
+      sheet.hidden = false; requestAnimationFrame(() => { sheet.classList.add("on"); const cur = zNav.querySelector(".zn-s.on") || zNav.querySelector(".zn-item.on"); if (cur) cur.scrollIntoView({ block: "center" }); });
+    };
+    closeSheet = () => { if (sheet.hidden) return false; sheet.classList.remove("on"); setTimeout(() => { sheet.hidden = true; }, 260); return true; };
+    bar.onclick = openSheet;
+    /* клики в шторке — на погружении, до обработчиков сайта:
+       тема — только раскрыть (сайт ещё и листал страницу под шторкой);
+       шаг — свой переход: мгновенно, с поправкой на строку «Маршрут» и двумя досверками. Плавная прокрутка сайта
+       через тысячи пикселей не доезжала: по пути догружаются сцены, и цель уезжает. */
+    const jump = id => {
+      const el = document.getElementById(id); if (!el || !zScroll) return;
+      const go = () => { zScroll.scrollTop += el.getBoundingClientRect().top - zScroll.getBoundingClientRect().top - bar.offsetHeight - 12; };
+      go(); setTimeout(go, 150); setTimeout(go, 600);
+    };
+    sheet.addEventListener("click", e => {
+      if (e.target.closest(".jd-sheet-x") || e.target.classList.contains("jd-sheet-bg")) { closeSheet(); return; }
+      const step = e.target.closest(".zn-s"), topic = !step && e.target.closest(".zn-item");
+      if (!step && !topic) return;
+      e.stopPropagation(); if (typeof zeroSpy === "function") zeroSpy.manual = Date.now();
+      if (topic) { try { V3ZOPEN = V3ZOPEN === topic.dataset.k ? null : topic.dataset.k; zeroNavUI(); } catch (err) {} return; }
+      closeSheet(); jump("zs" + step.dataset.s);
+    }, true);
+    routeUI();
+  }
+
   /* ---------- нижняя панель: пять разделов под большой палец ---------- */
   const BAR = () => [["today", "home", L("Сегодня", "Today")], ["learn", "learn", L("Учить", "Learn")], ["cards", "cards", L("Карточки", "Cards")], ["game", "game", L("Игра", "Games")], ["prog", "prog", L("Прогресс", "Progress")]];
   const SECTION = { today: "today", learn: "learn", cards: "cards", terms: "cards", game: "game", prog: "prog" };
@@ -499,7 +605,7 @@
   }
 
   /* «Назад»: меню карточки — первым (вызывает app-native.js) */
-  window.jdNative = { back: () => closeMenu(), session: () => NS, plan };
+  window.jdNative = { back: () => closeMenu() || closeSheet(), session: () => NS, plan };
 
   /* старт: экран «Сегодня» вместо первой карточки; заставку убираем, как только он нарисован
      (раньше она гасла по таймеру через 0.7 с, и до готовности страницы был пустой тёмный экран) */
