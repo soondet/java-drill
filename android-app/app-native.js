@@ -46,7 +46,7 @@
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
       setTimeout(function () {
         if (sig() !== before) return;
-        if (typeof mode !== "undefined" && mode !== "today" && typeof setMode === "function") { setMode(window.jdNative ? "today" : "drill"); window.scrollTo(0, 0); return; }
+        if (typeof mode !== "undefined" && mode !== "today" && typeof setMode === "function") { setMode(window.jdNative ? window.jdNative.home() : "drill"); window.scrollTo(0, 0); return; }
         var now = Date.now();
         if (now - lastBack < 2000) { App.exitApp(); return; }
         lastBack = now; try { toast("Нажми «Назад» ещё раз, чтобы выйти"); } catch (e) {}

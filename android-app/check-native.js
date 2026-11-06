@@ -2,7 +2,7 @@
 /* Гейт Android-приложения: www/ (собранный bundle.js) в headless Chrome с подменённым Capacitor — как в APK.
  * Проверяет слой app-native*: экраны, занятие настоящими нажатиями и правила повторения по точным значениям —
  * ступень и срок после «знал / почти / не знал», границы 1 и 7, «проблемная» на четвёртом провале,
- * двойной тап, отмену, продолжение после перезапуска, порядок «сначала повторы», итоги, ширины телефона.
+ * двойной тап, отмену, продолжение после перезапуска, порядок «сначала повторы», итоги, роадмап, ширины телефона.
  * Запуск: node bundle.js && node check-native.js. Упала проверка — код выхода 1.
  * У каждого вызова CDP таймаут: без него один зависший await держал Chrome вечно. */
 const { spawn } = require("child_process"), fs = require("fs"), path = require("path"), os = require("os");
@@ -156,6 +156,80 @@ let kill = () => {};                                   /* гасит Chrome пр
   await raw("Emulation.setSafeAreaInsetsOverride", { insets: {} }); await sleep(150);
   check("шапка под строкой времени и заряда: фон с самого верха, «Java Drill» ниже строки, панель над жестами", hdr.bar === 0 && hdr.brand >= 40 && hdr.h1 > hdr.brand && hdr.bb >= 24, JSON.stringify(hdr));
 
+  console.log("\n— роадмап");
+  await ev(`localStorage.removeItem("jdRoadmapUI"); setMode("learn"); document.querySelector('#viewLearn [data-go="roadmap"]').click(); true`); await sleep(250);
+  const rc = JSON.parse(await ev(`(function(){
+    const entered = mode;
+    const cnt = {c:{},f:{},p:{},z:{}}; let nodes=0, deep=0; const modes=[], games=[];
+    const up=(o,k)=>{o[k]=(o[k]||0)+1};
+    const walk=(n,d)=>{ nodes++; deep=Math.max(deep,d); n.c.forEach(x=>up(cnt.c,x)); n.f.forEach(x=>up(cnt.f,x)); n.p.forEach(x=>up(cnt.p,x)); if(n.z!=null)up(cnt.z,n.z); if(n.m)modes.push(n.m); if(n.g)games.push(n.g); n.kids.forEach(x=>walk(x,d+1)); };
+    const R=jdRoadmap.tree(); R.forEach(s=>walk(s,1));
+    const bad=(all,o)=>all.filter(k=>o[k]!==1).slice(0,4);
+    const ghost=(o,all)=>Object.keys(o).filter(k=>!all.includes(k)).slice(0,4);
+    const cards=CARDS.map(c=>c.id), fp=FP.map(e=>e.id), pr=PRIN.map(e=>e.id), z=ZERO.map((x,i)=>String(i));
+    return JSON.stringify({mode:entered, title:(setMode("roadmap"),document.querySelector(".topbar .brand").textContent), stages:R.length, topics:R.flatMap(s=>s.kids).length, nodes, deep,
+      miss:{cards:bad(cards,cnt.c), fp:bad(fp,cnt.f), prin:bad(pr,cnt.p), zero:bad(z,cnt.z)}, ghost:{cards:ghost(cnt.c,cards), fp:ghost(cnt.f,fp), prin:ghost(cnt.p,pr)},
+      terms:[...new Set(TERMS.map(t=>t.t))].filter(cl=>!R.some(s=>s.T.includes(cl))), cards0:[...new Set(CARDS.map(c=>c.t))].filter(cl=>!R.some(s=>s.T.includes(cl))),
+      basics:[...new Set(BASICS.map(b=>b.g))].filter(g=>!R.some(s=>s.B.some(x=>g.startsWith(x)))),
+      modes:modes.filter(m=>!document.querySelector("#tab"+m[0].toUpperCase()+m.slice(1))), games:(setMode("game"),games.filter(g=>!document.getElementById(g))+""), nGames:games.length,
+      linkless:(function f(a){return a.flatMap(n=>n.kids.length?f(n.kids):(n.ids.length||n.steps.length||n.m||n.g||n.fs.length||n.ps.length)?[]:[n.t])})(R).slice(0,4)});
+  })()`));
+  const none = o => Object.values(o).every(a => !a.length);
+  check("роадмап: 22 этапа и бонус, дерево от 5 уровней, вход из «Учить», в шапке название", rc.mode === "roadmap" && rc.title === "Роадмап" && rc.stages === 23 && rc.topics >= 100 && rc.deep >= 5, JSON.stringify({ topics: rc.topics, nodes: rc.nodes, deep: rc.deep }));
+  check("каждая карточка, разбор, схема и шаг «С нуля» — ровно в одном узле, лишних id нет", none(rc.miss) && none(rc.ghost), JSON.stringify({ miss: rc.miss, ghost: rc.ghost }));
+  check("все кластеры терминов и карточек, группы «Для чайника», режимы и игры привязаны, листьев-пустышек нет", !rc.terms.length && !rc.cards0.length && !rc.basics.length && !rc.modes.length && !rc.games && rc.nGames >= 6 && !rc.linkless.length, JSON.stringify({ t: rc.terms, b: rc.basics, m: rc.modes, g: rc.games, l: rc.linkless }));
+  const tx = `jdRoadmap.tree().flatMap(s=>s.kids).find(t=>t.t==="Транзакции")`, iso = `${tx}.kids.find(x=>x.t==="Изоляция")`, leaf = `${iso}.kids.find(x=>x.t==="Lost update")`;
+  const progBefore = await ev(`localStorage.getItem("javaDrillProgress.v1")`);
+  await ev(`document.querySelector('[data-t="'+${tx}.k+'"]').click(); document.querySelector('[data-n="'+${iso}.k+'"]').click(); true`); await sleep(120);
+  const ro = JSON.parse(await ev(`JSON.stringify({trees:document.querySelectorAll(".jm-tree").length, leaf:!!document.querySelector('[data-n="'+${leaf}.k+'"]'), go:!!document.querySelector('.jm-go-s[data-learn="'+${iso}.k+'"]')})`));
+  await open();
+  await ev(`setMode("roadmap"); true`); await sleep(200);
+  const ro2 = await ev(`!!document.querySelector('[data-n="'+${leaf}.k+'"]')`);
+  check("тема раскрывается панелью, ветка — подветками, у раскрытой ветки «Учить»; раскрытое переживает перезапуск", ro.trees === 1 && ro.leaf && ro.go && ro2, JSON.stringify(ro));
+  /* проценты: одна карточка листа на 5-й ступени = половина листа из двух */
+  const lc = JSON.parse(await ev(`JSON.stringify(${leaf}.ids)`));
+  await ev(`prog[${JSON.stringify(lc[0])}]={box:5,due:today()+20,reps:5}; setMode("roadmap"); true`); await sleep(150);
+  const pc = JSON.parse(await ev(`JSON.stringify({leaf:jdRoadmap.stat(${leaf}), txt:document.querySelector('[data-n="'+${leaf}.k+'"] small').textContent})`));
+  check("проценты считаются из ступеней: 1 из 2 освоено → лист 50%", lc.length === 2 && pc.leaf.done === 1 && pc.leaf.total === 2 && pc.txt === "50%", JSON.stringify(pc));
+  await ev(`document.querySelector('[data-n="'+${leaf}.k+'"]').click(); true`); await sleep(350);
+  const rs = JSON.parse(await ev(`JSON.stringify({open:!document.querySelector(".jm-sheet").hidden, title:document.querySelector(".jm-sh-t b").textContent, q:document.querySelectorAll(".jm-q").length, fp:document.querySelectorAll(".jm-sheet [data-fp]").length})`));
+  await ev(`window.jdNative.back(); true`); await sleep(320);
+  const backed = await ev(`document.querySelector(".jm-sheet").hidden`);
+  await ev(`document.querySelector('[data-n="'+${leaf}.k+'"]').click(); true`); await sleep(350);
+  await ev(`window.scrollTo(0,420); document.querySelector('.jm-sh-foot [data-learn]').click(); true`); await sleep(350);
+  const rd = JSON.parse(await ev(`JSON.stringify({mode, cur:cur&&cur.id, ids:idsNow2()})`.replace("idsNow2()", `[cur&&cur.id].concat(queue.map(c=>c.id))`)));
+  await ev(`document.querySelector(".jd-sbar .jd-x").click(); true`); await sleep(250);
+  const rb = JSON.parse(await ev(`JSON.stringify({mode, y:Math.round(scrollY)})`));
+  check("лист: шторка с вопросами и разборами, «Назад» её закрывает, «Учить» — только неосвоенные этого листа, крестик — обратно на то же место", rs.open && rs.q === 2 && rs.fp === 1 && backed && rd.mode === "drill" && rd.ids.length === 1 && rd.ids[0] === lc[1] && rb.mode === "roadmap" && rb.y >= 300, JSON.stringify({ rs, rd, rb }));
+  const fpId = "lost-update";
+  await ev(`document.querySelector('[data-n="'+${leaf}.k+'"]').click(); true`); await sleep(350);
+  await ev(`document.querySelector('.jm-sheet [data-fp]').click(); true`); await sleep(350);
+  const rf = JSON.parse(await ev(`JSON.stringify({mode, id:FP[fpCur].id, shown:!!document.querySelector("#viewFp:not([hidden])")})`));
+  await ev(`document.querySelector(".topbar .jd-up").click(); true`); await sleep(250);
+  const rf2 = await ev("mode");
+  await ev(`(function(){const t=jdRoadmap.tree()[0].kids[0]; document.querySelector('[data-t="'+t.k+'"]').click(); document.querySelector('[data-n="'+t.kids[1].k+'"]').click(); return true})()`); await sleep(1000);
+  const rz = JSON.parse(await ev(`JSON.stringify({mode, top:Math.round(document.getElementById("zs"+jdRoadmap.tree()[0].kids[0].kids[1].z).getBoundingClientRect().top), h:innerHeight})`));
+  await ev(`setMode("roadmap"); true`); await sleep(150);
+  const beh = `jdRoadmap.tree().flatMap(s=>s.kids).find(t=>t.m==="beh")`, bug = `jdRoadmap.tree().flatMap(s=>s.kids).flatMap(t=>t.kids).find(n=>n.g==="mBugs")`, prc = `jdRoadmap.tree()[21].kids.find(t=>t.kids.some(x=>x.g))`;
+  await ev(`document.querySelector('[data-t="'+${beh}.k+'"]').click(); true`); await sleep(250); const rm1 = await ev("mode");
+  await ev(`setMode("roadmap"); document.querySelector('[data-t="'+${prc}.k+'"]').click(); document.querySelector('[data-n="'+${bug}.k+'"]').click(); true`); await sleep(350); const rg = await ev(`mode+":"+!!document.querySelector("#gameStage .bug-code, #gameStage pre, #gameStage code")`);
+  await ev(`setMode("roadmap"); document.querySelector('#jmS7 .jm-ttl').click(); true`); await sleep(350);
+  await ev(`document.querySelector('.jm-sheet [data-terms]').click(); true`); await sleep(350);
+  const rt = JSON.parse(await ev(`JSON.stringify({mode, open:document.querySelectorAll("#termList .thead.open").length, ready:document.querySelectorAll("#termList .tbody[data-ready] .term").length})`));
+  check("переходы: разбор нужный и «назад» на роадмап, шаг «С нуля» на экране, режим, игра, термины этапа открыты", rf.mode === "fp" && rf.id === fpId && rf.shown && rf2 === "roadmap" && rz.mode === "zero" && rz.top >= 0 && rz.top < rz.h && rm1 === "beh" && /^game/.test(rg) && rt.mode === "terms" && rt.open === 1 && rt.ready > 0, JSON.stringify({ rf, rf2, rz, rm1, rg, rt }));
+  await ev(`setMode("today"); true`); await sleep(150);
+  await ev(`delete prog[${JSON.stringify(lc[0])}]; save(); true`);
+  const progAfter = await ev(`localStorage.getItem("javaDrillProgress.v1")`);
+  check("роадмап не меняет прогресс: расписание карточек то же", progAfter === progBefore);
+  /* «только не освоенное»: освоенный этап и тема прячутся, состояние не затирает раскрытое */
+  await ev(`(function(){jdRoadmap.tree()[3].ids.forEach(id=>{prog[id]={box:5,due:today()+20,reps:5}}); jdRoadmap.tree()[3].steps.forEach(i=>ZDONE.add(zeroKey(ZERO[i]))); setMode("roadmap"); return true})()`); await sleep(150);
+  const f0 = await ev(`!!document.querySelector("#jmS3")`);
+  await ev(`document.querySelector("#jmOnly").click(); true`); await sleep(150);
+  const f1 = await ev(`JSON.stringify({s3:!!document.querySelector("#jmS3"), s4:!!document.querySelector("#jmS4"), fold:(document.querySelector(".jm-fold")||{}).textContent||""})`);
+  await ev(`document.querySelector("#jmOnly").click(); (function(){jdRoadmap.tree()[3].ids.forEach(id=>{delete prog[id]}); jdRoadmap.tree()[3].steps.forEach(i=>ZDONE.delete(zeroKey(ZERO[i])));})(); save(); setMode("today"); true`); await sleep(150);
+  const fo = JSON.parse(f1);
+  check("«Только не освоенное» прячет освоенный этап и говорит об этом", f0 && !fo.s3 && fo.s4 && /1/.test(fo.fold), f1);
+
   console.log("\n— разделы и ширины");
   const nav = [];
   for (const m of ["learn", "cards", "prog", "game", "today"]) { await ev(`document.querySelector('.jd-bb [data-m="${m}"]').click(); true`); await sleep(350); nav.push(m + ":" + (await ev("mode"))); }
@@ -163,13 +237,15 @@ let kill = () => {};                                   /* гасит Chrome пр
   check("панель ведёт в разделы; «Учить» — 11 разделов, «Карточки» — все темы, «Прогресс» — лестница из 7 ступеней", nav.every(x => x.split(":")[0] === x.split(":")[1]) && hub.tiles === 11 && hub.topics >= 15 && hub.ladder === 7, nav.join(" ") + " · " + JSON.stringify(hub));
   const AUD = `(function(){ const W=innerWidth, out=[];
     if (document.scrollingElement.scrollWidth>W+1) out.push("вбок "+document.scrollingElement.scrollWidth+">"+W);
-    document.querySelectorAll(".jd-bb button,#jdAct .btn,.jd-row,.jd-tile,.jd-more,.jd-sbar button,.jl-row,.jd-search,.jd-seg button,.jd-opt,.jd-route").forEach(b=>{ if(!b.getClientRects().length) return; const r=b.getBoundingClientRect();
+    document.querySelectorAll(".jd-bb button,#jdAct .btn,.jd-row,.jd-tile,.jd-more,.jd-sbar button,.jl-row,.jd-search,.jd-seg button,.jd-opt,.jd-route,.jm-t,.jm-ttl,.jm-nb,.jm-go-s,.jm-act,.jm-me,.jm-line-b,.jm-q").forEach(b=>{ if(!b.getClientRects().length) return; const r=b.getBoundingClientRect();
       if (r.height<44||r.width<44) out.push("мелко "+Math.round(r.width)+"×"+Math.round(r.height)+" "+(b.className||b.tagName)); if (r.right>W+1||r.left<-1) out.push("за край "+(b.className||b.tagName)); });
+    /* длинное слово в названии этапа или темы не вылезает и не рвётся */
+    document.querySelectorAll(".jm-ttl b,.jm-t b").forEach(x=>{ if(x.getClientRects().length&&x.scrollWidth>x.clientWidth+1) out.push("слово шире блока: "+x.textContent); });
     return JSON.stringify(out.slice(0,6)); })()`;
   const widths = [[360, 780], [390, 844], [412, 915], [844, 390]], bad = [];
   for (const [w, hh] of widths) {
     await vp(w, hh); await sleep(200);
-    for (const m of ["today", "learn", "cards", "prog"]) { await ev(`setMode("${m}"); true`); await sleep(150); const a = JSON.parse(await ev(AUD)); if (a.length) bad.push(w + "×" + hh + " " + m + ": " + a.join("; ")); }
+    for (const m of ["today", "learn", "cards", "prog", "roadmap"]) { await ev(`setMode("${m}"); true`); await sleep(150); const a = JSON.parse(await ev(AUD)); if (a.length) bad.push(w + "×" + hh + " " + m + ": " + a.join("; ")); }
     if (process.env.DEBUG) console.log("    ширина " + w + "×" + hh + " разделы ок");
     await ev(`(function(){ drillTokens.clear(); drillList=CARDS.slice(80,82).map(c=>c.id); setMode("drill"); return true })()`); await sleep(250); await tap("#btnReveal"); await sleep(100);
     const a = JSON.parse(await ev(AUD)), g = JSON.parse(await ev(`JSON.stringify([...document.querySelectorAll("#jdAct .btn")].map(b=>Math.round(b.getBoundingClientRect().bottom)))`));

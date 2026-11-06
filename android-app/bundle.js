@@ -13,15 +13,16 @@ const miss = files.filter(f => !fs.existsSync(path.join(SRC, f)));
 if (miss.length) { console.error("нет файлов:", miss.join(", ")); process.exit(1); }
 fs.rmSync(OUT, { recursive: true, force: true }); fs.mkdirSync(OUT);
 for (const f of [...files, "manifest.json", "icon-192.png", "icon-512.png", "apple-touch-icon.png"]) fs.copyFileSync(path.join(SRC, f), path.join(OUT, f));
-for (const f of ["app-native.js", "app-native.css", "app-native-late.js"]) fs.copyFileSync(path.join(__dirname, f), path.join(OUT, f));
+for (const f of ["app-native.js", "app-native.css", "app-native-late.js", "app-roadmap-data.js", "app-roadmap.js"]) fs.copyFileSync(path.join(__dirname, f), path.join(OUT, f));
 /* Слой приложения, сайт его не видит (index.html здесь только читается):
    — класс native-app и стили — в <head>, до первой отрисовки: иначе мелькнёт вид сайта;
    — app-native.js — первым из скриптов: он объявляет jdNativeSave до первого вызова;
-   — app-native-late.js — последним: оборачивает функции дрила, когда они уже объявлены. */
+   — app-native-late.js — последним: оборачивает функции дрила, когда они уже объявлены;
+   — роадмап — после него: рисуется через его setMode и общие помощники. */
 const early = '<script>try{var C=window.Capacitor;if(C&&C.isNativePlatform&&C.isNativePlatform())document.documentElement.classList.add("native-app")}catch(e){}</script>';
 html = html.replace("</head>", early + '\n<link rel="stylesheet" href="app-native.css">\n</head>');
 html = html.replace(/<script src="/, '<script src="app-native.js"></script>\n<script src="');
-html = html.replace(/<\/body>(?![\s\S]*<\/body>)/, '<script src="app-native-late.js"></script>\n</body>');
+html = html.replace(/<\/body>(?![\s\S]*<\/body>)/, '<script src="app-native-late.js"></script>\n<script src="app-roadmap-data.js"></script>\n<script src="app-roadmap.js"></script>\n</body>');
 if (!html.includes("app-native-late.js") || !html.includes("app-native.css")) { console.error("не вставился слой приложения"); process.exit(1); }
 fs.writeFileSync(path.join(OUT, "index.html"), html);
 const kb = fs.readdirSync(OUT).reduce((a, f) => a + fs.statSync(path.join(OUT, f)).size, 0) / 1024;

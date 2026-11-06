@@ -82,7 +82,10 @@
     tree: '<circle cx="5.5" cy="5" r="1.8"/><path d="M5.5 6.8V16a2.5 2.5 0 0 0 2.5 2.5h3M5.5 10.5H11"/><rect x="12" y="8" width="8.5" height="5" rx="1.6"/><rect x="12" y="16" width="8.5" height="5" rx="1.6"/>',
     choice: '<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/><path d="m15.5 17 1.5 1.5 3-3.5"/>',
     self: '<path d="M8 12.5 11 15.5 16.5 9"/><circle cx="12" cy="12" r="9"/>',
-    heal: '<path d="M10.5 13.5 13.5 10.5"/><rect x="2.8" y="8.3" width="18.4" height="7.4" rx="3.7" transform="rotate(-45 12 12)"/>'
+    heal: '<path d="M10.5 13.5 13.5 10.5"/><rect x="2.8" y="8.3" width="18.4" height="7.4" rx="3.7" transform="rotate(-45 12 12)"/>',
+    chev: '<path d="m9 5.5 6.5 6.5L9 18.5"/>',
+    chevD: '<path d="m5.5 9 6.5 6.5L18.5 9"/>',
+    play: '<path d="M8 5.2v13.6L19 12z"/>'
   };
   /* знак продукта — ступени лестницы повторения, в градиенте сайта */
   /* эмодзи в начале текста — снимаем, когда на его место встаёт иконка набора */
@@ -168,7 +171,7 @@
   const measureBars = () => { if (topbarEl && topbarEl.offsetHeight) rootStyle.setProperty("--jd-top", topbarEl.offsetHeight + "px"); if (sbar.offsetHeight) rootStyle.setProperty("--jd-stop", sbar.offsetHeight + "px"); };
   if (window.ResizeObserver) { const ro = new ResizeObserver(measureBars); if (topbarEl) ro.observe(topbarEl); ro.observe(sbar); }
   const actBar = document.createElement("div"); actBar.id = "jdAct"; document.body.appendChild(actBar);
-  sbar.querySelector(".jd-x").onclick = () => setMode("today");
+  sbar.querySelector(".jd-x").onclick = () => setMode(ret || "today");
 
   function drawSbar() {
     if (!NS) { sbar.querySelector(".jd-pn").textContent = ""; return; }
@@ -221,7 +224,9 @@
           ["eng", "globe", L("Английский", "English"), L("грамматика и фразы собеса", "grammar and interview phrases")]]],
         [L("Бонус", "Bonus"), "t-org", [["money", "coins", L("Деньги", "Money"), L("экономика и рынки", "economics and markets")],
           ["mus", "note", L("Музыка", "Music"), L("пианино и гитара, шпоры со звуком", "piano and guitar, sounding cheat sheets")]]]];
+      const rm = window.jdRoadmap && jdRoadmap.summary();
       $q("#viewLearn").innerHTML = '<header class="jt-head"><span>' + h(L("Разделы", "Sections")) + "</span><h1>" + h(L("Учить", "Learn")) + "</h1></header>"
+        + (rm ? '<button class="jd-row jm-entry" data-go="roadmap"><span class="jd-ico t-cy">' + ic("map") + '</span><span class="jd-rt"><b>' + h(L("Роадмап", "Roadmap")) + "</b><small>" + h(rm.sub) + "</small>" + bar(rm.pct) + '</span><span class="jd-chev">›</span></button>' : "")
         + G.map(g => '<h3 class="jd-h3">' + h(g[0]) + '</h3><div class="jd-tiles">' + g[2].map(s => '<button class="jd-tile" data-mode="' + s[0] + '"><span class="jd-ico ' + g[1] + '" aria-hidden="true">' + ic(s[1]) + "</span><span>" + h(s[2]) + "</span><small>" + h(s[3]) + "</small></button>").join("") + "</div>").join("");
     },
     cards() {
@@ -235,7 +240,7 @@
         + row('data-go="weak"', "down", L("Слабые места", "Weak spots"), L("ниже пятой ступени, до 40", "below step 5, up to 40"), null, "t-org")
         + row('data-go="trick"', "zap", L("Коварные", "Tricky"), L("частые ловушки собеседований", "common interview traps"), trick, "t-vio")
         + row('data-go="terms"', "book", L("Термины", "Glossary"), L("словарь с аналогиями", "glossary with analogies"), null, "t-acc")
-        + row('data-go="map"', "map", L("Карта тем", "Topic map"), L("дерево всех тем", "tree of all topics"), null, "t-cy")
+        + row('data-go="roadmap"', "map", L("Роадмап", "Roadmap"), L("22 этапа, все темы деревом", "22 stages, all topics as a tree"), null, "t-cy")
         + "</div>"
         + '<label class="jd-switch"><input type="checkbox" role="switch" id="jdQuiz"' + (answerMode === "quiz" ? " checked" : "") + "><span>" + h(L("Отвечать вариантами — 4 на выбор", "Answer with 4 options")) + "</span></label>"
         + '<label class="jd-switch" style="margin-top:0"><input type="checkbox" role="switch" id="jdCram"' + (cramEl.checked ? " checked" : "") + "><span>" + h(L("Темы — подряд, без интервалов", "Topics in order, no intervals")) + "</span></label>"
@@ -246,7 +251,7 @@
 
   /* ---------- переходы ---------- */
   function resetFilter() { drillList = null; drillTokens.clear(); drillWeak = drillFav = drillTricky = drillLeech = false; feynEl.checked = false; rmExpand = false; }
-  function startSession() { resetFilter(); cramEl.checked = false; if (typeof syncFiltBar === "function") syncFiltBar(); setMode("drill"); }
+  function startSession() { ret = null; resetFilter(); cramEl.checked = false; if (typeof syncFiltBar === "function") syncFiltBar(); setMode("drill"); }
   function startList(kind, topic) {
     const cram = cramEl.checked; resetFilter();
     if (kind === "fav") drillFav = true; else if (kind === "leech") drillLeech = true; else if (kind === "weak") drillWeak = true; else if (kind === "trick") drillTricky = true;
@@ -266,7 +271,7 @@
     const g = t.dataset.go;
     if (g === "search") { const b = $q("#gsBtn"); if (b) b.click(); return; }
     if (g === "terms") return setMode("terms");
-    if (g === "map") { const b = $q("#rmFab"); if (b) b.click(); return; }
+    if (g === "roadmap") return setMode("roadmap");
     startList(g);
   });
 
@@ -274,6 +279,8 @@
 
   /* setMode: свои экраны + фокус занятия. Свой экран: исходная setMode с несуществующим режимом
      прячет все разделы и гасит игры, звук и микрофон — уборка та же, что при любом переходе. */
+  let ret = null;                    /* экран, откуда пришли не через панель: туда ведут «назад», крестик занятия и «На главную» */
+  const AFTER = {}, TITLE = {};
   const origSetMode = window.setMode;
   window.setMode = function (m) {
     closeMenu(); closeSheet();
@@ -285,7 +292,9 @@
       mode = m;
       const v = $q("#" + OWN[m]); draw[m](); v.hidden = false; v.classList.remove("enter"); void v.offsetWidth; v.classList.add("enter");
     } else origSetMode(m);
+    if (m === ret) ret = null;
     window.scrollTo(0, 0); syncBar();
+    if (AFTER[m]) AFTER[m]();
   };
 
   /* ---------- занятие ---------- */
@@ -439,8 +448,8 @@
       + (leech ? '<p class="jr-p">' + ic("alert", "bad") + "<span>" + h(L("Проблемных среди них: ", "Problem cards among them: ") + leech) + "</span></p>" : "")
       + '<p class="jr-p jr-next">' + ic("clock") + "<span>" + h(left ? L("Ещё к повтору сегодня: ", "Still due today: ") + left : L("Завтра к повтору: ", "Due tomorrow: ") + tomorrow) + "</span></p></div>";
     actBar.classList.remove("jd-picked");
-    actBar.innerHTML = '<div class="actions" id="act">' + (left ? '<button class="btn" id="jrHome"><span>' + h(L("На главную", "Home")) + '</span></button><button class="btn primary" id="jrMore"><span>' + h(L("Продолжить", "Continue")) + "</span><small>" + h(L("ещё " + left + " к повтору", left + " more due")) + "</small></button>" : '<button class="btn primary" id="jrHome"><span>' + h(L("На главную", "Home")) + "</span></button>") + "</div>";
-    $q("#jrHome").onclick = () => { NS = null; nsSave(); setMode("today"); };
+    actBar.innerHTML = '<div class="actions" id="act">' + (left ? '<button class="btn" id="jrHome"><span>' + h(ret ? L("Назад", "Back") : L("На главную", "Home")) + '</span></button><button class="btn primary" id="jrMore"><span>' + h(L("Продолжить", "Continue")) + "</span><small>" + h(L("ещё " + left + " к повтору", left + " more due")) + "</small></button>" : '<button class="btn primary" id="jrHome"><span>' + h(ret ? L("Назад", "Back") : L("На главную", "Home")) + "</span></button>") + "</div>";
+    $q("#jrHome").onclick = () => { NS = null; nsSave(); setMode(ret || "today"); };
     const more = $q("#jrMore"); if (more) more.onclick = () => { NS = null; nsSave(); startSession(); };
     drawSbar();
   }
@@ -515,6 +524,7 @@
 
   /* ---------- «С нуля»: маршрут деревом. Дерево — сайтовое #zeroNav (на телефоне сайт его прячет), переезжает в шторку;
      zeroNavUI и подсветка по прокрутке находят его по id и работают как раньше. Строка чипов (69 тем вбок) — вместо неё строка «Маршрут». ---------- */
+  let jumpZero = i => setMode("zero");
   const zView = $q("#viewZero"), zNav = $q("#zeroNav"), zChips = $q("#zeroChips");
   if (zView && zNav && zChips) {
     const sheet = document.createElement("div"); sheet.className = "jd-sheet"; sheet.hidden = true;
@@ -565,6 +575,7 @@
       closeSheet(); jump("zs" + step.dataset.s);
     }, true);
     routeUI();
+    jumpZero = i => { if (typeof zeroSpy === "function") zeroSpy.manual = Date.now(); setMode("zero"); jump("zs" + i); };
   }
 
   /* ---------- нижняя панель: пять разделов под большой палец ---------- */
@@ -589,12 +600,12 @@
     if (!brand) return;
     if (TOP.includes(mode)) { if (brand.dataset.sub) { brand.innerHTML = brandHTML; delete brand.dataset.sub; } return; }
     const tab = $q("#tab" + mode.charAt(0).toUpperCase() + mode.slice(1));
-    const name = tab ? tab.textContent.replace(/^[^\p{L}\d]+/u, "").replace(/\s*·.*$/, "").trim() : "";
+    const name = TITLE[mode] ? TITLE[mode]() : tab ? tab.textContent.replace(/^[^\p{L}\d]+/u, "").replace(/\s*·.*$/, "").trim() : "";
     brand.dataset.sub = mode;
     brand.innerHTML = '<button class="jd-up" aria-label="' + h(L("Назад", "Back")) + '">' + ic("back") + "<span>" + h(name) + "</span></button>";
-    brand.querySelector(".jd-up").onclick = e => { e.stopPropagation(); setMode(SECTION[mode] || "learn"); };
+    brand.querySelector(".jd-up").onclick = e => { e.stopPropagation(); setMode(ret || SECTION[mode] || "learn"); };
   }
-  bb.onclick = e => { const b = e.target.closest("button[data-m]"); if (b) setMode(b.dataset.m); };
+  bb.onclick = e => { const b = e.target.closest("button[data-m]"); if (b) { ret = null; setMode(b.dataset.m); } };
   document.body.appendChild(bb); buildBar();
   /* язык поменялся — подписи и экраны тоже. Не по таймеру после нажатия: первый переход на EN грузит словарь
      (i18n-en.js) дольше 0.7 с, и панель собиралась ещё по-русски — «Сегодня | Учить | Cards | Game | Прогресс».
@@ -605,7 +616,16 @@
   }
 
   /* «Назад»: меню карточки — первым (вызывает app-native.js) */
-  window.jdNative = { back: () => closeMenu() || closeSheet(), session: () => NS, plan };
+  const backs = [];
+  /* экран из другого файла (app-roadmap.js) живёт в том же цикле setMode, что и свои */
+  function addScreen(m, section, title, drawFn, after) {
+    const id = "view" + m.charAt(0).toUpperCase() + m.slice(1), s = document.createElement("section");
+    s.id = id; s.className = "view jd-view"; s.hidden = true; $q("#viewDrill").before(s);
+    OWN[m] = id; draw[m] = drawFn; SECTION[m] = section; TITLE[m] = title; if (after) AFTER[m] = after;
+  }
+  const startIds = ids => { resetFilter(); cramEl.checked = false; if (typeof syncFiltBar === "function") syncFiltBar(); drillList = ids; setMode("drill"); };
+  window.jdNative = { back: () => closeMenu() || closeSheet() || backs.some(f => f()), session: () => NS, plan, home: () => ret || "today",
+    ui: { ic, h, L, plural, $q, bar, addScreen, startIds, jumpZero: i => jumpZero(i), from: m => { ret = m; }, addBack: f => backs.push(f) } };
 
   /* старт: экран «Сегодня» вместо первой карточки; заставку убираем, как только он нарисован
      (раньше она гасла по таймеру через 0.7 с, и до готовности страницы был пустой тёмный экран) */
