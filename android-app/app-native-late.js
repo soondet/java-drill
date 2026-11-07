@@ -85,7 +85,8 @@
     heal: '<path d="M10.5 13.5 13.5 10.5"/><rect x="2.8" y="8.3" width="18.4" height="7.4" rx="3.7" transform="rotate(-45 12 12)"/>',
     chev: '<path d="m9 5.5 6.5 6.5L9 18.5"/>',
     chevD: '<path d="m5.5 9 6.5 6.5L18.5 9"/>',
-    play: '<path d="M8 5.2v13.6L19 12z"/>'
+    play: '<path d="M8 5.2v13.6L19 12z"/>',
+    code: '<path d="M8.5 7.5 4 12l4.5 4.5M15.5 7.5 20 12l-4.5 4.5M13.5 5l-3 14"/>'
   };
   /* знак продукта — ступени лестницы повторения, в градиенте сайта */
   /* эмодзи в начале текста — снимаем, когда на его место встаёт иконка набора */
@@ -223,7 +224,8 @@
           ["beh", "mic", L("Поведенческий", "Behavioral"), L("о себе, опыт, ситуации", "about you, experience, cases")],
           ["eng", "globe", L("Английский", "English"), L("грамматика и фразы собеса", "grammar and interview phrases")]]],
         [L("Бонус", "Bonus"), "t-org", [["money", "coins", L("Деньги", "Money"), L("экономика и рынки", "economics and markets")],
-          ["mus", "note", L("Музыка", "Music"), L("пианино и гитара, шпоры со звуком", "piano and guitar, sounding cheat sheets")]]]];
+          ["mus", "note", L("Музыка", "Music"), L("пианино и гитара, шпоры со звуком", "piano and guitar, sounding cheat sheets")],
+          ["bro", "code", L("Python и C++", "Python & C++"), L("курс с нуля для брата", "from-zero course for my brother")]]]];
       const rm = window.jdRoadmap && jdRoadmap.summary();
       $q("#viewLearn").innerHTML = '<header class="jt-head"><span>' + h(L("Разделы", "Sections")) + "</span><h1>" + h(L("Учить", "Learn")) + "</h1></header>"
         + (rm ? '<button class="jd-row jm-entry" data-go="roadmap"><span class="jd-ico t-cy">' + ic("map") + '</span><span class="jd-rt"><b>' + h(L("Роадмап", "Roadmap")) + "</b><small>" + h(rm.sub) + "</small>" + bar(rm.pct) + '</span><span class="jd-chev">›</span></button>' : "")
@@ -615,8 +617,12 @@
     window.setLang = function (l) { const r = origSetLang.apply(this, arguments); if (typeof LANG !== "undefined" && LANG === l) { buildBar(); if (OWN[mode]) draw[mode](); } return r; };
   }
 
+  /* брат сделал свой раздел стартовым («Открывать сразу здесь») — приложение открывается в нём, «Назад» ведёт туда же */
+  const broStart = () => typeof broPinned === "function" && broPinned();
   /* «Назад»: меню карточки — первым (вызывает app-native.js) */
   const backs = [];
+  /* раздел брата (bro.js): урок → курс → оба курса, на главной раздела — дальше по обычным правилам */
+  backs.push(() => typeof broBack === "function" && broBack());
   /* экран из другого файла (app-roadmap.js) живёт в том же цикле setMode, что и свои */
   function addScreen(m, section, title, drawFn, after) {
     const id = "view" + m.charAt(0).toUpperCase() + m.slice(1), s = document.createElement("section");
@@ -624,11 +630,11 @@
     OWN[m] = id; draw[m] = drawFn; SECTION[m] = section; TITLE[m] = title; if (after) AFTER[m] = after;
   }
   const startIds = ids => { resetFilter(); cramEl.checked = false; if (typeof syncFiltBar === "function") syncFiltBar(); drillList = ids; setMode("drill"); };
-  window.jdNative = { back: () => closeMenu() || closeSheet() || backs.some(f => f()), session: () => NS, plan, home: () => ret || "today",
+  window.jdNative = { back: () => closeMenu() || closeSheet() || backs.some(f => f()), session: () => NS, plan, home: () => ret || (broStart() ? "bro" : "today"),
     ui: { ic, h, L, plural, $q, bar, addScreen, startIds, jumpZero: i => jumpZero(i), from: m => { ret = m; }, addBack: f => backs.push(f) } };
 
   /* старт: экран «Сегодня» вместо первой карточки; заставку убираем, как только он нарисован
      (раньше она гасла по таймеру через 0.7 с, и до готовности страницы был пустой тёмный экран) */
-  setMode("today");
+  setMode(broStart() ? "bro" : "today");
   requestAnimationFrame(() => { try { const SS = window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.SplashScreen; if (SS && SS.hide) SS.hide({ fadeOutDuration: 150 }); } catch (e) {} });
 })();

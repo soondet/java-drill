@@ -4,7 +4,7 @@
  * сборки и проверки, service worker (в приложении файлы и так внутри APK). */
 const fs = require("fs"), path = require("path");
 const SRC = path.resolve(__dirname, ".."), OUT = path.join(__dirname, "www");
-const LAZY = ["i18n-en.js", "kid-zero.js", "kid-svg.js", "kid-scenes.js", "kid-say.js"];
+const LAZY = ["i18n-en.js", "kid-zero.js", "kid-svg.js", "kid-scenes.js", "kid-say.js", "bro-py.js", "bro-cpp.js"];
 const NEVER = /^(hb|sing|qa|tmr)-data\.js$|-build\.js$|^(sw|swver|build|check|jd-harness)\.js$|^verify-/;
 let html = fs.readFileSync(path.join(SRC, "index.html"), "utf8");
 const scripts = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);

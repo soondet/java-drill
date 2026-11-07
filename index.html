@@ -2802,6 +2802,7 @@
         <button id="tabBasics" role="tab" aria-selected="false">🍼 Для чайника</button>
         <button id="tabMus" role="tab" aria-selected="false">🎵 Музыка · бонус</button>
         <button id="tabEng" role="tab" aria-selected="false">🇬🇧 Английский · бонус</button>
+        <button id="tabBro" role="tab" aria-selected="false">🐍 Python и C++ · брату</button>
         <button id="tabPrin" role="tab" aria-selected="false">⚙️ Принцип</button>
         <button id="tabSand" role="tab" aria-selected="false">🏗 Песочница</button>
         <button id="tabProg" role="tab" aria-selected="false">📊 Прогресс</button>
@@ -2894,6 +2895,11 @@
 
 <section id="viewPath" class="view" hidden>
   <div id="pathStage" class="prog-stage"></div>
+</section>
+
+<!-- 🐍 курс Python и C++ для брата: рисует bro.js, уроки — bro-py.js / bro-cpp.js (грузятся при входе) -->
+<section id="viewBro" class="view" hidden>
+  <div class="terms-wrap" id="broWrap"></div>
 </section>
 
 <section id="viewMoney" class="view" hidden>
@@ -3071,6 +3077,7 @@
 <script src="cards-gap3.js"></script>
 <script src="cards-j25.js"></script>
 <script src="terms-ai.js"></script>
+<script src="bro.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[]),
@@ -3808,7 +3815,7 @@ const TR_ATTRS=["title","aria-label","placeholder"];
 function applyChrome(){
   document.documentElement.lang=LANG;
   const lt=$("#langTog"); if(lt)lt.textContent = LANG==="en"?"RU":"EN";
-  [["#tabDrill","🎴 Дрил"],["#tabFp","✋ На пальцах"],["#tabTerms","📖 Термины"],["#tabZero","🌱 С нуля"],["#tabBeh","🎤 Поведенческий"],["#tabMoney","💰 Деньги"],["#tabPath","🗺 Путь в сеньоры"],["#tabViz","🧊 3D-мир"],["#tabBasics","🍼 Для чайника"],["#tabPrin","⚙️ Принцип"],["#tabGame","🎮 Игра"],["#tabSand","🏗 Песочница"],["#tabProg","📊 Прогресс"],["#tabMore","⋯ Ещё"]].forEach(([s,ru])=>{const el=$(s);if(el)el.textContent=tr(ru);});
+  [["#tabDrill","🎴 Дрил"],["#tabFp","✋ На пальцах"],["#tabTerms","📖 Термины"],["#tabZero","🌱 С нуля"],["#tabBeh","🎤 Поведенческий"],["#tabMoney","💰 Деньги"],["#tabBro","🐍 Python и C++ · брату"],["#tabPath","🗺 Путь в сеньоры"],["#tabViz","🧊 3D-мир"],["#tabBasics","🍼 Для чайника"],["#tabPrin","⚙️ Принцип"],["#tabGame","🎮 Игра"],["#tabSand","🏗 Песочница"],["#tabProg","📊 Прогресс"],["#tabMore","⋯ Ещё"]].forEach(([s,ru])=>{const el=$(s);if(el)el.textContent=tr(ru);});
   const klab=["🔥 стрик","освоено","повтор"]; document.querySelectorAll(".kpiL").forEach((el,i)=>el.textContent=tr(klab[i]));
   const fps=$("#fpSearch"); if(fps)fps.placeholder=tr("🔍 поиск темы…");
   const tse=$("#termSearch"); if(tse)tse.placeholder=tr("🔍 поиск термина…");
@@ -3844,6 +3851,7 @@ function refreshView(){
   else if(mode==="zero"){buildZero();}
   else if(mode==="beh"){buildBeh();}
   else if(mode==="money"){buildMoney();}
+  else if(mode==="bro"){if(typeof broUI==="function")broUI();}
   else if(mode==="path"){buildPath();}
 }
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -4169,8 +4177,8 @@ function setMode(m){mode=m;
     if(typeof SI!=="undefined"&&SI)siStop();
   }
   if(m!=="beh" && typeof behRecStop==="function") behRecStop();   /* не держим микрофон открытым на других вкладках */
-  ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh","mus","money","eng"].forEach(x=>{const el=$("#tab"+(x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":x==="mus"?"Mus":x==="money"?"Money":x==="eng"?"Eng":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
-  $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh","mus","money","eng"].includes(m));
+  ["drill","fp","terms","prin","game","prog","sand","basics","path","viz","zero","beh","mus","money","eng","bro"].forEach(x=>{const el=$("#tab"+(x==="bro"?"Bro":x==="drill"?"Drill":x==="fp"?"Fp":x==="terms"?"Terms":x==="prin"?"Prin":x==="game"?"Game":x==="prog"?"Prog":x==="sand"?"Sand":x==="basics"?"Basics":x==="path"?"Path":x==="viz"?"Viz":x==="zero"?"Zero":x==="mus"?"Mus":x==="money"?"Money":x==="eng"?"Eng":"Beh"));if(el){el.classList.toggle("active",m===x);el.setAttribute("aria-selected",m===x);}});
+  $("#tabMore").classList.toggle("active",["prin","sand","prog","basics","path","viz","zero","beh","mus","money","eng","bro"].includes(m));
   $("#moreMenu").hidden=true;
   $("#viewDrill").hidden=(m!=="drill");
   $("#viewFp").hidden=(m!=="fp");
@@ -4183,11 +4191,13 @@ function setMode(m){mode=m;
   $("#viewZero").hidden=(m!=="zero");
   $("#viewBeh").hidden=(m!=="beh");
   $("#viewMoney").hidden=(m!=="money");
+  $("#viewBro").hidden=(m!=="bro");
   $("#viewPath").hidden=(m!=="path");
   $("#viewViz").hidden=(m!=="viz");
   $("#viewMus").hidden=(m!=="mus");
   $("#viewEng").hidden=(m!=="eng");
   { const v=document.querySelector(".view:not([hidden])"); if(v){ v.classList.remove("enter"); void v.offsetWidth; v.classList.add("enter"); fitVisible(v); } }
+  if(m!=="bro"&&typeof broLeave==="function")broLeave();   /* #bro из адреса — иначе перезагрузка вернёт в раздел брата */
   if(m!=="eng"&&typeof engLeave==="function")engLeave();   /* озвучка, таймер, запись — не должны пережить уход */
   if(m!=="mus"){ musMicStop(); sgStopMelody(); if(typeof gtStopRhy==="function")gtStopRhy(); }
   stopFp(); clearInterval(gTimer); stopArcade(); if(behTimer){clearInterval(behTimer);behTimer=null;}
@@ -4196,6 +4206,7 @@ function setMode(m){mode=m;
   if(m==="drill")rebuild();
   else if(m==="fp"){buildFpNav($("#fpSearch").value);renderFingers();}
   else if(m==="money"){buildMoney();}
+  else if(m==="bro"){if(typeof broUI==="function")broUI();}
   else if(m==="terms")buildTerms($("#termSearch").value);
   else if(m==="prin"){buildPrinNav($("#prinSearch").value);renderPrin();}
   else if(m==="prog")buildProg();
@@ -4232,6 +4243,7 @@ $("#tabSand").onclick=()=>setMode("sand");
 $("#tabZero").onclick=()=>setMode("zero");
 $("#tabBeh").onclick=()=>setMode("beh");
 $("#tabMoney").onclick=()=>setMode("money");
+$("#tabBro").onclick=()=>setMode("bro");
 $("#tabBasics").onclick=()=>setMode("basics");
 $("#tabPath").onclick=()=>setMode("path");
 $("#tabViz").onclick=()=>setMode("viz");

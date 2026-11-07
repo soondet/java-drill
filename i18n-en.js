@@ -2477,6 +2477,7 @@ window.I18N = {
   "Что самое дорогое в вашем счёте?": "What is the most expensive thing on your bill?",
   "ECS или EKS и почему?": "ECS or EKS, and why?",
   "💰 Деньги": "💰 Money",
+  "🐍 Python и C++ · брату": "🐍 Python & C++ · for my brother",
   "🎵 Музыка · бонус": "🎵 Music · bonus",
   "под-темы": "subtopics",
   "▸ вся тема": "▸ whole topic",

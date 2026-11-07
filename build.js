@@ -27,8 +27,9 @@ html = html.replace("<!--INLINE-I18N-EN-->", () => {
 });
 // Данные комнат на сайте грузятся лениво (их 740 КБ, а открывают по паролю),
 // но однофайловая сборка должна оставаться самодостаточной — вшиваем их сюда.
-/* ленивые на сайте, но вшитые в однофайловую сборку: комнаты и сценки «С нуля» (порядок важен — kid-svg до kid-scenes) */
-const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js", "tmr-data.js", "dmr-data.js", "kid-zero.js", "kid-svg.js", "kid-scenes.js", "kid-say.js"];
+/* ленивые на сайте, но вшитые в однофайловую сборку: комнаты, сценки «С нуля» (порядок важен — kid-svg до kid-scenes)
+   и уроки «Python и C++» (bro.js грузит их сам, но в одном файле подгружать неоткуда) */
+const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js", "tmr-data.js", "dmr-data.js", "kid-zero.js", "kid-svg.js", "kid-scenes.js", "kid-say.js", "bro-py.js", "bro-cpp.js"];
 let roomKb = 0;
 const roomTags = ROOMS.map(f => {
   try {
@@ -37,7 +38,9 @@ const roomTags = ROOMS.map(f => {
     return "<script>\n" + code + "\n</script>";
   } catch (e) { return ""; }
 }).filter(Boolean).join("\n");
-if (roomTags) html = html.replace("</body>", roomTags + "\n</body>");
+/* замена функцией, не строкой: в строке-замене $' и $& — шаблоны, а в уроке про регулярки они есть буквально,
+   и сборка вклеивала вместо них хвост страницы — скрипты рвались, текст уроков вылезал на экран */
+if (roomTags) html = html.replace("</body>", () => roomTags + "\n</body>");
 
 fs.writeFileSync("java-drill.html", html);
 

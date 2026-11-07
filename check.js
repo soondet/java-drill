@@ -1060,7 +1060,7 @@ const check = (name, ok, detail) => {
      и вниз, но прокрутка достаёт только низ. Теряло 934px в играх и 190px в
      «На пальцах». Лечится словом safe, а этот сторож не даёт вернуться. */
   const unreachable = [];
-  for (const m of ["drill","terms","fp","prin","prog","sand","basics","zero","beh","money","path","game","mus","eng"]) {
+  for (const m of ["drill","terms","fp","prin","prog","sand","basics","zero","beh","money","path","game","mus","eng","bro"]) {
     await A.ev(`try{setMode(${JSON.stringify(m)})}catch(e){}`); await sleep(400);
     const r = await A.ev(`(function(){
       var out=[];
@@ -1079,7 +1079,7 @@ const check = (name, ok, detail) => {
     JSON.parse(r).forEach(x => unreachable.push(m + "/" + x));
   }
   check("содержимое не уезжает за верх контейнера", unreachable.length === 0,
-    unreachable.length ? "недостижимо: " + unreachable.join(" · ") : "13 вкладок, прокрутка достаёт начало везде");
+    unreachable.length ? "недостижимо: " + unreachable.join(" · ") : "15 вкладок, прокрутка достаёт начало везде");
 
   /* ---- лист советов ----
      Данные лежат в отдельном tips.js, и если он не доедет или сменит форму,
@@ -1376,8 +1376,84 @@ const check = (name, ok, detail) => {
       st.плохо.length ? st.плохо.join(" · ") : "история → прогон → выбор → чек-лист · вопросов под истории " + st.вопросов + " · ключ в бэкапе");
   }
 
+  /* ---- «Python и C++» — курс для брата (bro.js) ----
+     Свои данные и свой прогресс: уроки грузятся при входе, прогресс Java не трогается.
+     Адреса #bro… работают и как ссылка, и как «назад» браузера. Вывод примеров сверяет
+     настоящим запуском verify-bro.js (нужны python3 и clang++), здесь — форма и экран. */
+  {
+    await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+    const br = JSON.parse(await A.ev(`(async function(){
+      var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})}, плохо=[], wrap=function(){return document.getElementById("broWrap")};
+      var было={j:localStorage.getItem("javaDrillProgress.v1"), b:localStorage.getItem("jdBro"), h:localStorage.getItem("jdBroHome")};
+      try {
+      localStorage.removeItem("jdBro"); localStorage.removeItem("jdBroHome");
+      document.getElementById("tabBro").click();
+      for(var i=0;i<60&&!document.querySelector("#broWrap .bro-tc");i++) await ж(100);
+      if(mode!=="bro") плохо.push("вкладка не открыла раздел");
+      if(location.hash!=="#bro") плохо.push("адрес "+location.hash);
+      var CH=window.BRO_CH||[], ids={}, ls=[];
+      CH.forEach(function(c){ if(ids[c.id]) плохо.push("id главы повторяется: "+c.id); ids[c.id]=1;
+        (c.ls||[]).forEach(function(l){ if(ids[l.id]) плохо.push("id урока повторяется: "+l.id); ids[l.id]=1; ls.push({l:l,t:c.track});
+          if(!l.ex||!l.ex.length||!l.q||l.q.length<2||!l.task||!l.task.sol||!l.tip||!l.bug) плохо.push("урок без частей: "+l.id); }); });
+      var py=ls.filter(function(x){return x.t==="py"}).length, cpp=ls.filter(function(x){return x.t==="cpp"}).length;
+      if(py<35||cpp<28) плохо.push("уроков мало: py "+py+", cpp "+cpp);
+      /* каждый урок рисуется, код влезает в 390px, вывод открывается; место верного ответа — вразброс */
+      var места=[0,0,0,0], всего=0, широкие=[];
+      for(var k=0;k<ls.length;k++){
+        location.hash="#bro/"+ls[k].l.id; await ж(20);
+        var w=wrap(); if(!w.querySelector(".bro-les")){ плохо.push("урок не открылся: "+ls[k].l.id); continue; }
+        w.querySelectorAll(".bro-run").forEach(function(b){b.click()}); w.querySelectorAll("details").forEach(function(d){d.open=true});
+        if(w.scrollWidth>w.clientWidth+1) широкие.push(ls[k].l.id+" вбок");
+        w.querySelectorAll("pre.bro-code").forEach(function(p){ if(p.scrollWidth>p.clientWidth+1) широкие.push(ls[k].l.id+" код "+p.scrollWidth+">"+p.clientWidth); });
+        w.querySelectorAll(".bro-q").forEach(function(q){ var o=[].slice.call(q.querySelectorAll(".bro-o")); var p=o.findIndex(function(b){return b.dataset.k==="0"}); if(p>=0){места[p]++;всего++;} });
+      }
+      if(широкие.length) плохо.push("не влезает в 390px: "+широкие.slice(0,4).join(", "));
+      var перекос=Math.max.apply(null,места.slice(0,3))/Math.max(1,всего);
+      if(перекос>0.4) плохо.push("верный ответ слишком часто на одном месте: "+места.join("/"));
+      /* ответ, отметка «пройден», «назад» браузера, уход из раздела */
+      var l0=ls[0].l.id, l1=ls[1].l.id;
+      location.hash="#bro/"+l0; await ж(30);
+      wrap().querySelector('.bro-q .bro-o[data-k="0"]').click();
+      if(!wrap().querySelector(".bro-q .bro-o.ok")||wrap().querySelector(".bro-q .bro-qe").hidden) плохо.push("ответ не подсветился");
+      wrap().querySelector("[data-done]").click(); await ж(60);
+      var P=JSON.parse(localStorage.getItem("jdBro")||"{}");
+      if(!P.d||P.d[l0]!==1) плохо.push("отметка не сохранилась");
+      if(location.hash!=="#bro/"+l1) плохо.push("после «пройден» не следующий урок: "+location.hash);
+      history.back();
+      /* переход по истории асинхронный — ждём, пока адрес и экран сменятся */
+      for(var i=0;i<30&&(location.hash!=="#bro/"+l0||!wrap().querySelector(".bro-les"));i++) await ж(100);
+      if(location.hash!=="#bro/"+l0||!wrap().querySelector(".bro-les")) плохо.push("«назад» браузера не вернул урок: "+location.hash);
+      if(localStorage.getItem("javaDrillProgress.v1")!==было.j) плохо.push("прогресс Java изменился");
+      if(backupKeys().indexOf("jdBro")<0) плохо.push("прогресс не попадает в бэкап");
+      setMode("drill"); await ж(50);
+      if(location.hash) плохо.push("уход из раздела оставил "+location.hash);
+      /* язык: интерфейс раздела по-английски, исключений нет */
+      setMode("bro"); await ж(50); setLang("en"); await ж(1500);
+      var t=(wrap().querySelector(".bro-hero h1")||{}).textContent||"";
+      if(!/Learn to code/.test(t)) плохо.push("EN: заголовок «"+t+"»");
+      if(!/Python/.test((document.getElementById("tabBro")||{}).textContent||"")||/брату/.test(document.getElementById("tabBro").textContent)) плохо.push("EN: вкладка не переведена");
+      setLang("ru"); await ж(600);
+      } catch(e){ плохо.push("исключение: "+(e&&e.message||e)); }
+      finally {
+        ["javaDrillProgress.v1","jdBro","jdBroHome"].forEach(function(k,i){ var v=[было.j,было.b,было.h][i]; if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,v); });
+        if(location.hash) history.replaceState(null,"",location.pathname); if(mode==="bro") setMode("drill");
+      }
+      return JSON.stringify({плохо:плохо, уроков:(window.BRO_CH||[]).reduce(function(a,c){return a+c.ls.length},0)});
+    })()`));
+    check("«Python и C++»: уроки целы, влезают в 390px, ответы вразброс, адреса и «назад», прогресс отдельно, EN", br.плохо.length === 0,
+      br.плохо.length ? br.плохо.slice(0, 4).join(" · ") : br.уроков + " уроков · свой прогресс · #bro-ссылки · подписи по-английски");
+    /* «Открывать сразу здесь»: сайт стартует в разделе, ссылка #bro… тоже */
+    await A.ev(`localStorage.setItem("jdBroHome","1")`); await reload();
+    const pinM = await A.ev("mode");
+    await A.ev(`localStorage.removeItem("jdBroHome"); history.replaceState(null,"",location.pathname+"#bro/cpp")`); await reload();
+    const linkM = await A.ev(`(async function(){ for(var i=0;i<50&&!document.querySelector("#broWrap .bro-thead");i++) await new Promise(function(r){setTimeout(r,100)});
+      return mode+" "+location.hash+" "+!!document.querySelector("#broWrap .bro-thead"); })()`);
+    await A.ev(`setMode("drill")`);
+    check("раздел стартует сам: по отметке «открывать здесь» и по ссылке #bro/…", pinM === "bro" && linkM === "bro #bro/cpp true", "отметка → " + pinM + " · ссылка → " + linkM);
+  }
+
   /* ---- обход вкладок ---- */
-  const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus"];
+  const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus","tabBro"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }
   const errs = JSON.parse(await A.ev("JSON.stringify(__err)"));
   check("ошибок JS на всех вкладках нет", errs.length === 0, errs.slice(0, 3).join(" | "));

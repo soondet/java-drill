@@ -2,7 +2,7 @@
 /* Гейт Android-приложения: www/ (собранный bundle.js) в headless Chrome с подменённым Capacitor — как в APK.
  * Проверяет слой app-native*: экраны, занятие настоящими нажатиями и правила повторения по точным значениям —
  * ступень и срок после «знал / почти / не знал», границы 1 и 7, «проблемная» на четвёртом провале,
- * двойной тап, отмену, продолжение после перезапуска, порядок «сначала повторы», итоги, роадмап, ширины телефона.
+ * двойной тап, отмену, продолжение после перезапуска, порядок «сначала повторы», итоги, роадмап, раздел брата, ширины телефона.
  * Запуск: node bundle.js && node check-native.js. Упала проверка — код выхода 1.
  * У каждого вызова CDP таймаут: без него один зависший await держал Chrome вечно. */
 const { spawn } = require("child_process"), fs = require("fs"), path = require("path"), os = require("os");
@@ -230,11 +230,56 @@ let kill = () => {};                                   /* гасит Chrome пр
   const fo = JSON.parse(f1);
   check("«Только не освоенное» прячет освоенный этап и говорит об этом", f0 && !fo.s3 && fo.s4 && /1/.test(fo.fold), f1);
 
+  console.log("\n— Python и C++ (раздел брата)");
+  /* свой прогресс (jdBro) и свои данные: прогресс Java не трогается, «Назад» ходит урок → курс → оба курса */
+  const brJava = await ev(`localStorage.getItem("javaDrillProgress.v1")`);
+  await ev(`localStorage.removeItem("jdBro"); localStorage.removeItem("jdBroHome"); setMode("learn"); document.querySelector('#viewLearn .jd-tile[data-mode="bro"]').click(); true`);
+  for (let i = 0; i < 50; i++) { await sleep(100); if (await ev(`!!document.querySelector("#broWrap .bro-tc")`)) break; }
+  const br0 = JSON.parse(await ev(`JSON.stringify({mode, title:(document.querySelector(".topbar .jd-up span")||{}).textContent, tracks:document.querySelectorAll("#broWrap .bro-tc").length,
+    py:(window.BRO_CH||[]).filter(c=>c.track==="py").reduce((a,c)=>a+c.ls.length,0), cpp:(window.BRO_CH||[]).filter(c=>c.track==="cpp").reduce((a,c)=>a+c.ls.length,0)})`));
+  check("«Python и C++»: плитка в «Учить», в шапке название, оба курса, уроки подгрузились", br0.mode === "bro" && br0.title === "Python и C++" && br0.tracks === 2 && br0.py >= 30 && br0.cpp >= 25, JSON.stringify(br0));
+  await tap("#broWrap .bro-tc.py"); await sleep(200);
+  const [brL1, brL2] = JSON.parse(await ev(`JSON.stringify(BRO_CH.find(c=>c.track==="py").ls.slice(0,2).map(l=>l.id))`));
+  await tap(`#broWrap .bro-l[data-go="${brL1}"]`); await sleep(200);
+  const br1 = JSON.parse(await ev(`(function(){ const run=document.querySelector("#broWrap .bro-run"); run.click(); const out=run.closest(".bro-ex").querySelector(".bro-out");
+    const q=document.querySelector("#broWrap .bro-q"); q.querySelector('.bro-o[data-k="1"]').click(); q.querySelector('.bro-o[data-k="0"]').click();
+    return JSON.stringify({hash:location.hash, out:!out.hidden&&out.textContent.length>10, ok:!!q.querySelector(".bro-o.ok"), no:!!q.querySelector(".bro-o.no"), ex:!q.querySelector(".bro-qe").hidden,
+      first:JSON.parse(localStorage.getItem("jdBro")).q[${JSON.stringify(brL1)}][0]}) })()`));
+  check("урок: «Запустить» показывает вывод; неверный — красным, верный — зелёным, пояснение; засчитана первая попытка", br1.hash === "#bro/" + brL1 && br1.out && br1.ok && br1.no && br1.ex && br1.first === 0, JSON.stringify(br1));
+  await tap("#broWrap [data-done]"); await sleep(250);
+  const br2 = JSON.parse(await ev(`JSON.stringify({hash:location.hash, done:JSON.parse(localStorage.getItem("jdBro")).d[${JSON.stringify(brL1)}]===1})`));
+  const brBacks = [];
+  for (let i = 0; i < 3; i++) { brBacks.push(await ev("jdNative.back()") + ":" + (await ev("location.hash")) + ":" + (await ev("mode"))); await sleep(200); }
+  check("«Урок пройден» — отметка и следующий урок; «Назад»: урок → курс → оба курса → дальше приложение", br2.done && br2.hash === "#bro/" + brL2 && brBacks[0] === "true:#bro/py:bro" && brBacks[1] === "true:#bro:bro" && /^false:/.test(brBacks[2]), JSON.stringify(br2) + " " + brBacks.join(" | "));
+  await ev(`setMode("today"); true`); await sleep(150);
+  check("уход из раздела убирает #bro из адреса; прогресс Java не тронут", (await ev("location.hash")) === "" && (await ev(`localStorage.getItem("javaDrillProgress.v1")`)) === brJava);
+  await ev(`localStorage.setItem("jdBroHome","1"); true`); await open();
+  const br3 = JSON.parse(await ev(`JSON.stringify({mode, home:jdNative.home(), tc:document.querySelectorAll("#broWrap .bro-tc").length})`));
+  await ev(`localStorage.removeItem("jdBroHome"); true`); await open();
+  check("«Открывать сразу здесь» — приложение стартует в разделе, «Назад» ведёт в него; выключил — снова «Сегодня»", br3.mode === "bro" && br3.home === "bro" && (await ev("mode")) === "today", JSON.stringify(br3));
+  const BRAUD = `(function(){ const w=document.getElementById("broWrap"), W=innerWidth, out=[];
+    if (w.scrollWidth>w.clientWidth+1) out.push("вбок "+w.scrollWidth+">"+w.clientWidth);
+    w.querySelectorAll(".bro-o,.bro-run,.bro-l,.bro-cta,.bro-back,.bro-copy,.bro-tc,.bro-pn .btn,.bro-tutor,.bro-undo,.bro-reset,.bro-links a,.bro-ask .btn,.bro-task summary,.bro-pin").forEach(b=>{ if(!b.getClientRects().length) return;
+      const r=b.getBoundingClientRect(); if (r.height<44||r.width<44) out.push("мелко "+Math.round(r.width)+"×"+Math.round(r.height)+" "+b.className); if (r.right>W+1||r.left<-1) out.push("за край "+b.className); });
+    w.querySelectorAll("pre.bro-code").forEach(p=>{ if(p.getClientRects().length&&p.scrollWidth>p.clientWidth+1) out.push("код шире экрана: "+p.textContent.split("\\n").sort((a,b)=>b.length-a.length)[0]); });
+    return JSON.stringify(out.slice(0,5)); })()`;
+  const brBad = [];
+  for (const [w, hh] of [[360, 780], [390, 844], [844, 390]]) {
+    await vp(w, hh); await sleep(150);
+    for (const h of ["#bro", "#bro/py", "#bro/" + brL1, "#bro/cpp-vs-python"]) {
+      await ev(`location.hash=${JSON.stringify(h)}; setMode("bro"); true`); await sleep(250);
+      await ev(`document.querySelectorAll("#broWrap .bro-run").forEach(b=>b.click()); document.querySelectorAll("#broWrap details").forEach(d=>d.open=true); true`); await sleep(80);
+      const a = JSON.parse(await ev(BRAUD)); if (a.length) brBad.push(w + " " + h + ": " + a.join("; "));
+    }
+  }
+  await vp(390, 844); await ev(`setMode("today"); true`);
+  check("раздел брата на 360 / 390 и боком: без прокрутки вбок, код влезает, цели от 44 px", !brBad.length, brBad.slice(0, 4).join(" | "));
+
   console.log("\n— разделы и ширины");
   const nav = [];
   for (const m of ["learn", "cards", "prog", "game", "today"]) { await ev(`document.querySelector('.jd-bb [data-m="${m}"]').click(); true`); await sleep(350); nav.push(m + ":" + (await ev("mode"))); }
   const hub = JSON.parse(await ev(`JSON.stringify({tiles:(setMode("learn"),document.querySelectorAll("#viewLearn .jd-tile").length), topics:(setMode("cards"),document.querySelectorAll('#viewCards [data-topic]').length), ladder:(setMode("prog"),document.querySelectorAll(".jl-row").length)})`));
-  check("панель ведёт в разделы; «Учить» — 11 разделов, «Карточки» — все темы, «Прогресс» — лестница из 7 ступеней", nav.every(x => x.split(":")[0] === x.split(":")[1]) && hub.tiles === 11 && hub.topics >= 15 && hub.ladder === 7, nav.join(" ") + " · " + JSON.stringify(hub));
+  check("панель ведёт в разделы; «Учить» — 12 разделов, «Карточки» — все темы, «Прогресс» — лестница из 7 ступеней", nav.every(x => x.split(":")[0] === x.split(":")[1]) && hub.tiles === 12 && hub.topics >= 15 && hub.ladder === 7, nav.join(" ") + " · " + JSON.stringify(hub));
   const AUD = `(function(){ const W=innerWidth, out=[];
     if (document.scrollingElement.scrollWidth>W+1) out.push("вбок "+document.scrollingElement.scrollWidth+">"+W);
     document.querySelectorAll(".jd-bb button,#jdAct .btn,.jd-row,.jd-tile,.jd-more,.jd-sbar button,.jl-row,.jd-search,.jd-seg button,.jd-opt,.jd-route,.jm-t,.jm-ttl,.jm-nb,.jm-go-s,.jm-act,.jm-me,.jm-line-b,.jm-q").forEach(b=>{ if(!b.getClientRects().length) return; const r=b.getBoundingClientRect();
