@@ -145,6 +145,7 @@ JVM :: T:JVM
     Thread dump :: jvm-thread-dump
     Heap dump :: jvm-heap-dump
     Профилировщики | Profilers :: jvm-profiling
+    С чего начать | Where to start :: ipr-jvm-diag-first
 
 ООП и паттерны | OOP and patterns :: T:Design
   SOLID
@@ -396,7 +397,8 @@ JVM :: T:JVM
     Устройство | Anatomy :: web-http-anatomy p:http
     Методы и коды | Methods and status codes :: web-idempotent web-status g-web-3xx-statuses api-status-codes
     Версии HTTP | HTTP versions :: web-http-versions
-    Кэширование | Caching :: x-web-etag-caching f:wbf-http-caching-etag
+    Кэширование | Caching :: x-web-etag-caching f:wbf-http-caching-etag ipr-cache-nostore ipr-cache-bust ipr-cache-private
+    Сжатие | Compression :: ipr-gzip-where ipr-gzip-cost
     Content negotiation :: g-web-content-negotiation api-content-negotiation
     Реальное время | Real time :: web-websocket-proto g-web-sse-vs-ws f:wbf-websocket-upgrade
   REST
@@ -416,7 +418,7 @@ JVM :: T:JVM
       HTTP/2 :: grpc-http2 f:grpcf-http2-mux
       gRPC или REST | gRPC or REST :: grpc-vs-rest web-grpc web-grpc-vs-rest
     GraphQL :: web-graphql-deep
-    SOAP :: web-soap
+    SOAP :: web-soap ipr-soap-wsdl ipr-soap-fault ipr-soap-wssec
 
 Spring :: T:Spring
   DI и контейнер | DI and container
@@ -479,13 +481,13 @@ Quarkus :: T:Quarkus
     OIDC и Keycloak :: qk2-oidc-keycloak
   Тесты и выбор | Tests and choice
     @QuarkusTest :: nquar-testy
-    Quarkus или Spring Boot | Quarkus or Spring Boot :: qk2-vs-springboot
+    Quarkus или Spring Boot | Quarkus or Spring Boot :: qk2-vs-springboot ipr-sp-quarkus-map
 
 Тесты и отладка | Testing and debugging :: T:Testing
   Основы тестирования | Testing basics
     ~Тестирование
     Пирамида | Pyramid :: te-pyramid f:tef-test-pyramid p:prt-test-pyramid-fill
-    TDD :: te-tdd g-te-classicist-mockist f:tef-tdd-cycle
+    TDD :: te-tdd g-te-classicist-mockist f:tef-tdd-cycle ipr-tdd-when ipr-tdd-bug
     Читаемые тесты | Readable tests :: craft-readable-test g-te-test-data-builder x-te-test-fixtures
     Качество тестов | Test quality
       Покрытие | Coverage :: g-te-line-vs-branch
@@ -494,6 +496,7 @@ Quarkus :: T:Quarkus
     JUnit и Mockito | JUnit and Mockito :: te-junit-mockito
     Параметризация | Parameterized tests :: x-te-param-tests g-te-methodsource
     AssertJ :: g-te-assertj-fluent
+    TestNG :: ipr-testng-vs-junit ipr-testng-groups ipr-testng-dataprovider ipr-testng-parallel
   Mockito
     Дублёры | Test doubles :: te-mock-stub g-te-fake-vs-stub g-te-spy-vs-mock p:pr-test-doubles
     Настройка ответов | Stubbing :: g-te-doreturn-void g-te-strict-stubs g-te-mockstatic-smell
@@ -507,7 +510,7 @@ Quarkus :: T:Quarkus
   Надёжность тестов | Reliable tests
     Плавающие тесты | Flaky tests :: te-flaky g-te-test-isolation f:tef-test-pollution
     Асинхронность | Async code :: g-te-awaitility
-    Характеризационные | Characterization :: p-characterization-test
+    Характеризационные | Characterization :: p-characterization-test ipr-char-big ipr-char-bug
   Нагрузочные | Load testing
     Что мерить | What to measure :: gp2-load-what-to-measure
     Типичные ошибки | Common mistakes :: gp2-load-mistakes
@@ -525,7 +528,7 @@ Quarkus :: T:Quarkus
   Браузер | Browser
     CORS :: x-web-cors-preflight web-cors f:wbf-cors-preflight p:pr-cors-preflight
     CSRF и cookie | CSRF and cookies :: g-web-csrf-token g-web-samesite
-    Заголовки | Headers :: web-security-headers g-web-csp g-web-hsts
+    Заголовки | Headers :: web-security-headers g-web-csp g-web-hsts ipr-csp-rollout
   Вход и токены | Login and tokens
     ~Keycloak и OAuth2
     Основы | Basics :: web-authn-authz web-auth-schemes g-web-session-vs-jwt-revocation
@@ -627,6 +630,7 @@ Quarkus :: T:Quarkus
     Chaos engineering :: gp2-chaos
   Масштабирование | Scaling
     Балансировка | Load balancing :: arch-load-balancing x-ops-horizontal-scaling-lb g-inf-nginx-upstream-lb f:inf2f-nginx-sticky-session p:load-balancer p:pri-load-balancer-rr
+    Прокси | Proxies :: ipr-proxy-compare ipr-proxy-l4l7
     Автомасштабирование | Autoscaling :: inf-autoscale-mechanics inf-autoscale-coldstart
     Rate limiting :: arch-rate-limiting f:apf-token-bucket
 
@@ -636,14 +640,19 @@ Quarkus :: T:Quarkus
     Монолит и микросервисы | Monolith and microservices :: arch-mono-micro devops-soa-msa f:soa-msa
     Слои и гексагон | Layers and hexagon
       Порты и адаптеры | Ports and adapters :: arch-layered-hex p-hex-api-vs-spi p:pr-hexagon
+      Clean Architecture :: ipr-clean-rule ipr-clean-tx
       Модель отдельно от JPA | Model apart from JPA :: p-domain-vs-jpa-entity p-hex-domain-vs-jpa
       Контроль границ | Enforcing boundaries :: narhi-granicy-i-kont
     12-factor :: arch-12factor
+  Решения и ревью | Decisions and review
+    ADR :: ipr-adr-what ipr-adr-when ipr-adr-supersede
+    Ревью архитектуры | Architecture review :: ipr-adr-review
   Микросервисы | Microservices
     Границы и данные | Boundaries and data :: arch-db-per-service p-architecture-quantum g-arch-multitenancy
     Вход в систему | Entry point :: arch-api-gateway arch-bff p:api-gateway
     Обнаружение сервисов | Service discovery :: arch-service-discovery ap-service-discovery
-    Mesh и sidecar | Mesh and sidecar :: arch-service-mesh ap-sidecar-ambassador-adapter ap-ambassador
+    Spring Cloud :: ipr-scloud-k8s ipr-scloud-gw
+    Mesh и sidecar | Mesh and sidecar :: arch-service-mesh ap-sidecar-ambassador-adapter ap-ambassador ipr-proxy-envoy
     Склейка данных | Combining data
       API Composition :: p-api-composition-latency p-api-composition-vs-cqrs
       Scatter-Gather :: ap-scatter-gather f:apf-scatter-gather

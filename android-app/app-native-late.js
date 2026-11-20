@@ -223,7 +223,7 @@
         [L("Карьера", "Career"), "t-cy", [["path", "route", L("Путь в сеньоры", "Path to senior"), L("уровни и что осталось", "levels and what's left")],
           ["beh", "mic", L("Поведенческий", "Behavioral"), L("о себе, опыт, ситуации", "about you, experience, cases")],
           ["eng", "globe", L("Английский", "English"), L("грамматика и фразы собеса", "grammar and interview phrases")],
-          ["asm", "target", L("Ассессмент", "Assessment"), L("ИПР и подготовка к повтору", "growth plan and next review")]]],
+          ["asm", "target", L("Ассессмент", "Assessment"), L("темы ИПР и вопросы по ним", "plan topics and their questions")]]],
         [L("Бонус", "Bonus"), "t-org", [["money", "coins", L("Деньги", "Money"), L("экономика и рынки", "economics and markets")],
           ["mus", "note", L("Музыка", "Music"), L("пианино и гитара, шпоры со звуком", "piano and guitar, sounding cheat sheets")],
           ["bro", "code", L("Python и C++", "Python & C++"), L("курс с нуля для брата", "from-zero course for my brother")]]]];
@@ -624,7 +624,7 @@
   const backs = [];
   /* раздел брата (bro.js): урок → курс → оба курса, на главной раздела — дальше по обычным правилам */
   backs.push(() => typeof broBack === "function" && broBack());
-  /* ассессмент (asm.js): цель или достижения → главная раздела */
+  /* ассессмент (asm.js): вопросы темы → все темы */
   backs.push(() => typeof asmBack === "function" && asmBack());
   /* экран из другого файла (app-roadmap.js) живёт в том же цикле setMode, что и свои */
   function addScreen(m, section, title, drawFn, after) {

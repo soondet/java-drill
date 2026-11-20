@@ -275,19 +275,16 @@ let kill = () => {};                                   /* гасит Chrome пр
   await vp(390, 844); await ev(`setMode("today"); true`);
   check("раздел брата на 360 / 390 и боком: без прокрутки вбок, код влезает, цели от 44 px", !brBad.length, brBad.slice(0, 4).join(" | "));
 
-  /* ассессмент: плитка в «Карьере», файл пользователя вставкой, «Назад» телефона: цель → главная раздела → приложение */
+  /* ассессмент: плитка в «Карьере», темы без полей ввода, «Назад» телефона: тема → все темы → приложение */
   {
-    const F = JSON.stringify({ kind: "jd-assessment", v: 1, who: {}, round: { date: "2025-01-10", from: "Junior-1", to: "Junior-2", months: 12 },
-      idp: [{ id: "jvm", t: "JVM", w: 100, crit: ["К"], cards: [{ t: "JVM" }] }] });
-    await ev(`localStorage.removeItem("jdAsm"); localStorage.removeItem("jdAsmMy"); setMode("learn"); document.querySelector('#viewLearn .jd-tile[data-mode="asm"]').click(); true`); await sleep(300);
-    const a0 = JSON.parse(await ev(`JSON.stringify({mode, title:(document.querySelector(".topbar .jd-up span")||{}).textContent, v:document.getElementById("asmWrap").dataset.v, file:!!document.getElementById("asmFile")})`));
-    await ev(`(function(){ document.querySelector('#asmWrap [data-imp="paste"]').click(); document.getElementById("asmTxt").value=${JSON.stringify(F)}; document.querySelector('#asmWrap [data-imp="go"]').click(); return true })()`); await sleep(250);
-    await tap('#asmWrap [data-go="g-jvm"]'); await sleep(250);
-    const a1 = JSON.parse(await ev(`JSON.stringify({v:document.getElementById("asmWrap").dataset.v, b1:jdNative.back()})`)); await sleep(300);
+    await ev(`setMode("learn"); document.querySelector('#viewLearn .jd-tile[data-mode="asm"]').click(); true`); await sleep(300);
+    const a0 = JSON.parse(await ev(`JSON.stringify({mode, title:(document.querySelector(".topbar .jd-up span")||{}).textContent, v:document.getElementById("asmWrap").dataset.v, inputs:document.querySelectorAll("#asmWrap input,#asmWrap textarea").length, chips:document.querySelectorAll("#asmWrap .asm-tm").length})`));
+    await tap('#asmWrap [data-go="dev-gc"]'); await sleep(250);
+    const a1 = JSON.parse(await ev(`JSON.stringify({v:document.getElementById("asmWrap").dataset.v, q:document.querySelectorAll("#asmWrap .asm-q").length, b1:jdNative.back()})`)); await sleep(300);
     const a2 = JSON.parse(await ev(`JSON.stringify({v:document.getElementById("asmWrap").dataset.v, b2:jdNative.back(), mode})`));
-    await ev(`localStorage.removeItem("jdAsm"); localStorage.removeItem("jdAsmMy"); if(location.hash) history.replaceState(null,"",location.pathname); setMode("today"); true`);
-    check("«Ассессмент»: плитка в «Учить», в шапке название, загрузка вставкой; «Назад»: цель → главная раздела → дальше приложение",
-      a0.mode === "asm" && a0.title === "Ассессмент" && a0.v === "empty" && a0.file && a1.v === "goal" && a1.b1 === true && a2.v === "home" && a2.b2 === false, JSON.stringify([a0, a1, a2]));
+    await ev(`if(location.hash) history.replaceState(null,"",location.pathname); setMode("today"); true`);
+    check("«Ассессмент»: плитка в «Учить», в шапке название, темы без полей ввода; «Назад»: тема → все темы → дальше приложение",
+      a0.mode === "asm" && a0.title === "Ассессмент" && a0.v === "home" && a0.inputs === 0 && a0.chips >= 50 && a1.v === "topic" && a1.q > 0 && a1.b1 === true && a2.v === "home" && a2.b2 === false, JSON.stringify([a0, a1, a2]));
   }
 
   console.log("\n— разделы и ширины");
