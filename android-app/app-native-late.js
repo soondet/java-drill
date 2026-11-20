@@ -222,7 +222,8 @@
           ["sand", "server", L("Песочница", "Sandbox"), L("собери систему и дай нагрузку", "build a system, add load")]]],
         [L("Карьера", "Career"), "t-cy", [["path", "route", L("Путь в сеньоры", "Path to senior"), L("уровни и что осталось", "levels and what's left")],
           ["beh", "mic", L("Поведенческий", "Behavioral"), L("о себе, опыт, ситуации", "about you, experience, cases")],
-          ["eng", "globe", L("Английский", "English"), L("грамматика и фразы собеса", "grammar and interview phrases")]]],
+          ["eng", "globe", L("Английский", "English"), L("грамматика и фразы собеса", "grammar and interview phrases")],
+          ["asm", "target", L("Ассессмент", "Assessment"), L("ИПР и подготовка к повтору", "growth plan and next review")]]],
         [L("Бонус", "Bonus"), "t-org", [["money", "coins", L("Деньги", "Money"), L("экономика и рынки", "economics and markets")],
           ["mus", "note", L("Музыка", "Music"), L("пианино и гитара, шпоры со звуком", "piano and guitar, sounding cheat sheets")],
           ["bro", "code", L("Python и C++", "Python & C++"), L("курс с нуля для брата", "from-zero course for my brother")]]]];
@@ -623,6 +624,8 @@
   const backs = [];
   /* раздел брата (bro.js): урок → курс → оба курса, на главной раздела — дальше по обычным правилам */
   backs.push(() => typeof broBack === "function" && broBack());
+  /* ассессмент (asm.js): цель или достижения → главная раздела */
+  backs.push(() => typeof asmBack === "function" && asmBack());
   /* экран из другого файла (app-roadmap.js) живёт в том же цикле setMode, что и свои */
   function addScreen(m, section, title, drawFn, after) {
     const id = "view" + m.charAt(0).toUpperCase() + m.slice(1), s = document.createElement("section");

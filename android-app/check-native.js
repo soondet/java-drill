@@ -275,11 +275,26 @@ let kill = () => {};                                   /* гасит Chrome пр
   await vp(390, 844); await ev(`setMode("today"); true`);
   check("раздел брата на 360 / 390 и боком: без прокрутки вбок, код влезает, цели от 44 px", !brBad.length, brBad.slice(0, 4).join(" | "));
 
+  /* ассессмент: плитка в «Карьере», файл пользователя вставкой, «Назад» телефона: цель → главная раздела → приложение */
+  {
+    const F = JSON.stringify({ kind: "jd-assessment", v: 1, who: {}, round: { date: "2025-01-10", from: "Junior-1", to: "Junior-2", months: 12 },
+      idp: [{ id: "jvm", t: "JVM", w: 100, crit: ["К"], cards: [{ t: "JVM" }] }] });
+    await ev(`localStorage.removeItem("jdAsm"); localStorage.removeItem("jdAsmMy"); setMode("learn"); document.querySelector('#viewLearn .jd-tile[data-mode="asm"]').click(); true`); await sleep(300);
+    const a0 = JSON.parse(await ev(`JSON.stringify({mode, title:(document.querySelector(".topbar .jd-up span")||{}).textContent, v:document.getElementById("asmWrap").dataset.v, file:!!document.getElementById("asmFile")})`));
+    await ev(`(function(){ document.querySelector('#asmWrap [data-imp="paste"]').click(); document.getElementById("asmTxt").value=${JSON.stringify(F)}; document.querySelector('#asmWrap [data-imp="go"]').click(); return true })()`); await sleep(250);
+    await tap('#asmWrap [data-go="g-jvm"]'); await sleep(250);
+    const a1 = JSON.parse(await ev(`JSON.stringify({v:document.getElementById("asmWrap").dataset.v, b1:jdNative.back()})`)); await sleep(300);
+    const a2 = JSON.parse(await ev(`JSON.stringify({v:document.getElementById("asmWrap").dataset.v, b2:jdNative.back(), mode})`));
+    await ev(`localStorage.removeItem("jdAsm"); localStorage.removeItem("jdAsmMy"); if(location.hash) history.replaceState(null,"",location.pathname); setMode("today"); true`);
+    check("«Ассессмент»: плитка в «Учить», в шапке название, загрузка вставкой; «Назад»: цель → главная раздела → дальше приложение",
+      a0.mode === "asm" && a0.title === "Ассессмент" && a0.v === "empty" && a0.file && a1.v === "goal" && a1.b1 === true && a2.v === "home" && a2.b2 === false, JSON.stringify([a0, a1, a2]));
+  }
+
   console.log("\n— разделы и ширины");
   const nav = [];
   for (const m of ["learn", "cards", "prog", "game", "today"]) { await ev(`document.querySelector('.jd-bb [data-m="${m}"]').click(); true`); await sleep(350); nav.push(m + ":" + (await ev("mode"))); }
   const hub = JSON.parse(await ev(`JSON.stringify({tiles:(setMode("learn"),document.querySelectorAll("#viewLearn .jd-tile").length), topics:(setMode("cards"),document.querySelectorAll('#viewCards [data-topic]').length), ladder:(setMode("prog"),document.querySelectorAll(".jl-row").length)})`));
-  check("панель ведёт в разделы; «Учить» — 12 разделов, «Карточки» — все темы, «Прогресс» — лестница из 7 ступеней", nav.every(x => x.split(":")[0] === x.split(":")[1]) && hub.tiles === 12 && hub.topics >= 15 && hub.ladder === 7, nav.join(" ") + " · " + JSON.stringify(hub));
+  check("панель ведёт в разделы; «Учить» — 13 разделов, «Карточки» — все темы, «Прогресс» — лестница из 7 ступеней", nav.every(x => x.split(":")[0] === x.split(":")[1]) && hub.tiles === 13 && hub.topics >= 15 && hub.ladder === 7, nav.join(" ") + " · " + JSON.stringify(hub));
   const AUD = `(function(){ const W=innerWidth, out=[];
     if (document.scrollingElement.scrollWidth>W+1) out.push("вбок "+document.scrollingElement.scrollWidth+">"+W);
     document.querySelectorAll(".jd-bb button,#jdAct .btn,.jd-row,.jd-tile,.jd-more,.jd-sbar button,.jl-row,.jd-search,.jd-seg button,.jd-opt,.jd-route,.jm-t,.jm-ttl,.jm-nb,.jm-go-s,.jm-act,.jm-me,.jm-line-b,.jm-q").forEach(b=>{ if(!b.getClientRects().length) return; const r=b.getBoundingClientRect();

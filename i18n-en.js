@@ -2478,6 +2478,7 @@ window.I18N = {
   "ECS или EKS и почему?": "ECS or EKS, and why?",
   "💰 Деньги": "💰 Money",
   "🐍 Python и C++ · брату": "🐍 Python & C++ · for my brother",
+  "🎯 Ассессмент": "🎯 Assessment",
   "🎵 Музыка · бонус": "🎵 Music · bonus",
   "под-темы": "subtopics",
   "▸ вся тема": "▸ whole topic",

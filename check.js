@@ -1060,7 +1060,7 @@ const check = (name, ok, detail) => {
      и вниз, но прокрутка достаёт только низ. Теряло 934px в играх и 190px в
      «На пальцах». Лечится словом safe, а этот сторож не даёт вернуться. */
   const unreachable = [];
-  for (const m of ["drill","terms","fp","prin","prog","sand","basics","zero","beh","money","path","game","mus","eng","bro"]) {
+  for (const m of ["drill","terms","fp","prin","prog","sand","basics","zero","beh","money","path","game","mus","eng","bro","asm"]) {
     await A.ev(`try{setMode(${JSON.stringify(m)})}catch(e){}`); await sleep(400);
     const r = await A.ev(`(function(){
       var out=[];
@@ -1452,8 +1452,84 @@ const check = (name, ok, detail) => {
     check("раздел стартует сам: по отметке «открывать здесь» и по ссылке #bro/…", pinM === "bro" && linkM === "bro #bro/cpp true", "отметка → " + pinM + " · ссылка → " + linkM);
   }
 
+  /* ---- «Ассессмент» (asm.js) ----
+     Личных данных в репозитории нет — раздел живёт на файле пользователя (jdAsm). Здесь — выдуманный файл:
+     пустой экран, импорт вставкой, цель ИПР → карточки тренажёра → занятие, отметки, «назад», достижения, удаление, EN. */
+  {
+    await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+    const am = JSON.parse(await A.ev(`(async function(){
+      var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})}, плохо=[], wrap=function(){return document.getElementById("asmWrap")}, q=function(s){return wrap().querySelector(s)};
+      var было={a:localStorage.getItem("jdAsm"), m:localStorage.getItem("jdAsmMy"), j:localStorage.getItem("javaDrillProgress.v1")};
+      var F={kind:"jd-assessment",v:1,made:"2026-01-02",who:{team:"Команда",stack:"Java"},
+        round:{date:"2025-01-10",approved:"2025-01-10",from:"Junior-1",to:"Junior-2",months:12,decision:"Соответствует",actions:[{id:"a1",t:"Действие"}],jira:"https://example.invalid/browse/"},
+        idp:[{id:"jvm",t:"JVM",w:50,desc:["Изучить JVM"],crit:["Критерий один","Критерий два"],cards:[{t:"JVM"}],terms:[{n:"GC",re:"GC|G1"},{n:"Нет такого",re:"zzqqxx"}],proof:[{t:"Пруф",d:"текст",sc:["SC-1"],st:"prod"}],tips:["Совет"]},
+             {id:"tst",t:"Тесты",w:50,crit:["К"],cards:[{t:"Testing",kw:"Mockito"}]}],
+        past:[{p:"Q1",goals:["Цель"],items:[{t:"Было",d:"сделано",sc:["SC-2"]}]}],
+        draft:{since:"2025-01-10",how:"как собрано",commits:5,tickets:2,q:[{p:"Q2",items:[{t:"Стало",d:"сделано",sc:["SC-3","SC-4"],st:"part"}]}],extra:[{t:"Ветка",d:"x",sc:[],st:"no"}],team:"допиши"}};
+      try {
+      localStorage.removeItem("jdAsm"); localStorage.removeItem("jdAsmMy");
+      document.getElementById("tabAsm").click(); await ж(150);
+      if(mode!=="asm"||location.hash!=="#asm") плохо.push("вкладка: "+mode+" "+location.hash);
+      if(wrap().dataset.v!=="empty"||!q('[data-imp="file"]')||!q('[data-imp="paste"]')) плохо.push("нет пустого экрана с загрузкой");
+      /* чужой файл не принимается */
+      q('[data-imp="paste"]').click(); document.getElementById("asmTxt").value='{"kind":"other"}'; q('[data-imp="go"]').click(); await ж(80);
+      if(localStorage.getItem("jdAsm")||wrap().dataset.v!=="empty") плохо.push("принят чужой файл");
+      q('[data-imp="paste"]').click(); document.getElementById("asmTxt").value=JSON.stringify(F); q('[data-imp="go"]').click(); await ж(150);
+      if(wrap().dataset.v!=="home") плохо.push("после импорта не главная: "+wrap().dataset.v);
+      if(wrap().querySelectorAll('.asm-g[data-go^="g-"]').length!==2) плохо.push("целей на главной не 2");
+      if(!q('[data-go="ach"]')) плохо.push("нет входа в достижения");
+      if(!/Junior-2/.test(wrap().textContent)) плохо.push("нет уровня из файла");
+      if(backupKeys().indexOf("jdAsm")<0) плохо.push("данные не попадают в бэкап");
+      /* цель: критерии, карточки тренажёра, темы */
+      q('[data-go="g-jvm"]').click(); for(var i=0;i<20&&wrap().dataset.v!=="goal";i++) await ж(50);
+      if(location.hash!=="#asm/g-jvm") плохо.push("адрес цели "+location.hash);
+      var jvm=CARDS.filter(function(c){return c.t==="JVM"&&!isHidden(c.id)}).length;
+      if(!new RegExp("/ "+jvm+" ").test((q(".asm-tr")||{}).textContent||"")) плохо.push("карточек цели не "+jvm+": "+((q(".asm-tr")||{}).textContent||""));
+      var cb=wrap().querySelectorAll("[data-ck]"); if(cb.length!==2) плохо.push("критериев не 2");
+      cb[0].click(); await ж(30);
+      var my=JSON.parse(localStorage.getItem("jdAsmMy")||"{}"); if(Object.keys(my.ck||{}).length!==1) плохо.push("отметка критерия не сохранилась");
+      if(!cb[0].nextElementSibling.querySelector("small")) плохо.push("у отметки нет даты");
+      var tm=wrap().querySelectorAll("[data-term]"); if(tm.length!==2||!tm[1].disabled||!tm[1].classList.contains("thin")) плохо.push("темы: пустая не помечена");
+      if(!q(".asm-gap")) плохо.push("нет строки «мало в тренажёре»");
+      /* «назад» браузера: цель → главная */
+      history.back(); for(var i=0;i<30&&(location.hash!=="#asm"||wrap().dataset.v!=="home");i++) await ж(100);
+      if(wrap().dataset.v!=="home") плохо.push("«назад» не вернул главную: "+location.hash);
+      /* «Учить» — занятие ровно на карточках цели, сначала не освоенные, не больше 40 */
+      q('[data-go="g-jvm"]').click(); await ж(80); q('[data-study]').click(); await ж(250);
+      if(mode!=="drill") плохо.push("«Учить» не открыл занятие: "+mode);
+      var qq=(typeof queue!=="undefined"?queue:[]); if(!qq.length||qq.length>40||qq.some(function(c){return c.t!=="JVM"})) плохо.push("очередь не из карточек цели: "+qq.length);
+      if(location.hash) плохо.push("уход из раздела оставил "+location.hash);
+      if(localStorage.getItem("javaDrillProgress.v1")!==было.j) плохо.push("прогресс тронут до ответа");
+      /* достижения: обе вкладки, копирование текстом */
+      setMode("asm"); await ж(50); q('[data-go="ach"]').click(); for(var i=0;i<20&&wrap().dataset.v!=="ach";i++) await ж(50);
+      if(!/Стало/.test(wrap().textContent)||wrap().querySelectorAll(".asm-sc").length!==2||!q(".asm-st.part")) плохо.push("черновик достижений не нарисован");
+      q('[data-copy]').click(); for(var i=0;i<20&&!/✓/.test(q('[data-copy]').textContent);i++) await ж(50);
+      if(!/✓/.test(q('[data-copy]').textContent)) плохо.push("копирование не подтвердилось");
+      q('[data-tab="past"]').click(); await ж(30); if(!/Было/.test(wrap().textContent)) плохо.push("прошлые достижения не открылись");
+      /* срок повторного: дата утверждения правится и сохраняется */
+      setMode("drill"); setMode("asm"); await ж(50);
+      var ap=document.getElementById("asmAppr"); ap.value="2025-02-01"; ap.dispatchEvent(new Event("change",{bubbles:true})); await ж(50);
+      if(JSON.parse(localStorage.getItem("jdAsmMy")).approved!=="2025-02-01"||!/01\.02\.2026/.test(q(".asm-due").textContent)) плохо.push("дата утверждения: "+q(".asm-due").textContent);
+      /* EN: подписи раздела */
+      setLang("en"); await ж(1500);
+      if(!/Assessment/.test(document.getElementById("tabAsm").textContent)||!/Growth plan/.test(wrap().textContent)) плохо.push("EN не переведено");
+      setLang("ru"); await ж(600);
+      /* удаление — вторым нажатием */
+      var del=q("[data-del]"); del.click(); await ж(20); if(!localStorage.getItem("jdAsm")) плохо.push("удалилось с первого нажатия");
+      q("[data-del]").click(); await ж(80);
+      if(localStorage.getItem("jdAsm")||localStorage.getItem("jdAsmMy")||wrap().dataset.v!=="empty") плохо.push("удаление не сработало");
+      } catch(e){ плохо.push("исключение: "+(e&&e.message||e)); }
+      finally {
+        [["jdAsm",было.a],["jdAsmMy",было.m]].forEach(function(x){ if(x[1]==null) localStorage.removeItem(x[0]); else localStorage.setItem(x[0],x[1]); });
+        if(location.hash) history.replaceState(null,"",location.pathname); if(mode!=="drill") setMode("drill");
+      }
+      return JSON.stringify({плохо:плохо});
+    })()`));
+    check("«Ассессмент»: файл пользователя, цели ИПР → карточки → занятие, отметки, «назад», достижения, удаление, EN", am.плохо.length === 0, am.плохо.slice(0, 5).join(" · "));
+  }
+
   /* ---- обход вкладок ---- */
-  const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus","tabBro"];
+  const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus","tabBro","tabAsm"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }
   const errs = JSON.parse(await A.ev("JSON.stringify(__err)"));
   check("ошибок JS на всех вкладках нет", errs.length === 0, errs.slice(0, 3).join(" | "));
