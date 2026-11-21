@@ -2819,8 +2819,8 @@
     --sk-title:linear-gradient(180deg,#fff8f0 30%,#ffc49a 100%);
   }
   /* без стекла панели непрозрачные — иначе сцена просвечивает сквозь текст */
-  html.fx-lite[data-skin="neon"]{--panel:#180a2d}
-  html.fx-lite[data-skin="sunset"]{--panel:#18131b}
+  html.fx-lite[data-skin="neon"]{--panel:#180a2d;--sk-chrome:#0d051c}
+  html.fx-lite[data-skin="sunset"]{--panel:#18131b;--sk-chrome:#0c0a0f}   /* непрозрачная шапка: без смешивания с фоном на каждом кадре прокрутки */
 
   /* --- сцена фона: общий сброс классических пятен; --hz — линия горизонта --- */
   html[data-skin="neon"]{--hz:64.7%} html[data-skin="sunset"]{--hz:74.7%}
@@ -2833,16 +2833,21 @@
   html[data-skin="neon"] .bg{background:
     radial-gradient(64vmin 24vmin at 50% var(--hz),rgba(255,79,180,.5),transparent 70%),
     linear-gradient(180deg,#080312 0%,#140632 calc(var(--hz)*.53),#370d58 calc(var(--hz)*.8),#8a1a6c calc(var(--hz)*.935),#ff4f9a calc(var(--hz) - .1%),#0a0318 var(--hz),#07020f 100%)}
-  html[data-skin="neon"] .bg::before{left:50%;top:calc(var(--hz) - 33vmin);width:40vmin;height:40vmin;margin-left:-20vmin;border-radius:50%;
-    background:linear-gradient(180deg,#ffe46b 6%,#ffa046 40%,#ff4f9a 80%);clip-path:inset(0 0 17.5% 0);
-    -webkit-mask-image:linear-gradient(180deg,#000 50%,transparent 50% 53.5%,#000 53.5% 59%,transparent 59% 63%,#000 63% 68%,transparent 68% 73%,#000 73% 77%,transparent 77% 83%,#000 83%);
-    mask-image:linear-gradient(180deg,#000 50%,transparent 50% 53.5%,#000 53.5% 59%,transparent 59% 63%,#000 63% 68%,transparent 68% 73%,#000 73% 77%,transparent 77% 83%,#000 83%)}
+  /* солнце — картинкой: полосы и срез по горизонту внутри SVG. Маска CSS давала лишний проход отрисовки на каждом кадре */
+  html[data-skin="neon"] .bg::before{left:50%;top:calc(var(--hz) - 33vmin);width:40vmin;height:40vmin;margin-left:-20vmin;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E %3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='.06' stop-color='%23ffe46b'/%3E%3Cstop offset='.4' stop-color='%23ffa046'/%3E%3Cstop offset='.8' stop-color='%23ff4f9a'/%3E%3C/linearGradient%3E %3Cmask id='s'%3E%3Crect width='100' height='82.5' fill='%23fff'/%3E%3Crect x='0' y='50' width='100' height='3.5' fill='%23000'/%3E%3Crect x='0' y='59' width='100' height='4' fill='%23000'/%3E%3Crect x='0' y='68' width='100' height='5' fill='%23000'/%3E%3Crect x='0' y='77' width='100' height='6' fill='%23000'/%3E%3C/mask%3E%3C/defs%3E %3Ccircle cx='50' cy='50' r='50' fill='url(%23g)' mask='url(%23s)'/%3E%3C/svg%3E") center/100% 100% no-repeat}
   html[data-skin="neon"] .bg i{left:0;right:0;top:var(--hz);bottom:0;overflow:hidden;perspective:190px;perspective-origin:50% 0;
     -webkit-mask-image:linear-gradient(180deg,transparent,#000 38%);mask-image:linear-gradient(180deg,transparent,#000 38%)}
   html[data-skin="neon"] .bg i::before{content:"";position:absolute;left:-160%;right:-160%;bottom:-72px;height:2600px;transform-origin:50% 100%;transform:rotateX(74deg);
     background-image:linear-gradient(90deg,rgba(255,79,180,.75) 2px,transparent 2px),linear-gradient(0deg,rgba(45,226,230,.6) 2px,transparent 2px);background-size:72px 72px;
     animation:skGrid 2.6s linear infinite}
   @keyframes skGrid{from{transform:rotateX(74deg)}to{transform:rotateX(74deg) translateY(72px)}}
+  /* лёгкий режим (телефон, приложение): сетка — плоская картинка той же перспективы, фон — свой слой, рисуется один раз.
+     3D-плоскость с маской была огромным отдельным слоем: на слабой видеокарте «Неон» тратил на кадр на 40% больше классики.
+     Бегущая 3D-сетка остаётся там, где включены «Красивые эффекты». */
+  html.fx-lite[data-skin="neon"] .bg i{perspective:none;-webkit-mask-image:none;mask-image:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000' preserveAspectRatio='none'%3E %3Cdefs%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='0'/%3E%3Cstop offset='.38' stop-color='%23fff'/%3E%3C/linearGradient%3E %3Cmask id='m'%3E%3Crect width='1000' height='1000' fill='url(%23f)'/%3E%3C/mask%3E%3C/defs%3E %3Cg mask='url(%23m)' fill='none' vector-effect='non-scaling-stroke'%3E %3Cpath d='M-2380 1000L500 0M-2260 1000L500 0M-2140 1000L500 0M-2020 1000L500 0M-1900 1000L500 0M-1780 1000L500 0M-1660 1000L500 0M-1540 1000L500 0M-1420 1000L500 0M-1300 1000L500 0M-1180 1000L500 0M-1060 1000L500 0M-940 1000L500 0M-820 1000L500 0M-700 1000L500 0M-580 1000L500 0M-460 1000L500 0M-340 1000L500 0M-220 1000L500 0M-100 1000L500 0M20 1000L500 0M140 1000L500 0M260 1000L500 0M380 1000L500 0M500 1000L500 0M620 1000L500 0M740 1000L500 0M860 1000L500 0M980 1000L500 0M1100 1000L500 0M1220 1000L500 0M1340 1000L500 0M1460 1000L500 0M1580 1000L500 0M1700 1000L500 0M1820 1000L500 0M1940 1000L500 0M2060 1000L500 0M2180 1000L500 0M2300 1000L500 0M2420 1000L500 0M2540 1000L500 0M2660 1000L500 0M2780 1000L500 0M2900 1000L500 0M3020 1000L500 0M3140 1000L500 0M3260 1000L500 0M3380 1000L500 0' stroke='%23ff4fb4' stroke-opacity='.75' stroke-width='1.6' vector-effect='non-scaling-stroke'/%3E %3Cpath d='M0 1000.0H1000M0 769.2H1000M0 625.0H1000M0 526.3H1000M0 454.5H1000M0 400.0H1000M0 357.1H1000M0 322.6H1000M0 294.1H1000M0 270.3H1000M0 250.0H1000M0 232.6H1000M0 217.4H1000M0 204.1H1000M0 192.3H1000M0 181.8H1000M0 172.4H1000M0 163.9H1000M0 156.3H1000M0 149.3H1000M0 142.9H1000M0 137.0H1000M0 131.6H1000M0 126.6H1000M0 122.0H1000M0 117.6H1000M0 113.6H1000M0 109.9H1000M0 106.4H1000M0 103.1H1000M0 100.0H1000M0 97.1H1000M0 94.3H1000M0 91.7H1000M0 89.3H1000M0 87.0H1000M0 84.7H1000M0 82.6H1000M0 80.6H1000M0 78.7H1000M0 76.9H1000' stroke='%232de2e6' stroke-opacity='.6' stroke-width='1.6' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+  html.fx-lite[data-skin="neon"] .bg i::before{display:none}
+  html.fx-lite[data-skin] .bg{will-change:transform}
   html[data-skin="neon"] .bg::after{inset:0;background:
     repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 320'%3E%3Cg fill='%230d0219'%3E %3Cpath d='M104 320c2-70 6-130 22-196l7 2c-13 66-17 126-19 194z'/%3E %3Cpath d='M130 122c-28-26-66-28-104 4 34-14 70-14 104-4z'/%3E %3Cpath d='M130 122c-12-38-40-58-76-62 30 12 56 34 76 62z'/%3E %3Cpath d='M130 122c8-40 34-62 70-66-28 14-50 36-70 66z'/%3E %3Cpath d='M130 122c30-24 66-24 90 8-30-14-60-16-90-8z'/%3E %3Cpath d='M130 122c-26 4-52 26-62 66 14-30 36-52 62-66z'/%3E %3Cpath d='M130 122c26 6 46 30 50 68-12-30-30-52-50-68z'/%3E %3Ccircle cx='126' cy='131' r='5'/%3E%3Ccircle cx='136' cy='132' r='4.5'/%3E%3C/g%3E%3C/svg%3E") left max(-5vmin,-13vw) bottom -1vh/auto min(60vh,64vw) no-repeat,
@@ -2924,7 +2929,7 @@
   html[data-skin="neon"] .view.enter{animation:skNeonIn .3s cubic-bezier(.2,.8,.2,1) both}
   html[data-skin="sunset"] .view.enter{animation:skSunIn .44s cubic-bezier(.16,1,.3,1) both}
   @keyframes skNeonIn{0%{opacity:0;transform:translateX(-14px)}38%{opacity:1}50%{opacity:.6}62%{opacity:1}100%{opacity:1;transform:none}}   /* без наклона: skew на высоком экране выносил низ вправо и раздвигал страницу */
-  @keyframes skSunIn{from{opacity:0;transform:translateY(10px) scale(.988)}to{opacity:1;transform:none}}
+  @keyframes skSunIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}   /* без scale: масштаб высокого экрана перерисовывал его на каждом кадре перехода */
   html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>*,html[data-skin] .view.enter .asm-card{animation:skRise .46s cubic-bezier(.16,1,.3,1) both}
   html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>:nth-child(2),html[data-skin] .view.enter .asm-card:nth-child(2){animation-delay:.04s}
   html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>:nth-child(3),html[data-skin] .view.enter .asm-card:nth-child(3){animation-delay:.08s}

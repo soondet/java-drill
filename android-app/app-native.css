@@ -667,7 +667,7 @@ html.native-app .jd-sheet .zn-s.done { color: var(--jd-good); }
 /* Выбор — в «A» (skin.js), сцена фона, шапка сайта, кнопки и анимации — в index.html. Здесь — токены слоя приложения и его экраны.
  * Специфичность html.native-app[data-skin] выше, чем у токенов раздела 1, поэтому порядок подключения не важен. У «Классики» атрибута нет. */
 html.native-app[data-skin="neon"] {
-  --jd-s0: #0b0418; --jd-s1: #170a2c; --jd-s2: #200f3b; --jd-s3: #2a1449; --jd-chrome: rgba(12, 4, 26, .95);
+  --jd-s0: #0b0418; --jd-s1: #170a2c; --jd-s2: #200f3b; --jd-s3: #2a1449; --jd-chrome: #0c041a;
   --jd-b1: rgba(255, 94, 196, .15); --jd-b2: rgba(255, 94, 196, .28); --jd-hl: inset 0 1px 0 rgba(255, 180, 240, .07);
   --jd-t1: #fff1fb; --jd-t2: #f2e2f6; --jd-t3: #c3aad8; --jd-t4: #9480ab;
   --jd-acc: #ff5cb8; --jd-vio: #b874ff; --jd-cy: #2de2e6; --jd-org: #ff9f43; --jd-good: #3df5b0; --jd-mid: #ffd36e; --jd-bad: #ff6178;
@@ -675,12 +675,13 @@ html.native-app[data-skin="neon"] {
   --jd-sh2: 0 24px 60px -28px rgba(0, 0, 0, .9);
 }
 html.native-app[data-skin="sunset"] {
-  --jd-s0: #0a0a10; --jd-s1: #17121a; --jd-s2: #201a25; --jd-s3: #2a222f; --jd-chrome: rgba(12, 10, 15, .95);
+  --jd-s0: #0a0a10; --jd-s1: #17121a; --jd-s2: #201a25; --jd-s3: #2a222f; --jd-chrome: #0c0a0f;
   --jd-b1: rgba(255, 214, 180, .09); --jd-b2: rgba(255, 214, 180, .15); --jd-hl: inset 0 1px 0 rgba(255, 236, 220, .07);
   --jd-t1: #fff5ec; --jd-t2: #eee1d5; --jd-t3: #bdac9d; --jd-t4: #8d8075;
   --jd-acc: #ff9466; --jd-vio: #ff6f98; --jd-cy: #4fd6c4; --jd-org: #ffb14a; --jd-good: #62d9a0; --jd-mid: #ffc65c; --jd-bad: #ff6f6f;
   --jd-r1: 12px; --jd-r2: 16px; --jd-r3: 22px;
 }
+/* шапка и нижняя панель непрозрачные (--jd-chrome): прозрачные смешивались бы со сценой на каждом кадре прокрутки */
 html.native-app[data-skin] .bg { opacity: .66; }                           /* сцена видна, но не спорит с текстом, который лежит без панели */
 html.native-app[data-skin][data-sk-read] .bg { opacity: .36; }               /* экраны для чтения (skin.js) */
 html.native-app[data-skin] body.jd-focus .bg { opacity: .26; }               /* в занятии — только намёк: ответ читается прямо по фону */
