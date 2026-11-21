@@ -311,6 +311,52 @@ let kill = () => {};                                   /* гасит Chrome пр
   }
   check("360 / 390 / 412 и телефон боком: без прокрутки вбок, цели от 44 px, оценки на экране", !bad.length, bad.slice(0, 4).join(" | "));
   await vp(390, 844);
+
+  console.log("\n— оформления «Неон-86» и «Закат»");
+  {
+    /* классика по умолчанию; цифры «Сегодня» в классике — эталон для досчёта в оформлении */
+    const c0 = JSON.parse(await ev(`(function(){ setMode("today"); const H=document.documentElement;
+      return JSON.stringify({skin:H.getAttribute("data-skin"), s0:getComputedStyle(H).getPropertyValue("--jd-s0").trim(), nums:[...document.querySelectorAll(".jt-nums b,.jt-ctr b")].map(b=>b.textContent)}); })()`));
+    const SKIN = s => `(async function(){ const ж=ms=>new Promise(r=>setTimeout(r,ms)), H=document.documentElement, v=n=>getComputedStyle(H).getPropertyValue(n).trim(), out={};
+      document.querySelector("#fsBtn").click(); await ж(80);
+      out.opts=document.querySelectorAll("#fsPop .sk-opt").length;
+      document.querySelector('#fsPop .sk-opt[data-skin="${s}"]').click(); await ж(700);
+      document.querySelector("#fsPop").hidden=true;
+      out.skin=H.getAttribute("data-skin"); out.key=localStorage.getItem("jdSkin"); out.s0=v("--jd-s0");
+      out.pi=getComputedStyle(document.querySelector(".jd-bb button.on .jd-pi")).backgroundColor;
+      setMode("today"); await ж(1100); out.nums=[...document.querySelectorAll(".jt-nums b,.jt-ctr b")].map(b=>b.textContent); out.hubOp=+getComputedStyle(document.querySelector(".bg")).opacity;
+      setMode("prog"); await ж(700); out.read=H.hasAttribute("data-sk-read"); out.readOp=+getComputedStyle(document.querySelector(".bg")).opacity;
+      setMode("today"); await ж(100); document.querySelector("#jtGo").click(); await ж(700); out.focus=document.body.classList.contains("jd-focus"); out.focusOp=+getComputedStyle(document.querySelector(".bg")).opacity;
+      setMode("today"); await ж(200);
+      return JSON.stringify(out); })()`;
+    const res = {};
+    for (const s of ["neon", "sunset"]) res[s] = JSON.parse(await ev(SKIN(s)));
+    const S0 = { neon: "#0b0418", sunset: "#0a0a10" }, okSkin = s => { const r = res[s];
+      return r.opts === 3 && r.skin === s && r.key === s && r.s0 === S0[s] && !/110, 168, 254/.test(r.pi) && JSON.stringify(r.nums) === JSON.stringify(c0.nums)
+        && r.read && Math.abs(r.readOp - .36) < .02 && Math.abs(r.hubOp - .66) < .02 && r.focus && Math.abs(r.focusOp - .26) < .02; };
+    check("переключатель в «A»: три варианта; «Неон-86» и «Закат» меняют токены слоя приложения и подсветку панели; цифры досчитываются до верных; чтение и занятие приглушают сцену",
+      c0.skin === null && c0.s0 === "#07080e" && okSkin("neon") && okSkin("sunset"), JSON.stringify({ c0, neon: res.neon, sunset: res.sunset }).slice(0, 600));
+    /* ширины в оформлении: те же правила, что для классики */
+    const badS = [];
+    for (const s of ["neon", "sunset"]) {
+      await ev(`jdSkin.set("${s}"); true`); await sleep(700);
+      for (const [w, hh] of [[360, 780], [390, 844]]) { await vp(w, hh); await sleep(200);
+        for (const m of ["today", "learn", "cards", "prog", "roadmap", "asm"]) { await ev(`setMode("${m}"); true`); await sleep(520); const a = JSON.parse(await ev(AUD)); if (a.length) badS.push(s + " " + w + " " + m + ": " + a.join("; ")); } }
+      await vp(390, 844);
+    }
+    check("оформления на 360 и 390: без прокрутки вбок, цели от 44 px", !badS.length, badS.slice(0, 4).join(" | "));
+    /* перезапуск приложения: выбор сохранился; потом — назад в классику */
+    const errsBefore = JSON.parse(await ev("JSON.stringify(__err)"));
+    await ev(`jdSkin.set("neon"); true`); await sleep(700);
+    await open();
+    await ev(`__err.push(...${JSON.stringify(errsBefore)}); true`);
+    const r1 = JSON.parse(await ev(`JSON.stringify({skin:document.documentElement.getAttribute("data-skin"), on:(document.querySelector('#fsPop .sk-opt[aria-checked="true"]')||{dataset:{}}).dataset.skin})`));
+    await ev(`jdSkin.set("classic"); true`); await sleep(700);
+    const r2 = JSON.parse(await ev(`JSON.stringify({skin:document.documentElement.getAttribute("data-skin"), key:localStorage.getItem("jdSkin"), s0:getComputedStyle(document.documentElement).getPropertyValue("--jd-s0").trim()})`));
+    check("после перезапуска оформление то же; возврат в «Классику» — исходные токены и ни следа в хранилище",
+      r1.skin === "neon" && r1.on === "neon" && r2.skin === null && r2.key === null && r2.s0 === "#07080e", JSON.stringify([r1, r2]));
+  }
+
   check("ни одного системного окна alert/confirm", !dialogs.length, dialogs.join(" | "));
   const errs = JSON.parse(await ev("JSON.stringify(__err)"));
   check("без ошибок JS", !errs.length, errs.slice(0, 3).join(" | "));

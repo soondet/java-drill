@@ -19,6 +19,8 @@
   phone=matchMedia("(pointer:coarse)").matches&&Math.min(screen.width,screen.height)<820,
   app=!!(C&&C.isNativePlatform&&C.isNativePlatform());
   if(s==="lite"||(s!=="full"&&(app||phone))) document.documentElement.classList.add("fx-lite"); }catch(e){} })();
+/* Оформление «Неон-86» / «Закат» — тоже до первой отрисовки, иначе мигнёт классика. Переключатель — skin.js. */
+(function(){ try{ var k=localStorage.getItem("jdSkin"); if(k==="neon"||k==="sunset") document.documentElement.setAttribute("data-skin",k); }catch(e){} })();
 </script>
 <!-- системные шрифты: внешняя загрузка блокировала первый кадр, фолбэки в CSS полные -->
 <style>
@@ -2779,6 +2781,204 @@
   .bas-ico{font-size:20px;flex:none}
   .bas-plain{font-size:calc(13.5px * var(--ts));line-height:1.6;color:var(--txt)}
   .bas-an{font-size:calc(13px * var(--ts));line-height:1.5;color:var(--txt);background:linear-gradient(90deg,rgba(169,139,255,.14),transparent);border-left:2px solid var(--acc2);padding:8px 12px;border-radius:0 10px 10px 0}
+  /* ===== ОФОРМЛЕНИЯ: «Неон-86» и «Закат» (skin.js) ===== */
+  /* Всё под html[data-skin=…]: у «Классики» атрибута нет — ни одно правило ниже её не задевает (кроме самого переключателя .sk-*).
+     Цвета идут через те же переменные, что у всего сайта (--bg, --panel, --acc, --grad…), поэтому меняется каждый экран;
+     свои --sk-*: шрифт заголовков, хром, кромка, свечение. Сцена фона — CSS и свои SVG, без картинок и внешних шрифтов.
+     Лёгкий режим (fx-lite, по умолчанию на телефоне) — сцена неподвижна, панели непрозрачные; «меньше движения» — без анимаций. */
+  html[data-skin="neon"]{
+    --bg:#0b0418; --txt:#fff1fb; --read:#f2e2f6; --mut:#c3aad8;
+    --panel:rgba(24,10,44,.84); --panel-2:rgba(255,120,220,.06);
+    --line:rgba(255,94,196,.2); --line-2:rgba(255,94,196,.11);
+    --acc:#ff5cb8; --acc2:#b874ff; --cyan:#2de2e6; --good:#3df5b0; --bad:#ff6178; --warn:#ffd36e;
+    --grad:linear-gradient(120deg,#ff4fb4 0%,#b46bff 52%,#2de2e6 100%);
+    --radius:14px; --shadow:0 26px 70px -28px rgba(0,0,0,.9);
+    --sk-display:"Avenir Next Condensed","Futura","Roboto Condensed","sans-serif-condensed","Arial Narrow",var(--sans);
+    --sk-chrome:rgba(13,5,28,.88); --sk-pop:rgba(17,6,33,.97);
+    --sk-edge:rgba(255,94,196,.24); --sk-edge-hi:rgba(45,226,230,.55);
+    --sk-tint:rgba(255,79,180,.16); --sk-tint-2:rgba(255,79,180,.32); --sk-ink:#14041f; --sk-kicker:#4ee8eb;
+    --sk-glow:0 0 0 1px rgba(255,120,200,.55),0 8px 26px -6px rgba(255,79,180,.7);
+    --sk-card-sh:0 0 0 1px rgba(255,79,180,.06),0 0 40px -14px rgba(255,79,180,.5),0 30px 70px -30px rgba(0,0,0,.9);
+    --sk-pop-glow:0 0 30px -10px rgba(255,79,180,.55);
+    --sk-title:linear-gradient(180deg,#ffe66d 8%,#ff9f43 48%,#ff4fb4 92%);
+  }
+  html[data-skin="sunset"]{
+    --bg:#0a0a10; --txt:#fff5ec; --read:#eee1d5; --mut:#bdac9d;
+    --panel:rgba(22,17,25,.64); --panel-2:rgba(255,214,180,.05);
+    --line:rgba(255,214,180,.13); --line-2:rgba(255,214,180,.07);
+    --acc:#ff9466; --acc2:#ff6f98; --cyan:#4fd6c4; --good:#62d9a0; --bad:#ff6f6f; --warn:#ffc65c;
+    --grad:linear-gradient(115deg,#ffc36b 0%,#ff8a5c 46%,#ee4f7e 100%);
+    --radius:20px; --shadow:0 30px 80px -32px rgba(0,0,0,.9);
+    --sk-display:"Avenir Next","SF Pro Display","Helvetica Neue",var(--sans);
+    --sk-chrome:rgba(12,10,15,.8); --sk-pop:rgba(19,15,22,.97);
+    --sk-edge:rgba(255,214,180,.14); --sk-edge-hi:rgba(255,160,110,.5);
+    --sk-tint:rgba(255,143,94,.14); --sk-tint-2:rgba(255,143,94,.3); --sk-ink:#1d0e09; --sk-kicker:#ffb48c;
+    --sk-glow:0 10px 30px -10px rgba(255,120,80,.6);
+    --sk-card-sh:inset 0 1px 0 rgba(255,236,220,.07),0 30px 80px -32px rgba(0,0,0,.95);
+    --sk-pop-glow:0 0 0 1px rgba(255,236,220,.03);
+    --sk-title:linear-gradient(180deg,#fff8f0 30%,#ffc49a 100%);
+  }
+  /* без стекла панели непрозрачные — иначе сцена просвечивает сквозь текст */
+  html.fx-lite[data-skin="neon"]{--panel:#180a2d}
+  html.fx-lite[data-skin="sunset"]{--panel:#18131b}
+
+  /* --- сцена фона: общий сброс классических пятен; --hz — линия горизонта --- */
+  html[data-skin="neon"]{--hz:64.7%} html[data-skin="sunset"]{--hz:74.7%}
+  /* на телефоне горизонт ниже: середина экрана — тёмное небо, текст без панели не ложится на солнце */
+  @media (max-width:720px){ html[data-skin="neon"]{--hz:79%} html[data-skin="sunset"]{--hz:82%} }
+  html[data-skin] .bg{background:var(--bg)}
+  html[data-skin] .bg::before,html[data-skin] .bg::after,html[data-skin] .bg i{filter:none;opacity:1;border-radius:0;will-change:auto;animation:none;
+    width:auto;height:auto;top:auto;left:auto;right:auto;bottom:auto;background:none}
+  /* Неон-86: небо заката, полосатое солнце на горизонте, бегущая сетка, пальмы, строчки кинескопа */
+  html[data-skin="neon"] .bg{background:
+    radial-gradient(64vmin 24vmin at 50% var(--hz),rgba(255,79,180,.5),transparent 70%),
+    linear-gradient(180deg,#080312 0%,#140632 calc(var(--hz)*.53),#370d58 calc(var(--hz)*.8),#8a1a6c calc(var(--hz)*.935),#ff4f9a calc(var(--hz) - .1%),#0a0318 var(--hz),#07020f 100%)}
+  html[data-skin="neon"] .bg::before{left:50%;top:calc(var(--hz) - 33vmin);width:40vmin;height:40vmin;margin-left:-20vmin;border-radius:50%;
+    background:linear-gradient(180deg,#ffe46b 6%,#ffa046 40%,#ff4f9a 80%);clip-path:inset(0 0 17.5% 0);
+    -webkit-mask-image:linear-gradient(180deg,#000 50%,transparent 50% 53.5%,#000 53.5% 59%,transparent 59% 63%,#000 63% 68%,transparent 68% 73%,#000 73% 77%,transparent 77% 83%,#000 83%);
+    mask-image:linear-gradient(180deg,#000 50%,transparent 50% 53.5%,#000 53.5% 59%,transparent 59% 63%,#000 63% 68%,transparent 68% 73%,#000 73% 77%,transparent 77% 83%,#000 83%)}
+  html[data-skin="neon"] .bg i{left:0;right:0;top:var(--hz);bottom:0;overflow:hidden;perspective:190px;perspective-origin:50% 0;
+    -webkit-mask-image:linear-gradient(180deg,transparent,#000 38%);mask-image:linear-gradient(180deg,transparent,#000 38%)}
+  html[data-skin="neon"] .bg i::before{content:"";position:absolute;left:-160%;right:-160%;bottom:-72px;height:2600px;transform-origin:50% 100%;transform:rotateX(74deg);
+    background-image:linear-gradient(90deg,rgba(255,79,180,.75) 2px,transparent 2px),linear-gradient(0deg,rgba(45,226,230,.6) 2px,transparent 2px);background-size:72px 72px;
+    animation:skGrid 2.6s linear infinite}
+  @keyframes skGrid{from{transform:rotateX(74deg)}to{transform:rotateX(74deg) translateY(72px)}}
+  html[data-skin="neon"] .bg::after{inset:0;background:
+    repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 320'%3E%3Cg fill='%230d0219'%3E %3Cpath d='M104 320c2-70 6-130 22-196l7 2c-13 66-17 126-19 194z'/%3E %3Cpath d='M130 122c-28-26-66-28-104 4 34-14 70-14 104-4z'/%3E %3Cpath d='M130 122c-12-38-40-58-76-62 30 12 56 34 76 62z'/%3E %3Cpath d='M130 122c8-40 34-62 70-66-28 14-50 36-70 66z'/%3E %3Cpath d='M130 122c30-24 66-24 90 8-30-14-60-16-90-8z'/%3E %3Cpath d='M130 122c-26 4-52 26-62 66 14-30 36-52 62-66z'/%3E %3Cpath d='M130 122c26 6 46 30 50 68-12-30-30-52-50-68z'/%3E %3Ccircle cx='126' cy='131' r='5'/%3E%3Ccircle cx='136' cy='132' r='4.5'/%3E%3C/g%3E%3C/svg%3E") left max(-5vmin,-13vw) bottom -1vh/auto min(60vh,64vw) no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 320'%3E%3Cg fill='%230d0219' transform='matrix(-1 0 0 1 220 0)'%3E %3Cpath d='M104 320c2-70 6-130 22-196l7 2c-13 66-17 126-19 194z'/%3E %3Cpath d='M130 122c-28-26-66-28-104 4 34-14 70-14 104-4z'/%3E %3Cpath d='M130 122c-12-38-40-58-76-62 30 12 56 34 76 62z'/%3E %3Cpath d='M130 122c8-40 34-62 70-66-28 14-50 36-70 66z'/%3E %3Cpath d='M130 122c30-24 66-24 90 8-30-14-60-16-90-8z'/%3E %3Cpath d='M130 122c-26 4-52 26-62 66 14-30 36-52 62-66z'/%3E %3Cpath d='M130 122c26 6 46 30 50 68-12-30-30-52-50-68z'/%3E %3Ccircle cx='126' cy='131' r='5'/%3E%3Ccircle cx='136' cy='132' r='4.5'/%3E%3C/g%3E%3C/svg%3E") right max(-7vmin,-15vw) bottom -3vh/auto min(48vh,50vw) no-repeat,
+    radial-gradient(130% 95% at 50% 42%,transparent 55%,rgba(5,1,12,.72) 100%)}
+  /* Закат: сумерки над водой, солнце садится за город, одна пальма на переднем плане, плёночное зерно */
+  html[data-skin="sunset"] .bg{background:
+    radial-gradient(42vmax 3.2vmax at 28% 31%,rgba(255,140,130,.11),transparent 70%),
+    radial-gradient(52vmax 3.6vmax at 72% 44%,rgba(255,160,120,.15),transparent 70%),
+    radial-gradient(34vmax 2.6vmax at 18% 55%,rgba(255,120,150,.13),transparent 70%),
+    linear-gradient(180deg,#06070d 0%,#0d1326 calc(var(--hz)*.335),#271c3a calc(var(--hz)*.6),#6e3150 calc(var(--hz)*.8),#d56c5d calc(var(--hz)*.957),#ffb37b calc(var(--hz) - .1%),#1d1419 var(--hz),#0d0b11 calc(var(--hz) + (100% - var(--hz))*.45),#08080c 100%)}
+  html[data-skin="sunset"] .bg::before{left:calc(62% - 32vmax);top:calc(var(--hz) - 32vmax - 6vh);width:64vmax;height:64vmax;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,226,170,.98) 0 2.6%,rgba(255,176,110,.6) 6%,rgba(255,118,92,.2) 26%,transparent 60%);
+    animation:skBreathe 9s ease-in-out infinite alternate}
+  @keyframes skBreathe{from{opacity:.82}to{opacity:1}}
+  html[data-skin="sunset"] .bg i{left:0;right:0;top:calc(var(--hz) - 9vh);bottom:0;background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 100' preserveAspectRatio='none'%3E%3Cg fill='%2307060b'%3E%3Crect x='0' y='62' width='30.5' height='38'/%3E%3Crect x='30' y='48' width='22.5' height='52'/%3E%3Crect x='52' y='70' width='40.5' height='30'/%3E%3Crect x='92' y='34' width='18.5' height='66'/%3E%3Crect x='110' y='56' width='34.5' height='44'/%3E%3Crect x='144' y='28' width='26.5' height='72'/%3E%3Crect x='170' y='64' width='44.5' height='36'/%3E%3Crect x='214' y='42' width='16.5' height='58'/%3E%3Crect x='230' y='52' width='36.5' height='48'/%3E%3Crect x='266' y='14' width='22.5' height='86'/%3E%3Crect x='288' y='60' width='40.5' height='40'/%3E%3Crect x='328' y='40' width='28.5' height='60'/%3E%3Crect x='356' y='66' width='18.5' height='34'/%3E%3Crect x='374' y='46' width='46.5' height='54'/%3E%3Crect x='420' y='24' width='20.5' height='76'/%3E%3Crect x='440' y='58' width='34.5' height='42'/%3E%3Crect x='474' y='36' width='26.5' height='64'/%3E%3Crect x='500' y='68' width='42.5' height='32'/%3E%3Crect x='542' y='44' width='20.5' height='56'/%3E%3Crect x='562' y='54' width='38.5' height='46'/%3E%3Crect x='276' y='6' width='2' height='10'/%3E%3C/g%3E%3Cg fill='%23ffcf8a' opacity='.55'%3E%3Crect x='36.7' y='53.0' width='2' height='2.4'/%3E%3Crect x='40.6' y='66.0' width='2' height='2.4'/%3E%3Crect x='46.2' y='79.0' width='2' height='2.4'/%3E%3Crect x='64.4' y='88.0' width='2' height='2.4'/%3E%3Crect x='100.5' y='65.0' width='2' height='2.4'/%3E%3Crect x='102.4' y='78.0' width='2' height='2.4'/%3E%3Crect x='128.1' y='61.0' width='2' height='2.4'/%3E%3Crect x='114.4' y='87.0' width='2' height='2.4'/%3E%3Crect x='155.4' y='59.0' width='2' height='2.4'/%3E%3Crect x='155.0' y='85.0' width='2' height='2.4'/%3E%3Crect x='218.5' y='47.0' width='2' height='2.4'/%3E%3Crect x='219.1' y='73.0' width='2' height='2.4'/%3E%3Crect x='237.5' y='57.0' width='2' height='2.4'/%3E%3Crect x='243.2' y='83.0' width='2' height='2.4'/%3E%3Crect x='282.9' y='19.0' width='2' height='2.4'/%3E%3Crect x='282.3' y='32.0' width='2' height='2.4'/%3E%3Crect x='278.0' y='58.0' width='2' height='2.4'/%3E%3Crect x='280.4' y='71.0' width='2' height='2.4'/%3E%3Crect x='298.4' y='65.0' width='2' height='2.4'/%3E%3Crect x='332.0' y='45.0' width='2' height='2.4'/%3E%3Crect x='345.3' y='58.0' width='2' height='2.4'/%3E%3Crect x='363.8' y='71.0' width='2' height='2.4'/%3E%3Crect x='409.7' y='51.0' width='2' height='2.4'/%3E%3Crect x='387.3' y='77.0' width='2' height='2.4'/%3E%3Crect x='432.7' y='29.0' width='2' height='2.4'/%3E%3Crect x='426.5' y='42.0' width='2' height='2.4'/%3E%3Crect x='483.1' y='67.0' width='2' height='2.4'/%3E%3Crect x='481.1' y='80.0' width='2' height='2.4'/%3E%3Crect x='527.0' y='73.0' width='2' height='2.4'/%3E%3Crect x='557.4' y='49.0' width='2' height='2.4'/%3E%3Crect x='549.7' y='62.0' width='2' height='2.4'/%3E%3Crect x='546.2' y='88.0' width='2' height='2.4'/%3E%3C/g%3E%3C/svg%3E") left -40px top 0/auto 9vh repeat-x,
+    radial-gradient(16vmax 22vh at 62% 9vh,rgba(255,168,110,.34),transparent 72%),
+    repeating-linear-gradient(180deg,rgba(255,190,140,.06) 0 1px,transparent 1px 6px) 0 9vh/100% 100% no-repeat}
+  html[data-skin="sunset"] .bg::after{inset:0;background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23n)'/%3E%3C/svg%3E") 0 0/160px 160px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 320'%3E%3Cg fill='%23050407' transform='matrix(-1 0 0 1 220 0)'%3E %3Cpath d='M104 320c2-70 6-130 22-196l7 2c-13 66-17 126-19 194z'/%3E %3Cpath d='M130 122c-28-26-66-28-104 4 34-14 70-14 104-4z'/%3E %3Cpath d='M130 122c-12-38-40-58-76-62 30 12 56 34 76 62z'/%3E %3Cpath d='M130 122c8-40 34-62 70-66-28 14-50 36-70 66z'/%3E %3Cpath d='M130 122c30-24 66-24 90 8-30-14-60-16-90-8z'/%3E %3Cpath d='M130 122c-26 4-52 26-62 66 14-30 36-52 62-66z'/%3E %3Cpath d='M130 122c26 6 46 30 50 68-12-30-30-52-50-68z'/%3E %3Ccircle cx='126' cy='131' r='5'/%3E%3Ccircle cx='136' cy='132' r='4.5'/%3E%3C/g%3E%3C/svg%3E") right max(-9vmin,-16vw) bottom -6vh/auto min(66vh,74vw) no-repeat,
+    radial-gradient(135% 100% at 50% 36%,transparent 50%,rgba(0,0,0,.68) 100%)}
+  /* экраны для чтения (skin.js ставит data-sk-read): сцена приглушена, переход плавный — прозрачность дешёвая */
+  html[data-skin] .bg{transition:opacity .5s ease}
+  html[data-skin][data-sk-read] .bg{opacity:.4}
+  /* лёгкий режим и «меньше движения»: сцена замирает */
+  html.fx-lite[data-skin] .bg i::before,html.fx-lite[data-skin] .bg::before{animation:none!important}
+  @media (prefers-reduced-motion:reduce){ html[data-skin] .bg i::before,html[data-skin] .bg::before{animation:none} }
+
+  /* --- шапка --- */
+  html[data-skin] .topbar{background:var(--sk-chrome)!important;border-bottom-color:var(--sk-edge)}
+  html[data-skin="neon"] .topbar{box-shadow:0 1px 0 rgba(255,79,180,.28),0 10px 30px -24px rgba(255,79,180,.8)}
+  html[data-skin] .brand{font-family:var(--sk-display)}
+  html[data-skin="neon"] .brand{font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.05em;text-shadow:-1px 0 rgba(45,226,230,.75),1px 0 rgba(255,79,180,.75)}
+  html[data-skin="neon"] .brand span{text-shadow:none;filter:drop-shadow(0 0 6px rgba(255,79,180,.65))}
+  html[data-skin="sunset"] .brand{font-weight:800;letter-spacing:-.02em}
+  html[data-skin] .tabs,html[data-skin] .kpis{border-color:var(--sk-edge)}
+  html[data-skin] .tabs button.active{color:var(--sk-ink);box-shadow:var(--sk-glow)}
+  html[data-skin="neon"] .tabs button{font-style:italic}
+  html[data-skin] .kpi.bump b{text-shadow:0 0 14px currentColor}
+  html[data-skin] .lang-tog{border-color:var(--sk-edge)}
+  html[data-skin] .lang-tog:hover{border-color:var(--sk-edge-hi);color:var(--acc)}
+  html[data-skin] ::selection{background:var(--sk-tint-2)}
+  html[data-skin] ::-webkit-scrollbar-thumb{background:var(--sk-edge);background-clip:content-box}
+
+  /* --- карточки и панели --- */
+  html[data-skin] .glass{border-color:var(--sk-edge);box-shadow:var(--sk-card-sh)}
+  html[data-skin="neon"] .glass{background:linear-gradient(180deg,rgba(255,79,180,.075),transparent 40%),var(--panel)}
+  html[data-skin="sunset"] .glass{background:linear-gradient(180deg,rgba(255,200,160,.055),transparent 32%),var(--panel);backdrop-filter:blur(22px) saturate(1.35);-webkit-backdrop-filter:blur(22px) saturate(1.35)}
+  html[data-skin="neon"] .card .q{letter-spacing:-.005em}
+  html[data-skin="sunset"] .card .q{font-family:var(--sk-display);letter-spacing:-.015em}
+  html[data-skin] .pill{border-color:var(--sk-edge)}
+  /* заголовки разделов: постер восьмидесятых / спокойный кинематографичный */
+  html[data-skin="neon"] :is(.asm-hero h1,.prog-h,.rm-title b,#viewBro h1,.empty h2){font-family:var(--sk-display);font-style:italic;font-weight:900;text-transform:uppercase;letter-spacing:.02em;
+    background:var(--sk-title);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;filter:drop-shadow(2px 2px 0 rgba(45,226,230,.5))}
+  html[data-skin="sunset"] :is(.asm-hero h1,.prog-h,.rm-title b,#viewBro h1,.empty h2){font-family:var(--sk-display);font-weight:800;letter-spacing:-.025em;
+    background:var(--sk-title);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+  html[data-skin] :is(.asm-kick,.asm-gh){color:var(--sk-kicker)}
+
+  /* --- кнопки: выразительное нажатие, у главной — свечение --- */
+  html[data-skin] .btn{border-color:var(--sk-edge)}
+  html[data-skin] .btn:hover{border-color:var(--sk-edge-hi)}
+  html[data-skin] .btn.primary{color:var(--sk-ink);box-shadow:var(--sk-glow)}
+  html[data-skin] .btn.primary:hover{filter:brightness(1.07) saturate(1.1)}
+  html[data-skin] .btn:active,html[data-skin] .btn.primary:active{transform:scale(.965);transition:transform .07s}
+  html[data-skin="neon"] .btn.primary{font-style:italic;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  html[data-skin="neon"] .btn.primary:active{box-shadow:0 0 0 2px rgba(45,226,230,.7),0 0 34px -4px rgba(255,79,180,.95)}
+  html[data-skin="sunset"] .btn.primary{letter-spacing:.01em}
+
+  /* --- меню и всплывающие окна: свой фон, кромка и появление --- */
+  html[data-skin] :is(.fs-pop,.more-menu){background:var(--sk-pop);border-color:var(--sk-edge-hi);box-shadow:0 24px 60px -20px rgba(0,0,0,.85),var(--sk-pop-glow);animation:skPop .2s cubic-bezier(.2,.8,.2,1) both;transform-origin:top right}
+  html[data-skin] .more-menu button.active{background:var(--sk-tint);color:var(--acc)}
+  html[data-skin] .rm-drawer{background:var(--sk-pop);border-left-color:var(--sk-edge-hi)}
+  html[data-skin] .toast{border-color:var(--sk-edge-hi)}
+  @keyframes skPop{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
+
+  /* --- смена экрана и появление карточек с задержкой --- */
+  html[data-skin="neon"] .view.enter{animation:skNeonIn .3s cubic-bezier(.2,.8,.2,1) both}
+  html[data-skin="sunset"] .view.enter{animation:skSunIn .44s cubic-bezier(.16,1,.3,1) both}
+  @keyframes skNeonIn{0%{opacity:0;transform:translateX(-14px)}38%{opacity:1}50%{opacity:.6}62%{opacity:1}100%{opacity:1;transform:none}}   /* без наклона: skew на высоком экране выносил низ вправо и раздвигал страницу */
+  @keyframes skSunIn{from{opacity:0;transform:translateY(10px) scale(.988)}to{opacity:1;transform:none}}
+  html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>*,html[data-skin] .view.enter .asm-card{animation:skRise .46s cubic-bezier(.16,1,.3,1) both}
+  html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>:nth-child(2),html[data-skin] .view.enter .asm-card:nth-child(2){animation-delay:.04s}
+  html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>:nth-child(3),html[data-skin] .view.enter .asm-card:nth-child(3){animation-delay:.08s}
+  html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>:nth-child(4),html[data-skin] .view.enter .asm-card:nth-child(4){animation-delay:.12s}
+  html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>:nth-child(5),html[data-skin] .view.enter .asm-card:nth-child(5){animation-delay:.16s}
+  html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>:nth-child(6),html[data-skin] .view.enter .asm-card:nth-child(6){animation-delay:.2s}
+  html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>:nth-child(n+7),html[data-skin] .view.enter .asm-card:nth-child(n+7){animation-delay:.24s}
+  @keyframes skRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  /* --- загрузка: бегущая полоса в цветах оформления вместо голого текста --- */
+  html[data-skin] .bro-load{position:relative;overflow:hidden;padding-bottom:16px}
+  html[data-skin] .bro-load::after{content:"";position:absolute;left:0;bottom:4px;width:38%;height:2px;border-radius:2px;background:var(--grad);box-shadow:0 0 12px var(--acc);animation:skLoad 1.15s cubic-bezier(.6,0,.4,1) infinite}
+  @keyframes skLoad{from{transform:translateX(-110%)}to{transform:translateX(280%)}}
+
+  @media (prefers-reduced-motion:reduce){
+    html[data-skin] .view.enter,html[data-skin] .view.enter :is(.jd-tiles,.jd-list,.asm-tms,.mode-cards,.game-menu)>*,html[data-skin] .view.enter .asm-card,
+    html[data-skin] :is(.fs-pop,.more-menu),html[data-skin] .bro-load::after{animation:none!important}
+  }
+
+  /* --- переключатель «Оформление» в меню «A» (виден и в классике) --- */
+  .sk-box{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .sk-h{font:700 10.5px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
+  .sk-row{display:flex;flex-direction:column;gap:6px}
+  .sk-opt{display:grid;grid-template-columns:46px minmax(0,1fr);grid-template-rows:auto auto;column-gap:9px;row-gap:1px;align-items:center;width:100%;min-height:44px;padding:5px 8px 5px 5px;
+    border-radius:11px;border:1px solid var(--line);background:var(--panel-2);color:var(--txt);font:inherit;text-align:left;cursor:pointer;
+    transition:border-color .2s,box-shadow .2s,transform .12s;-webkit-tap-highlight-color:transparent}
+  .sk-opt:hover{border-color:var(--acc)}
+  .sk-opt:active{transform:scale(.96)}
+  .sk-opt.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc),0 6px 18px -8px var(--acc)}
+  .sk-opt:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+  .sk-opt .sk-th{grid-row:1/3}
+  .sk-opt b{display:flex;align-items:center;gap:6px;font:700 12.5px/1.2 var(--sans);white-space:nowrap}
+  .sk-opt small{font-size:10.5px;line-height:1.3;color:var(--mut)}
+  .sk-pal{display:inline-flex;gap:3px}
+  .sk-pal i{width:7px;height:7px;border-radius:50%}
+  .sk-th{position:relative;display:block;height:32px;border-radius:7px;overflow:hidden}
+  .sk-opt.on .sk-th{animation:skPick .38s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes skPick{0%{transform:scale(.9)}100%{transform:none}}
+  .sk-th-classic{background:radial-gradient(circle at 22% 26%,rgba(47,87,255,.95),transparent 55%),radial-gradient(circle at 84% 86%,rgba(125,59,255,.95),transparent 55%),radial-gradient(circle at 58% 52%,rgba(17,164,143,.55),transparent 45%),#07080e}
+  .sk-th-classic::after{content:"";position:absolute;left:24%;right:24%;top:32%;bottom:26%;border-radius:4px;background:rgba(20,23,32,.85);border:1px solid rgba(255,255,255,.12)}
+  .sk-th-neon{background:linear-gradient(180deg,#140632 0%,#3c0f5c 42%,#ff4f9a 60%,#0a0318 61%)}
+  .sk-th-neon::before{content:"";position:absolute;left:50%;top:10%;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:linear-gradient(180deg,#ffe46b,#ff4f9a);clip-path:inset(0 0 22% 0);
+    -webkit-mask-image:linear-gradient(180deg,#000 52%,transparent 52% 60%,#000 60% 70%,transparent 70% 78%,#000 78%);mask-image:linear-gradient(180deg,#000 52%,transparent 52% 60%,#000 60% 70%,transparent 70% 78%,#000 78%)}
+  .sk-th-neon::after{content:"";position:absolute;left:0;right:0;top:61%;bottom:0;background:linear-gradient(90deg,rgba(255,79,180,.85) 1px,transparent 1px) 0 0/8px 100%,linear-gradient(0deg,rgba(45,226,230,.75) 1px,transparent 1px) 0 0/100% 4px}
+  .sk-th-sunset{background:radial-gradient(14px 10px at 64% 74%,rgba(255,226,170,.95),rgba(255,150,100,.4) 60%,transparent),linear-gradient(180deg,#0d1326 0%,#3a2440 40%,#d56c5d 66%,#ffb37b 74%,#120e14 74.6%)}
+  .sk-th-sunset::after{content:"";position:absolute;left:0;right:0;top:56%;height:19%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 100' preserveAspectRatio='none'%3E%3Cg fill='%230a0810'%3E%3Crect x='0' y='62' width='30.5' height='38'/%3E%3Crect x='30' y='48' width='22.5' height='52'/%3E%3Crect x='52' y='70' width='40.5' height='30'/%3E%3Crect x='92' y='34' width='18.5' height='66'/%3E%3Crect x='110' y='56' width='34.5' height='44'/%3E%3Crect x='144' y='28' width='26.5' height='72'/%3E%3Crect x='170' y='64' width='44.5' height='36'/%3E%3Crect x='214' y='42' width='16.5' height='58'/%3E%3Crect x='230' y='52' width='36.5' height='48'/%3E%3Crect x='266' y='14' width='22.5' height='86'/%3E%3Crect x='288' y='60' width='40.5' height='40'/%3E%3Crect x='328' y='40' width='28.5' height='60'/%3E%3Crect x='356' y='66' width='18.5' height='34'/%3E%3Crect x='374' y='46' width='46.5' height='54'/%3E%3Crect x='420' y='24' width='20.5' height='76'/%3E%3Crect x='440' y='58' width='34.5' height='42'/%3E%3Crect x='474' y='36' width='26.5' height='64'/%3E%3Crect x='500' y='68' width='42.5' height='32'/%3E%3Crect x='542' y='44' width='20.5' height='56'/%3E%3Crect x='562' y='54' width='38.5' height='46'/%3E%3Crect x='276' y='6' width='2' height='10'/%3E%3C/g%3E%3Cg fill='%23ffcf8a' opacity='.55'%3E%3Crect x='36.7' y='53.0' width='2' height='2.4'/%3E%3Crect x='40.6' y='66.0' width='2' height='2.4'/%3E%3Crect x='46.2' y='79.0' width='2' height='2.4'/%3E%3Crect x='64.4' y='88.0' width='2' height='2.4'/%3E%3Crect x='100.5' y='65.0' width='2' height='2.4'/%3E%3Crect x='102.4' y='78.0' width='2' height='2.4'/%3E%3Crect x='128.1' y='61.0' width='2' height='2.4'/%3E%3Crect x='114.4' y='87.0' width='2' height='2.4'/%3E%3Crect x='155.4' y='59.0' width='2' height='2.4'/%3E%3Crect x='155.0' y='85.0' width='2' height='2.4'/%3E%3Crect x='218.5' y='47.0' width='2' height='2.4'/%3E%3Crect x='219.1' y='73.0' width='2' height='2.4'/%3E%3Crect x='237.5' y='57.0' width='2' height='2.4'/%3E%3Crect x='243.2' y='83.0' width='2' height='2.4'/%3E%3Crect x='282.9' y='19.0' width='2' height='2.4'/%3E%3Crect x='282.3' y='32.0' width='2' height='2.4'/%3E%3Crect x='278.0' y='58.0' width='2' height='2.4'/%3E%3Crect x='280.4' y='71.0' width='2' height='2.4'/%3E%3Crect x='298.4' y='65.0' width='2' height='2.4'/%3E%3Crect x='332.0' y='45.0' width='2' height='2.4'/%3E%3Crect x='345.3' y='58.0' width='2' height='2.4'/%3E%3Crect x='363.8' y='71.0' width='2' height='2.4'/%3E%3Crect x='409.7' y='51.0' width='2' height='2.4'/%3E%3Crect x='387.3' y='77.0' width='2' height='2.4'/%3E%3Crect x='432.7' y='29.0' width='2' height='2.4'/%3E%3Crect x='426.5' y='42.0' width='2' height='2.4'/%3E%3Crect x='483.1' y='67.0' width='2' height='2.4'/%3E%3Crect x='481.1' y='80.0' width='2' height='2.4'/%3E%3Crect x='527.0' y='73.0' width='2' height='2.4'/%3E%3Crect x='557.4' y='49.0' width='2' height='2.4'/%3E%3Crect x='549.7' y='62.0' width='2' height='2.4'/%3E%3Crect x='546.2' y='88.0' width='2' height='2.4'/%3E%3C/g%3E%3C/svg%3E") left 0 top 0/auto 100% repeat-x}
+
+  /* --- вспышка при смене оформления (живёт полсекунды; классу без атрибута тоже нужна) --- */
+  .sk-flash{position:fixed;inset:0;z-index:2147483000;pointer-events:none;animation:skFlash .56s ease both}
+  .sk-flash-neon{background:repeating-linear-gradient(0deg,rgba(0,0,0,.35) 0 2px,transparent 2px 4px),linear-gradient(180deg,#2a0a4a,#ff4fb4 55%,#2de2e6)}
+  .sk-flash-sunset{background:radial-gradient(90% 70% at 62% 72%,#ffc48a,#e0735e 38%,#1a1220 80%)}
+  .sk-flash-classic{background:radial-gradient(circle at 30% 30%,#2f57ff,transparent 60%),radial-gradient(circle at 75% 80%,#7d3bff,transparent 60%),#07080e}
+  @keyframes skFlash{0%{opacity:0}30%{opacity:.92}100%{opacity:0}}
+  /* ===== /ОФОРМЛЕНИЯ ===== */
 </style>
 </head>
 <body>
@@ -3086,6 +3286,7 @@
 <script src="terms-ai.js"></script>
 <script src="bro.js"></script>
 <script src="asm.js"></script>
+<script src="skin.js"></script>
 <!--INLINE-I18N-EN-->
 <script>
 const CARDS = [...(Array.isArray(window.CARDS)?window.CARDS:[]), ...(Array.isArray(window.CARDS_EXTRA)?window.CARDS_EXTRA:[]),

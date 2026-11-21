@@ -1508,6 +1508,91 @@ const check = (name, ok, detail) => {
     check("«Ассессмент»: темы ИПР без ввода, вопросы с ответом на месте, занятие по теме, «назад», нет пустых тем, старый файл стёрт, EN", am.плохо.length === 0, am.плохо.slice(0, 5).join(" · "));
   }
 
+  /* ---- Оформления (skin.js): «Классика» / «Неон-86» / «Закат» ----
+     По умолчанию классика без атрибута; переключатель в «A» — три радиокнопки; выбор живёт в jdSkin и переживает
+     перезагрузку (ставится в <head>); ни один экран не едет вбок; контраст текста по токенам; экраны для чтения
+     приглушают сцену; «меньше движения» — без анимаций и вспышки; EN; возврат в классику возвращает исходные цвета. */
+  {
+    await A.raw("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 2, mobile: true });
+    const SK = `(async function(skins){
+      var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})}, H=document.documentElement, плохо=[];
+      var hex=function(c){ c=c.trim(); var m;
+        if((m=/^#([0-9a-f]{3})$/i.exec(c))) return [0,1,2].map(function(i){return parseInt(m[1][i]+m[1][i],16)}).concat(1);
+        if((m=/^#([0-9a-f]{6})$/i.exec(c))) return [0,2,4].map(function(i){return parseInt(m[1].substr(i,2),16)}).concat(1);
+        if((m=/rgba?\\(([^)]+)\\)/.exec(c))){ var p=m[1].split(",").map(parseFloat); return [p[0],p[1],p[2],p.length>3?p[3]:1]; } return null; };
+      var over=function(a,b){ return [0,1,2].map(function(i){return a[i]*a[3]+b[i]*(1-a[3])}).concat(1); };
+      var lum=function(c){ return [0,1,2].map(function(i){var v=c[i]/255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)}).reduce(function(s,v,i){return s+v*[.2126,.7152,.0722][i]},0); };
+      var cr=function(a,b){ var x=lum(a),y=lum(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); };
+      var v=function(n){ return getComputedStyle(H).getPropertyValue(n).trim(); };
+      try {
+        var r={def:H.getAttribute("data-skin"), key:localStorage.getItem("jdSkin"), bg:v("--bg")};
+        var opts=[].slice.call(document.querySelectorAll("#fsPop .sk-opt"));
+        if(opts.length!==3) плохо.push("в «A» не три варианта: "+opts.length);
+        if(r.def!==null||r.key!==null) плохо.push("по умолчанию не классика: "+r.def+"/"+r.key);
+        var on=opts.filter(function(o){return o.getAttribute("aria-checked")==="true"}).map(function(o){return o.dataset.skin});
+        if(on.join()!=="classic") плохо.push("отмечен не «Классика»: "+on);
+        if(opts.some(function(o){return o.getAttribute("role")!=="radio"})) плохо.push("варианты не радиокнопки");
+        for(var k=0;k<skins.length;k++){ var s=skins[k];
+          document.querySelector('#fsPop .sk-opt[data-skin="'+s+'"]').click(); await ж(700);
+          if(H.getAttribute("data-skin")!==s||localStorage.getItem("jdSkin")!==s) { плохо.push(s+": не включилось"); continue; }
+          if(document.querySelector(".sk-flash")) плохо.push(s+": вспышка не убралась");
+          if(v("--bg")===r.bg) плохо.push(s+": фон тот же, что у классики");
+          if(document.querySelector('#fsPop .sk-opt[aria-checked="true"]').dataset.skin!==s) плохо.push(s+": отметка не переехала");
+          if(document.querySelector('meta[name="theme-color"]').content===("#0b0f19")) плохо.push(s+": theme-color не сменился");
+          if(getComputedStyle(document.querySelector(".bg"),"::before").backgroundImage==="none") плохо.push(s+": нет сцены");
+          /* контраст по токенам: текст, вторичный текст и акцент — на непрозрачной панели лёгкого режима и на фоне;
+             тёмная надпись — на каждой точке градиента главной кнопки */
+          H.classList.add("fx-lite"); var panel=over(hex(v("--panel")),hex(v("--bg"))); if(!document.documentElement.dataset.liteWas) H.classList.remove("fx-lite");
+          var bg=hex(v("--bg")), pairs=[["--txt",7],["--read",7],["--mut",4.5],["--acc",4.5],["--good",4.5],["--bad",4.5],["--warn",4.5]];
+          pairs.forEach(function(p){ var c=hex(v(p[0])); [["панель",panel],["фон",bg]].forEach(function(b){ var x=cr(c,b[1]); if(x<p[1]) плохо.push(s+": "+p[0]+" на "+b[0]+" "+x.toFixed(2)+" < "+p[1]); }); });
+          var ink=hex(v("--sk-ink")); (v("--grad").match(/#[0-9a-f]{6}/gi)||[]).forEach(function(g){ var x=cr(ink,hex(g)); if(x<4.5) плохо.push(s+": надпись на кнопке по "+g+" "+x.toFixed(2)); });
+          /* экраны: вбок не едут, «чтение» приглушает сцену, витрина — нет */
+          var экр=["drill","fp","terms","prin","game","prog","zero","asm","basics"];
+          for(var i=0;i<экр.length;i++){ setMode(экр[i]); await ж(520);
+            if(H.scrollWidth>H.clientWidth+1) плохо.push(s+"/"+экр[i]+": вбок "+H.scrollWidth);
+            var read=H.hasAttribute("data-sk-read"), hub=экр[i]==="drill"||экр[i]==="game";
+            if(read===hub) плохо.push(s+"/"+экр[i]+": data-sk-read="+read); }
+          setMode("drill"); await ж(300);
+        }
+        /* «меньше движения»: без перехода экрана и без вспышки при смене */
+        return JSON.stringify({плохо:плохо});
+      } catch(e){ плохо.push("исключение: "+(e&&e.message||e)); return JSON.stringify({плохо:плохо}); }
+    })`;
+    /* выражение упало — печатаем его ошибку как провал, а не роняем весь гейт на JSON.parse */
+    const J = async (expr, arr) => { const r = await A.ev(expr); try { return JSON.parse(r); } catch (e) { const m = "выражение упало: " + String(r).slice(0, 160); return arr ? [m] : { плохо: [m] }; } };
+    if (await A.ev(`document.documentElement.classList.contains("fx-lite")`)) await A.ev(`document.documentElement.dataset.liteWas="1"`);
+    const sk = await J(SK + `(["neon","sunset"])`);
+    /* перезагрузка: «Закат» должен встать до первой отрисовки, классика — не мелькнуть */
+    await reload();                                            /* общий помощник гейта: заново ставит сборщик ошибок */
+    for (let i = 0; i < 20 && !(await A.ev(`!!window.jdSkin&&!!document.getElementById("skBox")`)); i++) await sleep(250);
+    const after = await J(`JSON.stringify({skin:document.documentElement.getAttribute("data-skin"), on:(document.querySelector('#fsPop .sk-opt[aria-checked="true"]')||{dataset:{}}).dataset.skin})`);
+    if (after.skin !== "sunset" || after.on !== "sunset") sk.плохо.push("после перезагрузки: " + JSON.stringify(after));
+    await A.raw("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
+    const rm = await J(`(async function(){ var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})}, плохо=[];
+      setMode("fp"); await ж(30); var v=document.querySelector(".view:not([hidden])");
+      if(getComputedStyle(v).animationName!=="none") плохо.push("переход экрана при «меньше движения»: "+getComputedStyle(v).animationName);
+      if(getComputedStyle(document.querySelector(".bg"),"::before").animationName!=="none") плохо.push("сцена движется");
+      jdSkin.set("neon"); await ж(20);
+      if(document.querySelector(".sk-flash")) плохо.push("вспышка при «меньше движения»");
+      if(document.documentElement.getAttribute("data-skin")!=="neon") плохо.push("без движения не переключилось сразу");
+      setMode("drill"); return JSON.stringify(плохо); })()`, true);
+    await A.raw("Emulation.setEmulatedMedia", { features: [] });
+    sk.плохо.push(...rm);
+    /* EN и возврат в классику */
+    const back = await J(`(async function(){ var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})}, плохо=[], H=document.documentElement;
+      setLang("en"); await ж(1500);
+      var t=document.getElementById("skBox").textContent; if(!/Appearance/.test(t)||!/Neon/.test(t)||/[а-яё]/i.test(t)) плохо.push("EN: "+t.slice(0,60));
+      setLang("ru"); await ж(500);
+      if(!/Оформление/.test(document.getElementById("skBox").textContent)) плохо.push("RU не вернулся");
+      document.querySelector('#fsPop .sk-opt[data-skin="classic"]').click(); await ж(700);
+      if(H.hasAttribute("data-skin")||localStorage.getItem("jdSkin")!==null) плохо.push("классика не вернулась");
+      if(getComputedStyle(H).getPropertyValue("--bg").trim()!=="#07080e") плохо.push("фон классики: "+getComputedStyle(H).getPropertyValue("--bg"));
+      if(getComputedStyle(document.querySelector(".bg"),"::before").backgroundImage.indexOf("radial-gradient")<0) плохо.push("пятна классики не вернулись");
+      return JSON.stringify(плохо); })()`, true);
+    sk.плохо.push(...back);
+    check("оформления: классика по умолчанию, выбор в «A» и после перезагрузки, 9 экранов без вылета вбок в обоих, контраст ≥ 4.5/7, чтение приглушает сцену, «меньше движения», EN, возврат", sk.плохо.length === 0, sk.плохо.slice(0, 6).join(" · "));
+  }
+
   /* ---- обход вкладок ---- */
   const tabs = ["tabDrill","tabFp","tabPrin","tabTerms","tabGame","tabBeh","tabBasics","tabZero","tabPath","tabProg","tabMore","tabViz","tabSand","tabMus","tabBro","tabAsm"];
   for (const tab of tabs) { await A.ev(`var e=document.getElementById('${tab}');if(e)e.click()`); await sleep(500); }

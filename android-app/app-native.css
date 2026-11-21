@@ -663,3 +663,77 @@ html.native-app .jd-sheet .zn-s.done { color: var(--jd-good); }
 .jm-sh-foot .btn { width: 100%; min-height: 50px; }
 @media (orientation: landscape) and (max-height: 520px) { .jm-hero h1 { font-size: 22px; } .jm-hero { padding: 12px 14px; } }
 @media (prefers-reduced-motion: reduce) { .jm-tree.new, .jm-t.flash { animation: none !important; } .jm-t { transition: none; } }
+/* ---------- 12. оформления «Неон-86» и «Закат» ---------- */
+/* Выбор — в «A» (skin.js), сцена фона, шапка сайта, кнопки и анимации — в index.html. Здесь — токены слоя приложения и его экраны.
+ * Специфичность html.native-app[data-skin] выше, чем у токенов раздела 1, поэтому порядок подключения не важен. У «Классики» атрибута нет. */
+html.native-app[data-skin="neon"] {
+  --jd-s0: #0b0418; --jd-s1: #170a2c; --jd-s2: #200f3b; --jd-s3: #2a1449; --jd-chrome: rgba(12, 4, 26, .95);
+  --jd-b1: rgba(255, 94, 196, .15); --jd-b2: rgba(255, 94, 196, .28); --jd-hl: inset 0 1px 0 rgba(255, 180, 240, .07);
+  --jd-t1: #fff1fb; --jd-t2: #f2e2f6; --jd-t3: #c3aad8; --jd-t4: #9480ab;
+  --jd-acc: #ff5cb8; --jd-vio: #b874ff; --jd-cy: #2de2e6; --jd-org: #ff9f43; --jd-good: #3df5b0; --jd-mid: #ffd36e; --jd-bad: #ff6178;
+  --jd-r1: 8px; --jd-r2: 12px; --jd-r3: 16px;
+  --jd-sh2: 0 24px 60px -28px rgba(0, 0, 0, .9);
+}
+html.native-app[data-skin="sunset"] {
+  --jd-s0: #0a0a10; --jd-s1: #17121a; --jd-s2: #201a25; --jd-s3: #2a222f; --jd-chrome: rgba(12, 10, 15, .95);
+  --jd-b1: rgba(255, 214, 180, .09); --jd-b2: rgba(255, 214, 180, .15); --jd-hl: inset 0 1px 0 rgba(255, 236, 220, .07);
+  --jd-t1: #fff5ec; --jd-t2: #eee1d5; --jd-t3: #bdac9d; --jd-t4: #8d8075;
+  --jd-acc: #ff9466; --jd-vio: #ff6f98; --jd-cy: #4fd6c4; --jd-org: #ffb14a; --jd-good: #62d9a0; --jd-mid: #ffc65c; --jd-bad: #ff6f6f;
+  --jd-r1: 12px; --jd-r2: 16px; --jd-r3: 22px;
+}
+html.native-app[data-skin] .bg { opacity: .66; }                           /* сцена видна, но не спорит с текстом, который лежит без панели */
+html.native-app[data-skin][data-sk-read] .bg { opacity: .36; }               /* экраны для чтения (skin.js) */
+html.native-app[data-skin] body.jd-focus .bg { opacity: .26; }               /* в занятии — только намёк: ответ читается прямо по фону */
+
+/* шапка и нижняя панель */
+html.native-app[data-skin] .topbar { border-bottom-color: var(--jd-b2); }
+html.native-app[data-skin] .jd-bb { border-top-color: var(--jd-b2); }
+html.native-app[data-skin="neon"] .jd-bb { box-shadow: 0 -1px 0 rgba(255, 79, 180, .25), 0 -14px 34px -24px rgba(255, 79, 180, .8); }
+html.native-app[data-skin] .jd-bb button.on .jd-pi { background: var(--sk-tint); color: var(--jd-acc); }
+html.native-app[data-skin="neon"] .jd-bb button.on .jd-pi { box-shadow: inset 0 0 0 1px rgba(255, 79, 180, .5), 0 0 18px -4px rgba(255, 79, 180, .85); }
+html.native-app[data-skin="neon"] .jd-bb button.on { text-shadow: 0 0 10px rgba(255, 79, 180, .6); }
+html.native-app[data-skin] .jd-bb button:active .jd-pi { transform: scale(.86); }
+html.native-app[data-skin="neon"] .brand .jd-up span { font-family: var(--sk-display); font-style: italic; text-transform: uppercase; letter-spacing: .03em; }
+
+/* оттенки иконок — из палитры оформления, а не голубые классические */
+html.native-app[data-skin] .t-acc { --tint: var(--sk-tint); }
+html.native-app[data-skin="neon"] .t-vio { --tint: rgba(184, 116, 255, .17); }
+html.native-app[data-skin="neon"] .t-cy { --tint: rgba(45, 226, 230, .14); }
+html.native-app[data-skin="sunset"] .t-vio { --tint: rgba(255, 111, 152, .14); }
+html.native-app[data-skin="sunset"] .t-cy { --tint: rgba(79, 214, 196, .12); }
+
+/* заголовки экранов и надзаголовки групп */
+html.native-app[data-skin="neon"] .jt-head h1 { font-family: var(--sk-display); font-style: italic; font-weight: 900; text-transform: uppercase; letter-spacing: .02em; font-size: 34px;
+  background: var(--sk-title); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; filter: drop-shadow(2px 2px 0 rgba(45, 226, 230, .55)); }
+html.native-app[data-skin="sunset"] .jt-head h1 { font-family: var(--sk-display); font-weight: 800; letter-spacing: -.03em; font-size: 32px;
+  background: var(--sk-title); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+html.native-app[data-skin] .jt-head span { color: var(--sk-kicker); }
+html.native-app[data-skin="neon"] .jt-head span { font-style: italic; letter-spacing: .14em; text-transform: uppercase; font-size: 12px; }
+html.native-app[data-skin] .jd-h3, html.native-app[data-skin] .prog-sub { color: var(--sk-kicker); }
+html.native-app[data-skin="neon"] .jd-h3, html.native-app[data-skin="neon"] .prog-sub { font-style: italic; letter-spacing: .18em; }
+
+/* «Сегодня»: главная карточка */
+html.native-app[data-skin="neon"] .jt-hero { border-color: rgba(255, 94, 196, .34);
+  background: radial-gradient(120% 90% at 0% 0%, rgba(255, 79, 180, .17), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(45, 226, 230, .12), transparent 60%), var(--jd-s1);
+  box-shadow: var(--jd-hl), 0 0 44px -16px rgba(255, 79, 180, .6), var(--jd-sh2); }
+html.native-app[data-skin="sunset"] .jt-hero {
+  background: radial-gradient(110% 80% at 100% 0%, rgba(255, 160, 100, .17), transparent 55%), radial-gradient(90% 70% at 0% 100%, rgba(238, 79, 126, .08), transparent 60%), var(--jd-s1); }
+html.native-app[data-skin] .jt-ring .tr { stroke: rgba(255, 255, 255, .08); }
+html.native-app[data-skin="neon"] .jt-ctr b { font-family: var(--sk-display); font-style: italic; font-weight: 900; text-shadow: 0 0 18px rgba(255, 79, 180, .55); }
+html.native-app[data-skin="sunset"] .jt-ctr b { font-family: var(--sk-display); font-weight: 800; }
+
+/* плитки и строки: кромка, нажатие с откликом */
+html.native-app[data-skin="neon"] :is(.jd-tile, .jd-row) { border-color: var(--jd-b2); background: linear-gradient(180deg, rgba(255, 79, 180, .06), transparent 45%), var(--jd-s1); }
+html.native-app[data-skin="sunset"] :is(.jd-tile, .jd-row) { background: linear-gradient(180deg, rgba(255, 200, 160, .05), transparent 40%), var(--jd-s1); }
+html.native-app[data-skin] :is(.jd-tile, .jd-row):active { transform: scale(.96); }
+html.native-app[data-skin="neon"] :is(.jd-tile, .jd-row):active { box-shadow: 0 0 0 1px rgba(255, 79, 180, .65), 0 0 26px -6px rgba(255, 79, 180, .75); }
+html.native-app[data-skin="sunset"] :is(.jd-tile, .jd-row):active { box-shadow: 0 0 0 1px rgba(255, 160, 110, .45), 0 12px 30px -14px rgba(255, 120, 80, .6); }
+html.native-app[data-skin="neon"] .jd-tile span { font-family: var(--sk-display); font-style: italic; font-weight: 800; letter-spacing: .01em; }
+html.native-app[data-skin="sunset"] .jd-tile span { font-family: var(--sk-display); font-weight: 700; }
+html.native-app[data-skin] .jd-pop, html.native-app[data-skin] .jd-sheet .jd-sh { border-color: var(--jd-b2); }
+
+/* смена экрана — свой переход (раздел 1 задаёт классический с той же специфичностью, поэтому здесь сильнее) */
+html.native-app[data-skin="neon"] .view.enter { animation: skNeonIn 300ms cubic-bezier(.2, .8, .2, 1) both; }
+html.native-app[data-skin="sunset"] .view.enter { animation: skSunIn 440ms cubic-bezier(.16, 1, .3, 1) both; }
+@media (prefers-reduced-motion: reduce) { html.native-app[data-skin] .view.enter { animation: none; } }
+/* ---------- /12 ---------- */
