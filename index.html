@@ -14273,19 +14273,21 @@ function bglSetlist(){
     bglSfx("blip",+b.dataset.n-1); bglAt(b.querySelector(".n"),10);
   });
 }
-/* 06 · лайтстик: кольцо сжимается к лайтстику раз в такт; три уровня с нарастающим темпом.
-   Попадание ближе 100 мс — perfect (3 огня), ближе 200 — good (2), иначе 1. Проиграть нельзя:
-   в финале весь зал загорается золотым. Ритм — по картинке, без микрофона и звука. */
+/* 06 · зажги зал: золотое кольцо раз в такт сжимается к звезде; три песни с нарастающим темпом.
+   Попадание ближе 100 мс — «точно» (3 огня), ближе 200 — «хорошо» (2), иначе «почти» (1).
+   Проиграть нельзя: в финале весь зал золотой, на экране сцены горит имя. Ритм — по картинке. */
 function bglGame(){
-  const hall=$("#bglHall"), crowd=$("#bglCrowd"), ring=$("#bglRing"), stick=$("#bglStick"), pad=$("#bglPad"), hit=$("#bglHit"),
-    go=$("#bglGo"), lvlB=$("#bglLvl"), lvlN=$("#bglLvlName"), litN=$("#bglLit"), msg=$("#bglHallMsg"), res=$("#bglLsRes");
-  if(!hall||!crowd||!ring||!stick||!pad||!go)return;
-  const COLS=12, ROWS=6, D=COLS*ROWS, PAL=["#ff4fa0","#f3d38b","#b9a3ff","#7fe3ff","#fff6ec"];
-  let h=""; for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
-    h+='<i style="--dl:'+Math.round(Math.abs(c-(COLS-1)/2)*45+(ROWS-1-r)*60)+'ms;--s:'+(.6+r*.1).toFixed(2)+'"></i>';
+  const hall=$("#bglHall"), crowd=$("#bglCrowd"), ring=$("#bglRing"), star=$("#bglStar"), pad=$("#bglPad"), hit=$("#bglHit"),
+    go=$("#bglGo"), ov=$("#bglOv"), ovK=$("#bglOvK"), ovT=$("#bglOvT"), res=$("#bglLsRes"), lvlB=$("#bglLvl"), lvlN=$("#bglLvlName"), litN=$("#bglLit");
+  if(!hall||!crowd||!ring||!star||!pad||!go||!ov)return;
+  /* огни над головами: дальние ряды выше и мельче, лёгкий разброс — чтобы читалась толпа, а не сетка */
+  const ROWS=[{y:60,s:.55,n:15},{y:49,s:.7,n:13},{y:38,s:.85,n:11},{y:27,s:1,n:9}], PAL=["#ff4fa0","#f3d38b","#b9a3ff","#7fe3ff","#fff6ec"];
+  let h=""; ROWS.forEach((R,r)=>{ for(let c=0;c<R.n;c++){
+    const x=(c+.5)/R.n*100+(Math.random()-.5)*3, y=R.y+(Math.random()-.5)*4;
+    h+='<i style="--x:'+x.toFixed(1)+'%;--y:'+y.toFixed(1)+'%;--s:'+R.s+';--dl:'+Math.round(Math.abs(x-50)*9+r*70)+'ms"></i>'; } });
   crowd.innerHTML=h;
-  const dots=[...crowd.children];
-  const LV=[{n:"Level 1 · Warm up",beat:900,k:8},{n:"Level 2 · Full energy",beat:720,k:10},{n:"Level 3 · Legendary show",beat:580,k:12}];
+  const dots=[...crowd.children], D=dots.length;
+  const LV=[{n:"Warm up",beat:900,k:8},{n:"Full energy",beat:720,k:10},{n:"Legendary show",beat:580,k:12}];
   const TOTAL=LV.reduce((a,l)=>a+l.k,0);
   let L=0, t0=0, tapped=new Set(), lit=0, perfect=0, phase="idle", order=[];
   const shuffle=()=>{ order=dots.map((_,i)=>i).sort(()=>Math.random()-.5); };
@@ -14294,6 +14296,11 @@ function bglGame(){
     litN.textContent="огни "+Math.round(m/D*100)+"%"; hall.style.setProperty("--heat",(m/D).toFixed(2)); };
   const say=(t,c)=>{ hit.textContent=t; hit.className="bgl-ls-hit"; void hit.offsetWidth; hit.className="bgl-ls-hit show "+c; };
   const wave=()=>{ crowd.classList.remove("wave"); void crowd.offsetWidth; crowd.classList.add("wave"); };
+  const idle=()=>{                                     /* до старта: в зале кнопка и объяснение, кольцо показывает механику */
+    ovK.textContent="Зал ждёт сигнала"; ovT.textContent="3 песни · проиграть нельзя";
+    ovT.classList.remove("fin"); ov.classList.remove("fin"); if(res)res.textContent=""; go.textContent="▶ Зажечь зал"; go.disabled=false;
+    ov.classList.remove("hide"); pad.classList.add("demo"); lvlN.textContent="3 песни · "+TOTAL+" тактов";
+  };
   const frame=()=>{
     if(phase!=="beats"||!$("#bglHall"))return;
     const lv=LV[L], e=performance.now()-t0, k=Math.floor(e/lv.beat);
@@ -14302,46 +14309,47 @@ function bglGame(){
     BGL_RAF=requestAnimationFrame(frame);
   };
   const level=()=>{
-    const lv=LV[L]; lvlN.textContent=lv.n; tapped=new Set(); phase="banner";
-    lvlB.textContent=lv.n; lvlB.classList.remove("show"); void lvlB.offsetWidth; lvlB.classList.add("show");
+    const lv=LV[L]; lvlN.textContent="Песня "+(L+1)+" из "+LV.length+" · "+lv.n; tapped=new Set(); phase="banner";
+    lvlB.innerHTML="<small>песня "+(L+1)+" из "+LV.length+"</small>"+esc(lv.n);
+    lvlB.classList.remove("show"); void lvlB.offsetWidth; lvlB.classList.add("show");
     bglT(()=>{ if(phase!=="banner")return; phase="beats"; t0=performance.now(); BGL_RAF=requestAnimationFrame(frame); },1300);
   };
   const next=()=>{ ring.style.opacity="0"; if(BGL_RAF)cancelAnimationFrame(BGL_RAF); BGL_RAF=null; L++; if(L<LV.length)level(); else finale(); };
   const finale=()=>{
     phase="done"; BGL_GAME.on=false;
     dots.forEach(d=>d.classList.add("on")); crowd.classList.add("gold"); hall.classList.add("gold"); hall.style.setProperty("--heat","1");
-    msg.hidden=false; litN.textContent="огни 100%"; lvlN.textContent="Legendary show";
-    if(res)res.textContent="точно в такт: "+perfect+" из "+TOTAL;
-    go.textContent="↻ Ещё раз"; go.disabled=false;
+    litN.textContent="огни 100%"; lvlN.textContent="Legendary show";
+    ovK.textContent="Legendary show"; ovT.textContent="Сегодня весь свет — для тебя"; ovT.classList.add("fin");
+    if(res)res.textContent="точно в такт: "+perfect+" из "+TOTAL; go.textContent="↻ Ещё раз"; go.disabled=false;
+    bglT(()=>{ ov.classList.add("fin"); ov.classList.remove("hide"); },2200);   /* сначала пусть зал просто горит золотом */
     bglSfx("ok"); bglAt(hall,100); bglRain(4000);
   };
   const tap=()=>{
     if(phase!=="beats")return;
-    stick.classList.remove("hit"); void stick.offsetWidth; stick.classList.add("hit");
+    star.classList.remove("hit"); void star.offsetWidth; star.classList.add("hit");
     const lv=LV[L], e=performance.now()-t0, j=Math.round(e/lv.beat)-1;     /* ближайшее совпадение: такт j кончается в (j+1)·beat */
     if(j<0||j>=lv.k||tapped.has(j)){ say("мимо","ms"); return; }
     tapped.add(j);
     const d=Math.abs(e-(j+1)*lv.beat);
-    if(d<=100){ perfect++; lit+=3; say("perfect",""); bglAt(stick,14); bglSfx("tick"); }
-    else if(d<=200){ lit+=2; say("good","gd"); }
+    if(d<=100){ perfect++; lit+=3; say("точно!",""); bglAt(star,14); bglSfx("tick"); }
+    else if(d<=200){ lit+=2; say("хорошо","gd"); }
     else{ lit+=1; say("почти","ms"); }
     paint(); wave();
   };
   const stop=()=>{
     if(BGL_RAF)cancelAnimationFrame(BGL_RAF); BGL_RAF=null;
-    phase="idle"; BGL_GAME.on=false; ring.style.opacity="0"; lvlB.classList.remove("show");
-    go.disabled=false; go.textContent="▶ Начать шоу"; lvlN.textContent="3 уровня · "+TOTAL+" тактов";
+    phase="idle"; BGL_GAME.on=false; ring.style.opacity="0"; lvlB.classList.remove("show"); idle();
   };
   const down=e=>{ if(phase==="beats"){ e.preventDefault(); tap(); } };
   pad.addEventListener("pointerdown",down); hall.addEventListener("pointerdown",down);
   go.onclick=()=>{
-    dots.forEach(d=>d.classList.remove("on")); crowd.classList.remove("gold","wave"); hall.classList.remove("gold"); msg.hidden=true;
-    shuffle(); L=0; lit=0; perfect=0; if(res)res.textContent=""; paint();
-    go.disabled=true; go.textContent="Шоу идёт…"; BGL_GAME.on=true; level();
-    pad.scrollIntoView({block:"nearest",behavior:bglRM()?"auto":"smooth"});   /* на невысоком экране лайтстик мог остаться под панелью */
+    dots.forEach(d=>d.classList.remove("on")); crowd.classList.remove("gold","wave"); hall.classList.remove("gold");
+    shuffle(); L=0; lit=0; perfect=0; paint();
+    ov.classList.add("hide"); pad.classList.remove("demo"); BGL_GAME.on=true; level();
+    pad.scrollIntoView({block:"nearest",behavior:bglRM()?"auto":"smooth"});   /* на невысоком экране звезда могла остаться под панелью */
   };
   BGL_GAME={on:false,tap,stop};
-  shuffle();
+  shuffle(); idle();
 }
 /* 07 · бойз-бэнд: выход под прожекторы, фан-чант по букве, финал хором */
 BGL_ENTER.band=(s,first)=>{ if(!first||bglRM())return; s.classList.add("play"); bglT(()=>s.classList.remove("play"),2900); };

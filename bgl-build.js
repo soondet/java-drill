@@ -162,6 +162,15 @@ const ICON={
   cake:`<rect x="10" y="26" width="28" height="14" rx="3" ${S} stroke-width="2.4"/><path d="M10 32q4.6 3 9.3 0t9.4 0 9.3 0" ${S} stroke-width="1.6"/><path d="M24 26v-7" ${S} stroke-width="2.4"/><path class="ic-flame" d="M24 8.5c2.6 3 3 5.2 0 8.2-3-3-2.6-5.2 0-8.2z" fill="#ffd27a"/><path d="M6 40h36" ${S} stroke-width="2.4"/>`
 };
 
+/* Звезда-мишень: своя, без ручки; скругление углов — обводкой того же цвета */
+const STAR='<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="bglStarG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6dc"/><stop offset=".35" stop-color="#ffe9b8"/><stop offset=".65" stop-color="#f3d38b"/><stop offset="1" stop-color="#ff9bcb"/></linearGradient></defs>'
+  +'<path d="M50 4L61.2 34.6 93.8 35.8 68.1 55.9 77 87.2 50 69 23 87.2 31.9 55.9 6.2 35.8 38.8 34.6Z" fill="url(#bglStarG)" stroke="url(#bglStarG)" stroke-width="7" stroke-linejoin="round"/>'
+  +'<path d="M50 20l5 14" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/></svg>';
+/* Зрители: два ряда голов и плеч силуэтом, огни над ними раскладывает index.html */
+const heads=(n,cy,r,sh,fill,seed)=>{ let o=""; for(let i=0;i<n;i++){ const cx=((i+.5)*(400/n)+((i*37+seed)%9-4)).toFixed(1);
+  o+=`<circle cx="${cx}" cy="${cy}" r="${r}"/><ellipse cx="${cx}" cy="${(cy+r+sh*.55).toFixed(1)}" rx="${(r*1.9).toFixed(1)}" ry="${sh}"/>`; } return `<g fill="${fill}">${o}</g>`; };
+const HEADS=`<svg class="bgl-heads" viewBox="0 0 400 90" preserveAspectRatio="xMidYMax slice" aria-hidden="true">${heads(16,40,8,16,"#0e0b18",3)}${heads(11,58,11,22,"#050409",7)}</svg>`;
+
 /* Happy Birthday: [интервал от соль, длительность в долях, аккорд] — как у прошлых комнат */
 const SONG=[[0,.75,"I"],[0,.25],[2,1],[0,1],[5,1],[4,2,"V"],
   [0,.75],[0,.25],[2,1],[0,1],[7,1],[5,2,"I"],
@@ -427,39 +436,60 @@ const CSS=`
 .bgl-trk-w p{margin:0 0 14px 40px;padding:12px 14px;border-left:2px solid var(--pk);border-radius:0 12px 12px 0;background:rgba(255,79,160,.08);font-size:14.5px;line-height:1.6}
 .bgl-trk li.played .bgl-trk-w{grid-template-rows:1fr}
 
-/* 06 · лайтстик */
+/* 06 · зажги зал: зрители с лайтстиками, на экране сцены разгорается имя; мишень — звезда */
 .bgl-ls{background:#06050b;text-align:center}
-.bgl-hall{--heat:0;position:relative;height:clamp(230px,60vw,320px);border-radius:22px;overflow:hidden;border:1px solid var(--gb);
-  background:linear-gradient(180deg,#140d20,#07060c);touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.bgl-ls .bgl-hint{margin-bottom:14px}
+.bgl-how{display:flex;justify-content:center;gap:10px;list-style:none;margin:0 auto 16px;padding:0;max-width:460px}
+.bgl-how li{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;font:600 11.5px/1.3 var(--sans);color:var(--wh)}
+.bgl-how i{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;font:800 12px var(--sans);font-style:normal;color:#170b12;background:linear-gradient(135deg,var(--gd2),var(--gd))}
+.bgl-hall{--heat:0;position:relative;height:clamp(220px,58vw,320px);border-radius:22px;overflow:hidden;border:1px solid var(--gb);
+  background:linear-gradient(180deg,#170e26,#08060d 78%);touch-action:manipulation;-webkit-user-select:none;user-select:none}
 .bgl-hall::before{content:"";position:absolute;inset:0;background:radial-gradient(80% 70% at 50% 0%,rgba(255,79,160,.6),rgba(139,92,255,.22) 45%,transparent 75%);
   opacity:calc(.12 + var(--heat) * .88);transition:opacity .4s}
 .bgl-hall.gold::before{background:radial-gradient(85% 75% at 50% 0%,rgba(243,211,139,.8),rgba(255,79,160,.22) 50%,transparent 80%);opacity:1}
-.bgl-hall-stage{position:absolute;left:14%;right:14%;top:0;height:20%;border-radius:0 0 50% 50%/0 0 100% 100%;border-bottom:2px solid var(--gd);
-  background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.02));opacity:calc(.35 + var(--heat) * .65)}
-.bgl-crowd{position:absolute;left:4%;right:4%;bottom:6%;display:grid;grid-template-columns:repeat(12,1fr);gap:7px 4px;align-items:end}
-.bgl-crowd i{justify-self:center;width:calc(9px * var(--s));height:calc(9px * var(--s));border-radius:50%;background:rgba(255,255,255,.1);transition:background .35s,box-shadow .35s}
-.bgl-crowd i.on{background:var(--c);box-shadow:0 0 10px var(--c)}
+.bgl-hall-scr{position:absolute;left:16%;right:16%;top:7%;height:19%;display:grid;place-items:center;border-radius:8px;border:1px solid rgba(243,211,139,.35);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.01));box-shadow:0 0 calc(var(--heat) * 40px) rgba(255,79,160,.35)}
+.bgl-hall-scr span{padding-left:.32em;font:800 clamp(14px,4.4vw,22px) var(--lat);letter-spacing:.32em;color:var(--gd2);
+  opacity:calc(.14 + var(--heat) * .86);text-shadow:0 0 calc(var(--heat) * 18px) rgba(255,79,160,.9);transition:opacity .4s}
+.bgl-hall.gold .bgl-hall-scr span{color:#fff;opacity:1;text-shadow:0 0 18px var(--gd),0 0 36px var(--pk)}
+.bgl-crowd{position:absolute;inset:0}
+.bgl-crowd i{position:absolute;left:var(--x);bottom:var(--y);width:calc(10px * var(--s));height:calc(10px * var(--s));margin-left:calc(-5px * var(--s));
+  border-radius:50%;background:rgba(255,255,255,.12);transition:background .35s,box-shadow .35s}
+.bgl-crowd i::after{content:"";position:absolute;left:50%;top:85%;width:1.5px;height:calc(9px * var(--s));margin-left:-.75px;background:rgba(255,255,255,.16)}
+.bgl-crowd i.on{background:var(--c);box-shadow:0 0 calc(12px * var(--s)) var(--c)}
 .bgl-crowd.wave i.on{animation:bglWave .7s var(--dl) ease-out}
 @keyframes bglWave{40%{transform:translateY(-5px) scale(1.35)}}
 .bgl-crowd.gold i{background:var(--gd);box-shadow:0 0 12px var(--gd);animation:bglGlow 1.6s var(--dl) ease-in-out infinite alternate}
 @keyframes bglGlow{to{opacity:.55;transform:translateY(-3px)}}
-.bgl-lvl{position:absolute;left:0;right:0;top:36%;padding:0 10px;font:800 clamp(18px,5.6vw,30px) var(--lat);letter-spacing:.12em;text-transform:uppercase;
+.bgl-heads{position:absolute;left:0;bottom:0;width:100%;height:30%;pointer-events:none}
+.bgl-lvl{position:absolute;z-index:2;left:0;right:0;top:40%;padding:0 10px;font:800 clamp(18px,5.6vw,30px) var(--disp);letter-spacing:.08em;text-transform:uppercase;
   text-shadow:0 0 20px rgba(255,79,160,.85);opacity:0;pointer-events:none}
+.bgl-lvl small{display:block;margin-bottom:4px;font:700 11px var(--sans);letter-spacing:3px;color:var(--gd2)}
 .bgl-lvl.show{animation:bglBanner 1.3s ease both}
 @keyframes bglBanner{0%{opacity:0;transform:scale(1.25)}25%,75%{opacity:1;transform:none}100%{opacity:0;transform:scale(.96)}}
-.bgl-hall-msg{position:absolute;left:0;right:0;top:21%;padding:0 12px;animation:bglFade 1s ease both}
-.bgl-hall-msg[hidden]{display:none}
-.bgl-hall-msg b{display:inline-block;padding:6px 16px;border-radius:999px;background:radial-gradient(closest-side,rgba(7,6,12,.7),rgba(7,6,12,0));font:italic 400 clamp(18px,5.2vw,30px)/1.25 var(--ser);color:var(--gd2);text-shadow:0 0 24px rgba(243,211,139,.7)}
-.bgl-ls-hud{display:flex;justify-content:space-between;gap:10px;margin:12px 4px 0;font:700 11px var(--lat);letter-spacing:1.5px;text-transform:uppercase;color:var(--mu)}
-.bgl-ls-pad{position:relative;height:150px;display:grid;place-items:center;touch-action:manipulation;-webkit-user-select:none;user-select:none;cursor:pointer}
-.bgl-stick{position:relative;width:86px;height:86px;border-radius:50%;border:0;cursor:pointer;
-  background:radial-gradient(circle at 40% 35%,#fff,var(--pk2) 30%,var(--pk) 62%,var(--vi));box-shadow:0 0 34px rgba(255,79,160,.65),inset 0 -6px 12px rgba(0,0,0,.25)}
-.bgl-stick::after{content:"";position:absolute;left:50%;top:100%;width:16px;height:34px;margin-left:-8px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#2a2236,#4a3d5e,#2a2236)}
-.bgl-stick.hit{animation:bglHitS .18s ease}
-@keyframes bglHitS{50%{transform:scale(.88);box-shadow:0 0 60px rgba(255,79,160,.95)}}
-.bgl-ls-ring{position:absolute;left:50%;top:50%;width:86px;height:86px;margin:-43px 0 0 -43px;border-radius:50%;border:3px solid var(--gd);box-sizing:border-box;
+.bgl-ov{position:absolute;z-index:3;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:8px;padding:16px 16px 18px;
+  background:linear-gradient(0deg,rgba(7,6,12,.92) 30%,rgba(7,6,12,.55) 70%,rgba(7,6,12,.25));transition:opacity .6s}
+.bgl-ov.fin{background:linear-gradient(0deg,rgba(7,6,12,.72),rgba(7,6,12,0) 62%)} .bgl-ov.fin .bgl-ov-k{display:none}
+.bgl-ov.hide{opacity:0;pointer-events:none}
+.bgl-ov-k{margin:0;font:700 10.5px var(--sans);letter-spacing:3px;text-transform:uppercase;color:var(--pk2)}
+.bgl-ov-t{margin:0;max-width:300px;font:700 16px/1.35 var(--sans);color:var(--wh)}
+.bgl-ov-t.fin{font:italic 400 clamp(20px,5.6vw,30px)/1.25 var(--ser);color:var(--gd2);text-shadow:0 0 24px rgba(243,211,139,.7)}
+.bgl-ov .bgl-cta{margin-top:6px}
+.bgl-ov-res{margin:0;font:600 12px var(--sans);color:var(--mu)} .bgl-ov-res:empty{display:none}
+.bgl-ls-hud{display:flex;justify-content:space-between;gap:10px;margin:10px 4px 0;font:700 11px var(--sans);letter-spacing:1.2px;text-transform:uppercase;color:var(--mu)}
+.bgl-ls-pad{position:relative;height:140px;display:grid;place-items:center;touch-action:manipulation;-webkit-user-select:none;user-select:none;cursor:pointer;scroll-margin-bottom:110px}
+.bgl-star{position:relative;width:96px;height:96px;padding:0;border:0;background:none;cursor:pointer;
+  filter:drop-shadow(0 0 14px rgba(255,79,160,.55)) drop-shadow(0 0 28px rgba(243,211,139,.35))}
+.bgl-star svg{display:block;width:100%;height:100%;overflow:visible}
+.bgl-star.hit{animation:bglHitS .2s ease}
+@keyframes bglHitS{50%{transform:scale(.86) rotate(-8deg)}}
+.bgl-ls-ring{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;border:3px solid var(--gd);box-sizing:border-box;
   opacity:0;pointer-events:none;box-shadow:0 0 14px rgba(243,211,139,.6);will-change:transform}
-.bgl-ls-hit{position:absolute;left:0;right:0;top:0;font:800 16px var(--disp);letter-spacing:.2em;text-transform:uppercase;color:var(--gd);opacity:0;pointer-events:none}
+.bgl-ls-pad.demo .bgl-ls-ring{animation:bglDemo 1.8s cubic-bezier(.45,0,.55,1) infinite}
+@keyframes bglDemo{0%{transform:scale(2.4);opacity:0}15%{opacity:.55}80%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:0}}
+.bgl-ls-pad.demo .bgl-star{animation:bglDemoStar 1.8s ease-in-out infinite}
+@keyframes bglDemoStar{0%,76%,100%{transform:none}84%{transform:scale(.88) rotate(-6deg)}}
+.bgl-ls-hit{position:absolute;left:0;right:0;top:0;font:800 16px var(--disp);letter-spacing:.12em;text-transform:uppercase;color:var(--gd);opacity:0;pointer-events:none}
 .bgl-ls-hit.show{animation:bglPop .6s ease forwards} .bgl-ls-hit.gd{color:var(--vi2)} .bgl-ls-hit.ms{color:#ff8a9a}
 @keyframes bglPop{0%{opacity:0;transform:translateY(6px)}20%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-12px)}}
 
@@ -541,12 +571,12 @@ const CSS=`
 @media(min-width:900px){.bgl-sc{padding-left:40px;padding-right:40px}}
 @media(max-height:820px){.bgl-sc{padding-top:calc(62px + env(safe-area-inset-top));padding-bottom:calc(96px + env(safe-area-inset-bottom))}
   .bgl-h{font-size:clamp(30px,9vw,52px);margin-bottom:8px}.bgl-kick{margin-bottom:6px}.bgl-hint{font-size:13.5px;margin-bottom:14px}
-  .bgl-hall{height:clamp(170px,26vh,260px)}.bgl-ls-hud{margin-top:8px}.bgl-ls-pad{height:118px}
-  .bgl-stick,.bgl-ls-ring{width:76px;height:76px}.bgl-ls-ring{margin:-38px 0 0 -38px}.bgl-stick::after{height:26px}
+  .bgl-hall{height:clamp(180px,27vh,260px)}.bgl-ls-hud{margin-top:8px}.bgl-ls-pad{height:112px}.bgl-how{margin-bottom:12px}.bgl-how li{font-size:11px}
+  .bgl-star,.bgl-ls-ring{width:80px;height:80px}.bgl-ls-ring{margin:-40px 0 0 -40px}
   .bgl-lanyard{height:34px;margin-top:0}.bgl-pass-main{padding:24px 18px 14px}.bgl-pass-t{margin-bottom:12px}.bgl-pass-t span{font-size:34px}
   .bgl-pass-f{gap:7px 12px}.bgl-pass-ser{margin-top:10px}.bgl-pass-stub{min-height:54px;padding:10px 18px 12px}.bgl-tk .bgl-hint{margin-top:14px}
   .bgl-orb{width:92px;height:92px;margin-bottom:20px}.bgl-call-btns{margin-top:40px}.bgl-led{width:min(260px,62vw);margin-bottom:20px}}
-.bgl-ls-pad{scroll-margin-bottom:110px}
+
 @media(prefers-reduced-motion:reduce){.bgl-room *,.bgl-room *::before,.bgl-room *::after{animation:none!important;transition:none!important}
   .bgl-pass.torn .bgl-pass-stub{visibility:hidden}}
 `;
@@ -638,19 +668,24 @@ ${scene("setlist","The Setlist","К лайтстикам","bgl-set",`
   <p class="bgl-count" id="bglTrkN">сыграно 0 из ${TRACKS.length}</p>
   <p class="bgl-fine">Треки вымышленные: названия придуманы для этого концерта.</p>`)}
 
-${scene("light","Lightstick","К бойз-бэнду","bgl-ls",`
-  <p class="bgl-kick">Scene 06</p><h2 class="bgl-h">Lightstick</h2>
-  <p class="bgl-hint">Жми на лайтстик, когда золотое кольцо сожмётся до него. Три уровня — от каждого попадания зал загорается ярче.</p>
+${scene("light","Light up the hall","К бойз-бэнду","bgl-ls",`
+  <p class="bgl-kick">Scene 06 · Lightstick</p><h2 class="bgl-h">Light up the hall</h2>
+  <p class="bgl-hint">Это твой концерт, и зал хочет светиться для тебя. Помоги зрителям: жми на звезду в такт — с каждым попаданием загораются лайтстики, а на экране сцены разгорается твоё имя.</p>
+  <ol class="bgl-how" aria-label="Как играть"><li><i>1</i>кольцо сжимается к звезде</li><li><i>2</i>жми, когда совпадёт</li><li><i>3</i>зал загорается</li></ol>
   <div class="bgl-hall" id="bglHall">
-    <div class="bgl-hall-stage"></div>
+    <div class="bgl-hall-scr" aria-hidden="true"><span>${LAT}</span></div>
     <div class="bgl-crowd" id="bglCrowd" aria-hidden="true"></div>
+    ${HEADS}
     <div class="bgl-lvl" id="bglLvl" aria-live="polite"></div>
-    <div class="bgl-hall-msg" id="bglHallMsg" hidden><b>Сегодня весь свет — для тебя</b></div>
+    <div class="bgl-ov" id="bglOv">
+      <p class="bgl-ov-k" id="bglOvK">Зал ждёт сигнала</p>
+      <p class="bgl-ov-t" id="bglOvT">3 песни · проиграть нельзя</p>
+      <button type="button" class="bgl-cta" id="bglGo">▶ Зажечь зал</button>
+      <p class="bgl-ov-res" id="bglLsRes" aria-live="polite"></p>
+    </div>
   </div>
-  <div class="bgl-ls-hud"><span id="bglLvlName">3 уровня · 30 тактов</span><span id="bglLit">огни 0%</span></div>
-  <div class="bgl-ls-pad" id="bglPad"><span class="bgl-ls-ring" id="bglRing"></span><button type="button" class="bgl-stick" id="bglStick" aria-label="Лайтстик: нажимать в такт"></button><span class="bgl-ls-hit" id="bglHit"></span></div>
-  <div class="bgl-center"><button type="button" class="bgl-cta" id="bglGo">▶ Начать шоу</button></div>
-  <p class="bgl-count" id="bglLsRes" aria-live="polite"></p>`)}
+  <div class="bgl-ls-hud"><span id="bglLvlName">3 песни · 30 тактов</span><span id="bglLit">огни 0%</span></div>
+  <div class="bgl-ls-pad demo" id="bglPad"><span class="bgl-ls-ring" id="bglRing"></span><button type="button" class="bgl-star" id="bglStar" aria-label="Звезда: нажимать в такт">${STAR}</button><span class="bgl-ls-hit" id="bglHit"></span></div>`)}
 
 ${scene("band","The Boy Band","К письму","bgl-band",`
   <p class="bgl-kick">Scene 07 · Surprise guests</p><h2 class="bgl-h">The Boy Band</h2>
