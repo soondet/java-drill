@@ -29,7 +29,7 @@ html = html.replace("<!--INLINE-I18N-EN-->", () => {
 // но однофайловая сборка должна оставаться самодостаточной — вшиваем их сюда.
 /* ленивые на сайте, но вшитые в однофайловую сборку: комнаты, сценки «С нуля» (порядок важен — kid-svg до kid-scenes)
    и уроки «Python и C++» (bro.js грузит их сам, но в одном файле подгружать неоткуда) */
-const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js", "tmr-data.js", "dmr-data.js", "kid-zero.js", "kid-svg.js", "kid-scenes.js", "kid-say.js", "bro-py.js", "bro-cpp.js"];
+const ROOMS = ["hb-data.js", "sing-data.js", "qa-data.js", "tmr-data.js", "dmr-data.js", "bgl-data.js", "kid-zero.js", "kid-svg.js", "kid-scenes.js", "kid-say.js", "bro-py.js", "bro-cpp.js"];
 let roomKb = 0;
 const roomTags = ROOMS.map(f => {
   try {

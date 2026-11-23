@@ -314,6 +314,21 @@ const check = (name, ok, detail) => {
       "замок " + dm.lock + " · данные " + dm.data + " · на чужой код: «" + dm.ошибка + "» · открылась без кода: " + dm.open + " · закрылась: " + dm.closed);
   }
 
+  /* ---- комната #bgl: то же снаружи — замок, данные, чужой код отбит ---- */
+  {
+    const bg = JSON.parse(await A.ev(`(async function(){
+      var ж=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+      location.hash="#bgl"; await ж(600);
+      var lock=!!document.querySelector("#hbWrap .hb-lock"), data=!!window.BGLDATA, inp=document.getElementById("hbPw");
+      var ошибка=""; if(inp){ inp.value="явно-не-тот-код"; await hbTry(inp.value); await ж(50); ошибка=(document.getElementById("hbErr")||{}).textContent||""; }
+      var open=!!document.querySelector("#hbWrap .bgl-poster, #hbWrap .bgl-req");
+      hbClose(); await ж(100);
+      return JSON.stringify({lock:lock, data:data, ошибка:ошибка, open:open, closed:!document.getElementById("hbWrap")});
+    })()`));
+    check("комната #bgl: замок, данные, чужой код отбит", bg.lock && bg.data && /Не тот код/.test(bg.ошибка) && !bg.open && bg.closed,
+      "замок " + bg.lock + " · данные " + bg.data + " · на чужой код: «" + bg.ошибка + "» · открылась без кода: " + bg.open + " · закрылась: " + bg.closed);
+  }
+
   /* ---- раздел AI: маршрут, карточки, термины ----
      Про AI в тренажёре не было ничего; теперь маршрут в «С нуля», кластер карточек и
      термины. Считаем всё вместе, чтобы выпадение одного файла из сборки было видно. */
