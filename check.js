@@ -321,7 +321,7 @@ const check = (name, ok, detail) => {
       location.hash="#bgl"; await ж(600);
       var lock=!!document.querySelector("#hbWrap .hb-lock"), data=!!window.BGLDATA, inp=document.getElementById("hbPw");
       var ошибка=""; if(inp){ inp.value="явно-не-тот-код"; await hbTry(inp.value); await ж(50); ошибка=(document.getElementById("hbErr")||{}).textContent||""; }
-      var open=!!document.querySelector("#hbWrap .bgl-poster, #hbWrap .bgl-req");
+      var open=!!document.querySelector("#hbWrap .bgl-sc");
       hbClose(); await ж(100);
       return JSON.stringify({lock:lock, data:data, ошибка:ошибка, open:open, closed:!document.getElementById("hbWrap")});
     })()`));

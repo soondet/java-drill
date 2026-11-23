@@ -1968,145 +1968,10 @@
   @media(prefers-reduced-motion:reduce){.dm-cover,.dm-card,.dm-tag-in,.dm-letter,.dmr-q-em,.dmr-q-dm,.dm-ticker-in{animation:none}
     .dm-mono circle{animation:none;stroke-dashoffset:0}.dm-mono b,.dm-intro p,.dm-intro span{animation:none;opacity:1}
     .dmr-credits{height:auto;-webkit-mask-image:none;mask-image:none}.dmr-roll{position:static;animation:none}}
-  /* ---- комната #bgl: концерт — ночная сцена, неоново-розовый, золото прожекторов, лаванда.
-     Заголовки — системный узкий гротеск без загрузки извне: Arial Narrow на Mac, Roboto Condensed на Android,
-     на iOS обычный системный. Avenir Next Condensed НЕ брать: в нём нет кириллицы, буквы шли из двух шрифтов. ---- */
-  .hb-wrap.bgl-room{--nt:#0c0913;--pk:#ff5fa2;--pk2:#ff9ccb;--gd:#ffd27a;--lv:#b9a8ff;--tx:#f7f1ff;--mu:#a89fba;--ln:rgba(255,95,162,.3);
-    --disp:"Arial Narrow","sans-serif-condensed","Roboto Condensed",var(--sans);
-    background:radial-gradient(900px 520px at 50% -6%,rgba(255,95,162,.2),transparent 62%),
-      radial-gradient(700px 500px at 0% 100%,rgba(185,168,255,.12),transparent 70%),var(--nt);color:var(--tx)}
-  .bgl-room .hb-in{max-width:720px}
-  .bgl-room .hb-x{background:rgba(12,9,19,.75);border-color:var(--ln);color:var(--pk2)} .bgl-room .hb-x:hover{border-color:var(--pk)}
-  .bgl-room .hb-skip{color:var(--mu)}
-  .bgl-intro{max-width:380px;margin:14vh auto 0}
-  .bgl-req{padding:18px 18px 8px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:#15101e;box-shadow:0 30px 60px -30px #000;
-    transition:transform .5s cubic-bezier(.5,0,.2,1),opacity .5s}
-  .bgl-req.out{transform:translateY(-24px) scale(.92) rotate(-3deg);opacity:0}
-  .bgl-req-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:12px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;color:var(--mu)}
-  .bgl-req-h b{font-size:14px;color:var(--tx)}
-  .bgl-req dl{margin:0}
-  .bgl-req dl div{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);opacity:0;animation:bglIn .4s ease forwards}
-  .bgl-req dl div:last-child{border-bottom:0}
-  .bgl-req dl div:nth-child(2){animation-delay:.3s} .bgl-req dl div:nth-child(3){animation-delay:.6s} .bgl-req dl div:nth-child(4){animation-delay:.9s}
-  .bgl-req dt{width:84px;flex:none;font-size:12px;color:var(--mu)} .bgl-req dd{margin:0;min-width:0;font-size:14px;font-weight:600}
-  .bgl-req dd.hot{color:var(--pk2)}
-  .bgl-st{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;background:rgba(255,255,255,.08);color:var(--mu);transition:background .3s,color .3s}
-  .bgl-st.work{background:rgba(255,210,122,.16);color:var(--gd)} .bgl-st.ok{background:rgba(80,220,150,.16);color:#7de0a8}
-  .bgl-req-f{margin:14px 0 0;text-align:center;font-size:13px;color:var(--gd);opacity:0;transition:opacity .4s} .bgl-req-f.on{opacity:1}
-  @keyframes bglIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .bgl-poster{position:relative;overflow:hidden;padding:26px 20px 30px;text-align:center;border-radius:22px;border:1px solid var(--ln);
-    background:linear-gradient(180deg,#22113a 0%,#140d20 55%,#0c0913 100%);animation:hbUp .8s ease both}
-  .bgl-beams{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-  .bgl-beams i{position:absolute;top:-6%;left:50%;width:50%;height:120%;margin-left:-25%;transform-origin:50% 0;
-    background:linear-gradient(180deg,rgba(255,210,122,.3),rgba(255,210,122,0) 78%);clip-path:polygon(46% 0,54% 0,100% 100%,0 100%);
-    mix-blend-mode:screen;animation:bglSweep 7s ease-in-out infinite alternate;--a:-34deg;--b:-12deg}
-  .bgl-beams i:nth-child(2){background:linear-gradient(180deg,rgba(255,95,162,.34),rgba(255,95,162,0) 78%);animation-duration:6s;--a:30deg;--b:8deg}
-  .bgl-beams i:nth-child(3){background:linear-gradient(180deg,rgba(185,168,255,.28),rgba(185,168,255,0) 78%);animation-duration:8.5s;--a:-8deg;--b:14deg}
-  @keyframes bglSweep{from{transform:rotate(var(--a))}to{transform:rotate(var(--b))}}
-  .bgl-pre{position:relative;margin:0 0 18px;font:600 11px var(--sans);letter-spacing:4px;text-transform:uppercase;color:var(--pk2)}
-  .bgl-ph{position:relative;width:min(320px,80%);margin:0 auto}
-  .bgl-ph img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;
-    box-shadow:0 0 0 1px rgba(255,255,255,.14),0 24px 60px -18px rgba(255,95,162,.6)}
-  .bgl-ph figcaption{position:absolute;left:10px;bottom:10px;padding:5px 11px;border-radius:999px;background:rgba(12,9,19,.72);
-    font:600 11px var(--sans);letter-spacing:.5px;color:var(--tx)}
-  .bgl-sold{position:absolute;top:12px;right:-6px;padding:5px 11px;transform:rotate(8deg);border:2px solid var(--pk);border-radius:6px;
-    background:rgba(12,9,19,.65);font:800 13px var(--disp);letter-spacing:3px;text-transform:uppercase;color:var(--pk)}
-  .bgl-name{position:relative;margin:24px 0 6px;font:800 clamp(34px,11.5vw,86px)/1 var(--disp);letter-spacing:.04em;text-transform:uppercase;
-    background:linear-gradient(180deg,#fff 25%,var(--pk2));-webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 0 18px rgba(255,95,162,.45))}
-  .bgl-tour{position:relative;margin:0;font:600 12.5px var(--sans);letter-spacing:5px;text-transform:uppercase;color:var(--gd)}
-  .bgl-when{position:relative;display:inline-flex;align-items:center;gap:12px;margin-top:18px;padding:10px 18px;border:1px solid var(--ln);border-radius:12px;background:rgba(255,255,255,.03)}
-  .bgl-when b{font:800 34px/1 var(--disp)} .bgl-when span{text-align:left;font:600 11px/1.35 var(--sans);letter-spacing:2px;text-transform:uppercase;color:var(--mu)}
-  .bgl-hb{position:relative;margin:18px 0 0;font:700 17px var(--sans);color:var(--pk2)}
-  .bgl-card{position:relative;margin:22px 0;padding:24px 22px;border:1px solid rgba(255,255,255,.08);border-radius:20px;
-    background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));animation:hbUp .7s ease both}
-  .bgl-card h2{display:flex;align-items:baseline;gap:12px;margin:0 0 6px;font:800 25px/1.15 var(--disp);letter-spacing:.02em;text-transform:uppercase;color:var(--tx)}
-  .bgl-card h2 small{font:700 11px var(--sans);letter-spacing:2px;color:var(--pk)}
-  .bgl-lead{margin:0 0 16px;color:var(--mu);font-size:14px;line-height:1.55}
-  .bgl-center{text-align:center}
-  .bgl-btn{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:12px 22px;border:0;border-radius:999px;cursor:pointer;
-    background:linear-gradient(90deg,var(--pk),#ff86b9);color:#1a0b14;font:700 14px var(--sans);box-shadow:0 10px 24px -10px rgba(255,95,162,.8);transition:transform .1s}
-  .bgl-btn:active{transform:scale(.97)} .bgl-btn:disabled{opacity:.6;cursor:default}
-  .bgl-dates{list-style:none;margin:6px 0 0;padding:0}
-  .bgl-dates li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px dashed rgba(255,255,255,.1)}
-  .bgl-dates li div{min-width:0} .bgl-dates li span{display:block;font:700 15.5px var(--sans)} .bgl-dates li i{font-style:normal;font-size:12.5px;color:var(--mu)}
-  .bgl-dates li b{flex:none;font:700 11px var(--sans);letter-spacing:1.2px;text-transform:uppercase;color:#7de0a8}
-  .bgl-dates li.now{margin-top:6px;padding:12px 14px;border:0;border-radius:12px;background:rgba(255,95,162,.13)} .bgl-dates li.now b{color:var(--pk2)}
-  .bgl-tk-wrap{overflow:hidden;padding:2px 0 8px}
-  .bgl-ticket{position:relative;display:flex;max-width:520px;margin:0 auto;filter:drop-shadow(0 18px 26px rgba(0,0,0,.5))}
-  .bgl-tk-main{position:relative;flex:1;min-width:0;padding:18px 18px 16px;border-radius:14px 0 0 14px;color:#1c1324;background:linear-gradient(135deg,#ffe3f0,#fff4e0)}
-  .bgl-tk-k{margin:0;font:700 10px var(--sans);letter-spacing:2.5px;text-transform:uppercase;color:#b0306e}
-  .bgl-tk-main h3{margin:4px 0 12px;font:800 23px/1.1 var(--disp);text-transform:uppercase}
-  .bgl-tk-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px 14px;margin:0}
-  .bgl-tk-grid div{min-width:0} .bgl-tk-grid dt{font:600 9.5px var(--sans);letter-spacing:1.5px;text-transform:uppercase;color:#8a6a80}
-  .bgl-tk-grid dd{margin:2px 0 0;font:700 13.5px/1.3 var(--sans)}
-  .bgl-bar{height:28px;margin-top:14px;opacity:.85;
-    background:repeating-linear-gradient(90deg,#1c1324 0 2px,transparent 2px 4px,#1c1324 4px 5px,transparent 5px 8px,#1c1324 8px 11px,transparent 11px 13px)}
-  .bgl-stamp{position:absolute;right:14px;top:14px;padding:4px 10px;border:2px solid #2a9d63;border-radius:6px;color:#2a9d63;
-    font:800 12px var(--sans);letter-spacing:2px;text-transform:uppercase;transform:rotate(-12deg) scale(1.6);opacity:0;transition:opacity .35s .45s,transform .35s .45s}
-  .bgl-tk-stub{flex:none;width:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 8px;
-    border-radius:0 14px 14px 0;border-left:2px dashed rgba(28,19,36,.35);color:#1c1324;background:linear-gradient(135deg,#ffd1e6,#ffe9c7);
-    transition:transform .9s cubic-bezier(.5,0,.75,0),opacity .9s}
-  .bgl-tk-stub b{font:800 17px var(--disp)} .bgl-tk-stub span{font:700 9px var(--sans);letter-spacing:2px;text-transform:uppercase;color:#8a6a80}
-  .bgl-ticket.torn .bgl-tk-stub{transform:translate(16px,140px) rotate(26deg);opacity:0}
-  .bgl-ticket.torn .bgl-stamp{opacity:1;transform:rotate(-12deg) scale(1)}
-  .bgl-paper{position:relative;max-width:520px;margin:12px auto 0;padding:22px 18px 10px;border-radius:4px;color:#1a1420;background:#fbf7f1;
-    transform:rotate(-.6deg);box-shadow:0 24px 40px -22px rgba(0,0,0,.9)}
-  .bgl-paper::before,.bgl-paper::after{content:"";position:absolute;top:-10px;width:72px;height:22px;background:rgba(255,210,122,.78)}
-  .bgl-paper::before{left:18px;transform:rotate(-6deg)} .bgl-paper::after{right:18px;transform:rotate(5deg)}
-  .bgl-paper h3{margin:0 0 10px;text-align:center;font:800 15px var(--disp);letter-spacing:3px;text-transform:uppercase}
-  .bgl-set{list-style:none;margin:0;padding:0}
-  .bgl-tr{border-top:1px solid rgba(26,20,32,.12)}
-  .bgl-tr button{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:9px 2px;border:0;background:none;color:inherit;text-align:left;cursor:pointer;font:inherit}
-  .bgl-tr .n{flex:none;width:22px;font:800 14px var(--disp);color:#b0306e}
-  .bgl-tr .t{flex:1;min-width:0} .bgl-tr .t b{display:block;font:800 17px/1.2 var(--disp);letter-spacing:.02em;text-transform:uppercase}
-  .bgl-tr .t i{font-style:normal;font-size:12px;color:#7a6c80}
-  .bgl-tr.on .n{color:#2a9d63}
-  .bgl-eq{flex:none;display:flex;gap:2px;align-items:flex-end;height:14px;opacity:.22} .bgl-eq s{width:3px;height:35%;background:#b0306e}
-  .bgl-tr.now .bgl-eq{opacity:1} .bgl-tr.now .bgl-eq s{animation:bglEq .7s ease-in-out infinite alternate}
-  .bgl-tr.now .bgl-eq s:nth-child(2){animation-delay:-.3s} .bgl-tr.now .bgl-eq s:nth-child(3){animation-delay:-.5s} .bgl-tr.now .bgl-eq s:nth-child(4){animation-delay:-.15s}
-  @keyframes bglEq{from{height:20%}to{height:100%}}
-  .bgl-tr p{display:none;margin:0 0 12px 32px;padding:10px 12px;border-left:3px solid var(--pk);background:rgba(255,95,162,.08);font-size:14.5px;line-height:1.55}
-  .bgl-tr.on p{display:block;animation:bglIn .35s ease}
-  .bgl-set-n{margin:14px 0 0;text-align:center;font:600 12.5px var(--sans);color:var(--mu)}
-  .bgl-game{max-width:440px;margin:0 auto;text-align:center}
-  .bgl-stage{position:relative;height:200px;display:grid;place-items:center;overflow:hidden;border-radius:16px;border:1px solid rgba(255,255,255,.07);
-    background:radial-gradient(circle at 50% 55%,rgba(255,95,162,.16),transparent 60%),#0f0b17;touch-action:manipulation;user-select:none;-webkit-user-select:none;cursor:pointer}
-  .bgl-pad{position:relative;width:84px;height:84px;border-radius:50%;border:0;cursor:pointer;
-    background:radial-gradient(circle at 40% 35%,#fff,var(--pk2) 35%,var(--pk) 72%);box-shadow:0 0 30px rgba(255,95,162,.6);transition:transform .08s}
-  .bgl-pad.hit{transform:scale(.9)}
-  .bgl-ring{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;border:3px solid var(--gd);opacity:0;pointer-events:none;will-change:transform}
-  .bgl-hit{position:absolute;left:0;right:0;top:16px;font:800 17px var(--disp);letter-spacing:2px;text-transform:uppercase;color:var(--gd);opacity:0;pointer-events:none}
-  .bgl-hit.show{animation:bglHit .6s ease forwards} .bgl-hit.good{color:var(--lv)} .bgl-hit.miss{color:#ff8a8a}
-  @keyframes bglHit{0%{opacity:0;transform:translateY(6px)}20%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-10px)}}
-  .bgl-crowd{display:grid;grid-template-columns:repeat(15,1fr);gap:6px;margin:14px auto 0}
-  .bgl-crowd i{aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.08);transition:background .3s,box-shadow .3s}
-  .bgl-crowd i.on{background:var(--c);box-shadow:0 0 8px var(--c)}
-  .bgl-msg{min-height:20px;margin:12px 0 0} .bgl-msg b{display:block;font:800 21px var(--disp);letter-spacing:.03em;text-transform:uppercase}
-  .bgl-msg span{font-size:13px;color:var(--mu)}
-  .bgl-band{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;max-width:560px;margin:10px auto 0}
-  .bgl-m{margin:0;animation:bglBob 1.6s ease-in-out infinite;animation-delay:calc(var(--d) * -.2s)}
-  .bgl-m svg{display:block;width:100%;height:auto}
-  .bgl-m.jump{animation:bglJump .5s ease}
-  @keyframes bglBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-  @keyframes bglJump{0%{transform:none}40%{transform:translateY(-18px) rotate(-4deg)}100%{transform:none}}
-  .bgl-chant{min-height:26px;margin:12px 0 0;text-align:center;font:800 19px var(--disp);letter-spacing:2px;color:var(--pk2)}
-  .bgl-letter{position:relative;max-width:600px;margin:34px auto 0;padding:34px 26px 26px;border-radius:20px;color:#1c1324;
-    background:linear-gradient(160deg,#fff5fa,#fff0dc);box-shadow:0 40px 80px -40px rgba(255,95,162,.6);animation:hbUp .7s ease both}
-  .bgl-k{margin:0;text-align:center;font:700 10.5px var(--sans);letter-spacing:3px;text-transform:uppercase;color:#b0306e}
-  .bgl-letter h3{margin:6px 0 16px;text-align:center;font:800 29px/1.1 var(--disp);text-transform:uppercase}
-  .bgl-letter p{margin:0 0 12px;font-size:16px;line-height:1.65}
-  .bgl-letter .bgl-sign{margin-top:18px;text-align:right;font-weight:700}
-  .bgl-sign span{display:block;margin-top:4px;font:600 11px var(--sans);letter-spacing:2px;text-transform:uppercase;color:#8a6a80}
-  .bgl-letter .bgl-fine{margin:14px 0 0;text-align:center;font-size:12.5px;color:#8a6a80}
-  @media(max-width:520px){.bgl-band{grid-template-columns:repeat(4,1fr);max-width:300px}
-    .bgl-ticket{flex-direction:column}.bgl-tk-main{border-radius:14px 14px 0 0}
-    .bgl-tk-stub{width:auto;flex-direction:row;justify-content:space-between;padding:12px 16px;border-left:0;border-top:2px dashed rgba(28,19,36,.35);border-radius:0 0 14px 14px}
-    .bgl-ticket.torn .bgl-tk-stub{transform:translate(10px,90px) rotate(8deg)}}
-  @media(max-width:560px){.bgl-poster{padding:22px 14px 26px}.bgl-card{padding:20px 16px}.bgl-letter{padding:30px 18px 22px}.bgl-card h2{font-size:22px}
-    .bgl-tr p{margin-left:0}.bgl-crowd{gap:5px}.bgl-k{letter-spacing:1.5px}}
-  @media(prefers-reduced-motion:reduce){.bgl-poster,.bgl-card,.bgl-letter,.bgl-beams i,.bgl-m,.bgl-tr.now .bgl-eq s,.bgl-tr.on p{animation:none}
-    .bgl-req dl div{animation:none;opacity:1}}
+  /* ---- комната #bgl: концерт по сценам. Здесь только фон экрана с замком — стили сцен лежат
+     в шифртексте bgl-data.js вместе с разметкой и подключаются после ввода кода. ---- */
+  .hb-wrap.bgl-room{background:#07060c;color:#fff6ec}
+  .bgl-room .hb-x{background:rgba(7,6,12,.6);border-color:rgba(255,255,255,.12);color:#fff6ec}
   @media(max-width:560px){.tmr-kv{grid-template-columns:1fr}.tmr-bid{grid-template-columns:1fr auto}.tmr-bid .tmr-p{grid-column:1/-1}.tmr-tbl{font-size:12px}}
   .hb-term{max-width:720px;margin:9vh auto 0;padding:16px 18px;border-radius:14px;
     background:rgba(0,0,0,.55);border:1px solid var(--line);font:500 12.5px/1.75 var(--mono);
@@ -13806,8 +13671,8 @@ const HB_ROOMS={
   tmr: {cls:"sg-room tmr-room", data:()=>window.TMRDATA, src:"tmr-data.js", intro:tmrIntro, wire:tmrWire},
   dmr: {cls:"dmr-room", data:()=>window.DMRDATA, src:"dmr-data.js", intro:dmrIntro, wire:dmrWire,
         col:["#c8a96a","#e3cf9f","#efe8dc","#9a7b45","#ffffff"]},   /* конфетти в тон ателье */
-  bgl: {cls:"bgl-room", data:()=>window.BGLDATA, src:"bgl-data.js", intro:bglIntro, wire:bglWire,
-        col:["#ff5fa2","#ffd27a","#b9a8ff","#7fe3ff","#ffffff"]}    /* конфетти в тон сцены */
+  bgl: {cls:"bgl-room", data:()=>window.BGLDATA, src:"bgl-data.js", intro:bglIntro, wire:bglWire, quiet:true,
+        col:["#ff4fa0","#f3d38b","#b9a3ff","#7fe3ff","#fff6ec"]}    /* конфетти в тон сцены; quiet — без дождя на старте: первая сцена — чёрный экран звонка */
 };
 
 /* Данные комнат — 740 КБ шифртекста с фотографиями. Открывают их по паролю
@@ -14211,127 +14076,304 @@ function roomSong(sel){
     const r=b.getBoundingClientRect(); hbBurst(r.left+r.width/2,r.top,30);
   };
 }
-/* ---- комната #bgl: концерт ----
-   Всё личное (имя, фото, пожелания) — в шифртексте bgl-build.js; здесь только поведение.
-   Заставка — обращение в поддержку, которое решается и становится билетом: имя берём
-   из уже расшифрованной страницы, чтобы его не было в открытом коде. */
-let BGL_T=[], BGL_RAF=null, BGL_KEY=null;
-function bglIntro(done,html){
-  const box=$("#hbIn"); let killed=false;
-  const m=/data-bgl-name="([^"]*)"/.exec(html||""), name=m?esc(m[1]):"";
-  const go=()=>{ if(killed||!$("#hbWrap"))return; killed=true; BGL_T.forEach(clearTimeout); BGL_T=[]; done(); };
-  box.innerHTML='<div class="bgl-intro"><div class="bgl-req" id="bglReq">'
-    +'<div class="bgl-req-h"><b>Служба поддержки</b><span>обращение № 2311</span></div>'
-    +'<dl><div><dt>от кого</dt><dd>Вселенная</dd></div>'
-    +'<div><dt>тема</dt><dd>'+(name?"У "+name+" день рождения":"День рождения")+'</dd></div>'
-    +'<div><dt>приоритет</dt><dd class="hot">наивысший 🔥</dd></div>'
-    +'<div><dt>статус</dt><dd><span class="bgl-st" id="bglSt">новое</span></dd></div></dl></div>'
-    +'<p class="bgl-req-f" id="bglReqF">решение: выдать билет на главный концерт года 🎫</p></div>'
-    +'<button class="hb-skip" id="hbSkip">пропустить</button>';
-  $("#hbSkip").onclick=go;
-  const st=$("#bglSt");
-  BGL_T.push(setTimeout(()=>{ st.textContent="в работе"; st.className="bgl-st work"; },1500));
-  BGL_T.push(setTimeout(()=>{ st.textContent="решено ✓"; st.className="bgl-st ok"; $("#bglReqF").classList.add("on"); },2400));
-  BGL_T.push(setTimeout(()=>{ const r=$("#bglReq"); if(r)r.classList.add("out"); },3600));
-  BGL_T.push(setTimeout(go,4100));
+/* ---- комната #bgl: концерт по сценам ----
+   Разметка, стили и всё личное — в шифртексте bgl-build.js; здесь только поведение.
+   9 сцен по одной: прогресс сверху, «назад / дальше» снизу, пропуск анимаций, «Повторить концерт».
+   Все таймеры — в BGL_T, кадры — BGL_RAF, интервал плеера — BGL_IV: bglStop() гасит всё при закрытии и повторе. */
+let BGL_T=[], BGL_RAF=null, BGL_KEY=null, BGL_IV=null;
+let BGL_GAME={on:false,tap(){},stop(){}};
+const BGL={i:0,html:"",sound:true,seen:{}};
+const BGL_ENTER={};
+const bglT=(f,ms)=>{ BGL_T.push(setTimeout(f,ms)); };
+const bglRM=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+const bglAt=(el,n)=>{ if(!el)return; const r=el.getBoundingClientRect(); hbBurst(r.left+r.width/2,r.top+r.height/2,n); };
+function bglRain(ms){                                  /* дождь конфетти сверху: будим общий цикл комнаты */
+  if(!HB||bglRM())return;
+  HB.until=Math.max(HB.until,performance.now()+ms);
+  if(!HB.raf&&HB.step)HB.raf=requestAnimationFrame(HB.step);
 }
+/* Звук — только после нажатия (звонок принимают кнопкой), выключается в шапке */
+function bglSfx(kind,k){
+  if(!BGL.sound)return;
+  const ac=sgAudio(); if(!ac)return; if(ac.state==="suspended")ac.resume();
+  const t=ac.currentTime+.02, SC=[0,2,4,5,7,9,11,12];
+  const N={chime:[[76,0,.5],[83,.12,.8]], ok:[[72,0,.25],[76,.1,.25],[79,.2,.25],[84,.3,.9]],
+    swell:[[60,0,1.8],[64,.04,1.8],[67,.08,1.8],[72,.12,2]], tick:[[88,0,.07]], tear:[[64,0,.1],[71,.07,.25]],
+    blip:[[72+SC[(k||0)%8],0,.16]]}[kind]||[];
+  N.forEach(([m,d,len])=>sgTone(ac,sgHz(m),t+d,len,kind==="swell"?.045:.07,kind==="tick"?"square":"triangle"));
+}
+function bglIntro(done){ done(); }                     /* заставка — первая сцена: звонок */
 function bglStop(){
   BGL_T.forEach(clearTimeout); BGL_T=[];
   if(BGL_RAF)cancelAnimationFrame(BGL_RAF); BGL_RAF=null;
+  if(BGL_IV){ clearInterval(BGL_IV); BGL_IV=null; }
   if(BGL_KEY){ removeEventListener("keydown",BGL_KEY); BGL_KEY=null; }
+  BGL_GAME={on:false,tap(){},stop(){}};
 }
-function bglWire(){ bglTear(); bglSet(); bglGame(); bglBand(); roomSong("#bglSong"); }
-const bglParty=n=>{ for(let k=0;k<n;k++)BGL_T.push(setTimeout(()=>hbBurst(innerWidth*(.2+Math.random()*.6),innerHeight*.35,60),k*220)); };
-function bglTear(){
-  const b=$("#bglTear"), t=$("#bglTicket"); if(!b||!t)return;
-  b.onclick=()=>{
-    if(t.classList.contains("torn"))return;
-    t.classList.add("torn"); b.textContent="Вход выполнен ✓"; b.disabled=true;
-    const r=t.getBoundingClientRect(); hbBurst(r.left+r.width/2,r.top+r.height/2,70);
+function bglWire(){
+  const box=$("#hbIn"); if(!box||!box.querySelector(".bgl-sc"))return;
+  BGL.html=box.innerHTML; BGL.i=0; BGL.seen={};
+  const sc=[...box.querySelectorAll(".bgl-sc")];
+  const top=document.createElement("div"); top.className="bgl-top";
+  top.innerHTML='<div class="bgl-top-in"><div class="bgl-prog">'+sc.map(()=>"<i></i>").join("")+'</div>'
+    +'<p class="bgl-lbl"><b id="bglNo">01</b> / '+String(sc.length).padStart(2,"0")+' · <span id="bglNm"></span></p></div>'
+    +'<button type="button" class="bgl-snd" id="bglSnd" aria-label="Звук" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true">'
+    +'<path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="w" d="M16 9a4 4 0 0 1 0 6M18.6 6.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+    +'<path class="x" d="M16 9.5l5 5M21 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>';
+  const nav=document.createElement("nav"); nav.className="bgl-nav"; nav.setAttribute("aria-label","Сцены концерта");
+  nav.innerHTML='<button type="button" class="bgl-back" id="bglBack" aria-label="Предыдущая сцена"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'
+    +'<button type="button" class="bgl-next" id="bglNext">Дальше</button>';
+  box.append(top,nav);
+  $("#bglBack").onclick=()=>bglGo(BGL.i-1);
+  $("#bglNext").onclick=()=>bglGo(BGL.i+1);
+  const snd=$("#bglSnd"), paint=()=>{ snd.classList.toggle("off",!BGL.sound); snd.setAttribute("aria-pressed",String(BGL.sound)); };
+  snd.onclick=()=>{ BGL.sound=!BGL.sound; paint(); if(!BGL.sound&&SG_PLAY){ sgStopMelody(); const b=$("#bglSong"); if(b)b.textContent="▶ Happy Birthday"; } };
+  paint();
+  BGL_KEY=e=>{
+    if(!$("#bglNext"))return;
+    const tg=e.target&&e.target.tagName; if(tg==="INPUT"||tg==="TEXTAREA")return;
+    if(BGL_GAME.on&&(e.key===" "||e.key==="Enter")){ e.preventDefault(); BGL_GAME.tap(); return; }
+    if(e.key==="ArrowRight"&&BGL.i>0)bglGo(BGL.i+1);
+    else if(e.key==="ArrowLeft")bglGo(BGL.i-1);
   };
+  addEventListener("keydown",BGL_KEY);
+  bglCall(); bglStory(); bglPass(); bglSetlist(); bglGame(); bglBand(); bglLetter();
+  roomSong("#bglSong"); const rp=$("#bglReplay"); if(rp)rp.onclick=bglReplay;
+  bglGo(0,true);
 }
-/* Сет-лист: нажатие «играет» трек — открывает пожелание; сыгранные остаются открытыми */
-function bglSet(){
-  const box=$("#bglSet"), note=$("#bglSetN"); if(!box)return;
-  const items=[...box.querySelectorAll(".bgl-tr")]; let n=0;
-  items.forEach(li=>{
+function bglGo(n,first){
+  const sc=[...document.querySelectorAll("#hbIn .bgl-sc")]; if(!sc.length)return;
+  n=Math.max(0,Math.min(sc.length-1,n));
+  if(!first&&n===BGL.i)return;
+  const cur=sc[BGL.i];
+  const show=()=>{
+    if(!$("#bglNext"))return;
+    sc.forEach((s,k)=>{ s.hidden=k!==n; s.classList.remove("leave"); s.classList.toggle("on",k===n); });
+    BGL.i=n;
+    const w=$("#hbWrap"); if(w)w.scrollTop=0;
+    const s=sc[n], id=s.dataset.sc;
+    $("#bglNo").textContent=String(n+1).padStart(2,"0"); $("#bglNm").textContent=s.dataset.name||"";
+    document.querySelectorAll(".bgl-prog i").forEach((d,k)=>{ d.className=k<n?"done":k===n?"cur":""; });
+    document.querySelector(".bgl-nav").hidden=n===0;                  /* у звонка своя кнопка «Открыть мой подарок» */
+    $("#bglBack").classList.toggle("off",n===0);
+    const nx=$("#bglNext"); nx.hidden=n===sc.length-1; nx.textContent=(s.dataset.next||"Дальше")+" →";
+    if(BGL_GAME.on&&id!=="light")BGL_GAME.stop();
+    if(!first)s.focus({preventScroll:true});
+    const f=BGL_ENTER[id]; if(f)f(s,!BGL.seen[id]); BGL.seen[id]=1;
+  };
+  if(first||bglRM()||!cur||cur.hidden){ show(); return; }
+  cur.classList.add("leave"); bglT(show,240);
+}
+function bglReplay(){                                  /* концерт с начала: свежая разметка, всё состояние заново */
+  const html=BGL.html, box=$("#hbIn"); if(!html||!box)return;
+  bglStop(); if(SG_PLAY)sgStopMelody();
+  box.innerHTML=html; bglWire();
+  const w=$("#hbWrap"); if(w)w.scrollTop=0;
+}
+/* 01 · звонок: принять → обращение проходит статусы → «Открыть мой подарок» */
+function bglCall(){
+  const acc=$("#bglAccept"), dec=$("#bglDecline"), note=$("#bglCallNote"), ring=$("#bglRingUI"), desk=$("#bglDesk"),
+    skip=$("#bglCallSkip"), gift=$("#bglGift"), ok=$("#bglDeskOk"), bar=$("#bglDeskBar");
+  if(!acc||!desk||!gift)return;
+  const steps=[...desk.querySelectorAll(".bgl-steps li")];
+  let started=false, finished=false;
+  const openDesk=()=>{ ring.hidden=true; desk.hidden=false; desk.classList.add("in"); };
+  const finish=()=>{
+    if(finished)return; finished=true; started=true;
+    if(desk.hidden)openDesk();
+    steps.forEach(s=>s.className="done"); bar.style.width="100%";
+    ok.hidden=false; skip.hidden=true; bglSfx("ok");
+    bglT(()=>{ bglAt(gift,40); gift.focus({preventScroll:true}); },250);
+  };
+  acc.onclick=()=>{
+    if(started)return; started=true; bglSfx("chime");
+    ring.classList.add("out");
+    bglT(()=>{ if(!finished)openDesk(); },380);
+    steps.forEach((s,k)=>bglT(()=>{
+      if(finished)return;
+      if(k)steps[k-1].className="done";
+      s.className="run"; bar.style.width=((k+1)/steps.length*100)+"%";
+    },900+k*850));
+    bglT(finish,900+steps.length*850+250);
+  };
+  let nd=0;
+  dec.onclick=()=>{
+    nd++; note.textContent=nd===1?"От Вселенной так просто не уходят. Попробуй зелёную кнопку":"Зелёная кнопка справа — Вселенная ждёт";
+    dec.classList.remove("shake"); void dec.offsetWidth; dec.classList.add("shake");
+  };
+  skip.onclick=finish;
+  gift.onclick=()=>bglGo(1);
+}
+/* 02 · открытие: свет, экран с фото, буквы имени; касание — сразу финальный кадр */
+BGL_ENTER.reveal=(s,first)=>{
+  if(!first||bglRM())return;
+  s.classList.add("play"); bglSfx("swell");
+  const end=()=>s.classList.remove("play");
+  s.addEventListener("pointerdown",end,{once:true});
+  bglT(()=>{ hbBurst(innerWidth/2,innerHeight*.35,120); bglRain(4500); },2900);
+  bglT(end,4300);
+};
+/* 03 · история: событие раскрывает пожелание, иконка оживает */
+function bglStory(){
+  const tl=$("#bglTl"), n=$("#bglTlN"); if(!tl)return;
+  const ev=[...tl.querySelectorAll(".bgl-ev")]; let k=0;
+  ev.forEach(li=>{
     const b=li.querySelector("button");
     b.onclick=()=>{
-      items.forEach(x=>x.classList.remove("now")); li.classList.add("now");
-      if(li.classList.contains("on"))return;
-      li.classList.add("on"); b.setAttribute("aria-expanded","true"); n++;
-      if(note)note.textContent=n<items.length?"сыграно "+n+" из "+items.length:"весь сет сыгран — зал просит бис ↓";
-      const r=b.getBoundingClientRect(); hbBurst(r.left+Math.min(r.width/2,90),r.top+r.height/2,18);
-      if(n===items.length)bglParty(4);
+      const open=!li.classList.contains("open");
+      li.classList.toggle("open",open); b.setAttribute("aria-expanded",String(open));
+      if(!open||li.classList.contains("seen"))return;
+      li.classList.add("seen"); k++;
+      if(n)n.textContent=k<ev.length?"открыто "+k+" из "+ev.length:"вся история открыта — дальше золотой билет";
+      bglSfx("blip",k-1); bglAt(li.querySelector(".bgl-ev-ic"),14);
+      if(k===ev.length)bglRain(2500);
     };
   });
 }
-/* Лайтстик: раз в такт золотое кольцо сжимается к кругу. Нажатие ближе 90 мс к совпадению —
-   «точно» (2 очка), ближе 190 — «есть» (1), дальше — «мимо». 16 тактов; огни в зале
-   загораются по набранным очкам в случайном порядке. Звука нет: на телефоне и в блютус-
-   наушниках он запаздывает и сбивает с ритма — ведём по картинке. */
-function bglGame(){
-  const stage=$("#bglStage"), ring=$("#bglRing"), pad=$("#bglPad"), hit=$("#bglHit"), crowd=$("#bglCrowd"), msg=$("#bglMsg"), go=$("#bglGo");
-  if(!stage||!ring||!pad||!crowd||!go)return;
-  const N=16, BEAT=760, LIGHTS=60, COLS=["#ff5fa2","#ffd27a","#b9a8ff","#7fe3ff","#ffffff"];
-  crowd.innerHTML="<i></i>".repeat(LIGHTS);
-  const dots=[...crowd.children], order=dots.map((_,i)=>i).sort(()=>Math.random()-.5);
-  let t0=0, score=0, tapped=new Set(), running=false;
-  const light=()=>{ const k=Math.round(score/(N*2)*LIGHTS);
-    for(let j=0;j<k;j++){ const d=dots[order[j]]; if(!d.classList.contains("on")){ d.style.setProperty("--c",COLS[j%COLS.length]); d.classList.add("on"); } } };
-  const say=(txt,cls)=>{ hit.textContent=txt; hit.className="bgl-hit"; void hit.offsetWidth; hit.className="bgl-hit show "+cls; };
-  const finish=()=>{
-    running=false; BGL_RAF=null; ring.style.opacity="0";
-    const pct=Math.round(score/(N*2)*100);
-    const r=pct>=75?["Зал горит 🔥","весь стадион с лайтстиками — артистку вызывают на бис"]
-      :pct>=45?["Почти аншлаг","огней много, но задние ряды ещё ждут — ещё раз?"]
-      :["Разогрев","зал только просыпается — попробуй ещё раз"];
-    msg.innerHTML="<b>"+r[0]+"</b><span>"+pct+"% зала · "+r[1]+"</span>";
-    go.textContent="↻ Ещё раз"; go.disabled=false;
-    if(pct>=75)bglParty(4);
+/* 04 · билет: наклон за курсором (где есть наведение), корешок отрывается нажатием */
+function bglPass(){
+  const pass=$("#bglPass"), stub=$("#bglStub"), wrap=$("#bglPassWrap"), hint=$("#bglTkHint"); if(!pass||!stub||!wrap)return;
+  if(!bglRM()&&matchMedia("(hover: hover)").matches){
+    wrap.onpointermove=e=>{ const r=wrap.getBoundingClientRect(), x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+      pass.style.setProperty("--rx",(-y*10).toFixed(2)+"deg"); pass.style.setProperty("--ry",(x*14).toFixed(2)+"deg"); };
+    wrap.onpointerleave=()=>{ pass.style.removeProperty("--rx"); pass.style.removeProperty("--ry"); };
+  }
+  stub.onclick=()=>{
+    if(pass.classList.contains("torn"))return;
+    pass.classList.add("torn"); stub.disabled=true; bglSfx("tear");
+    if(hint)hint.textContent="Корешок твой. Доступ открыт на весь год";
+    bglT(()=>bglAt(pass,60),420);
+    bglT(()=>{ stub.style.visibility="hidden"; },1200);   /* улетевший корешок не держим за краем экрана */
   };
+}
+/* 05 · сет-лист: трек «играет» — полоса и время в плеере, пожелание раскрывается под треком */
+function bglSetlist(){
+  const list=$("#bglTrk"), np=$("#bglNp"); if(!list||!np)return;
+  const bs=[...list.querySelectorAll("button")], bar=$("#bglNpBar"), cur=$("#bglNpCur"), dur=$("#bglNpDur"), n=$("#bglTrkN");
+  const sec=s=>{ const [m,x]=String(s).split(":").map(Number); return m*60+x; };
+  const fmt=v=>Math.floor(v/60)+":"+String(Math.floor(v%60)).padStart(2,"0");
+  let played=0;
+  bs.forEach(b=>b.onclick=()=>{
+    const li=b.parentElement;
+    bs.forEach(x=>x.parentElement.classList.remove("now")); li.classList.add("now");
+    if(!li.classList.contains("played")){
+      li.classList.add("played"); b.setAttribute("aria-expanded","true"); played++;
+      if(n)n.textContent=played<bs.length?"сыграно "+played+" из "+bs.length:"весь сет сыгран — зал просит бис";
+      if(played===bs.length)bglRain(2500);
+    }
+    $("#bglNpK").textContent="Now playing · "+b.dataset.n; $("#bglNpT").textContent=b.dataset.t; $("#bglNpBy").textContent=b.dataset.by;
+    dur.textContent=b.dataset.d; np.classList.add("playing");
+    const D=sec(b.dataset.d), LEN=bglRM()?1:9000, t0=performance.now();
+    bar.style.transition="none"; bar.style.width="0%"; void bar.offsetWidth;
+    bar.style.transition="width "+LEN+"ms linear"; bar.style.width="100%";
+    if(BGL_IV)clearInterval(BGL_IV);
+    const tick=()=>{ const p=Math.min(1,(performance.now()-t0)/LEN); cur.textContent=fmt(p*D);
+      if(p>=1){ clearInterval(BGL_IV); BGL_IV=null; np.classList.remove("playing"); } };
+    tick(); BGL_IV=setInterval(tick,250);
+    bglSfx("blip",+b.dataset.n-1); bglAt(b.querySelector(".n"),10);
+  });
+}
+/* 06 · лайтстик: кольцо сжимается к лайтстику раз в такт; три уровня с нарастающим темпом.
+   Попадание ближе 100 мс — perfect (3 огня), ближе 200 — good (2), иначе 1. Проиграть нельзя:
+   в финале весь зал загорается золотым. Ритм — по картинке, без микрофона и звука. */
+function bglGame(){
+  const hall=$("#bglHall"), crowd=$("#bglCrowd"), ring=$("#bglRing"), stick=$("#bglStick"), pad=$("#bglPad"), hit=$("#bglHit"),
+    go=$("#bglGo"), lvlB=$("#bglLvl"), lvlN=$("#bglLvlName"), litN=$("#bglLit"), msg=$("#bglHallMsg"), res=$("#bglLsRes");
+  if(!hall||!crowd||!ring||!stick||!pad||!go)return;
+  const COLS=12, ROWS=6, D=COLS*ROWS, PAL=["#ff4fa0","#f3d38b","#b9a3ff","#7fe3ff","#fff6ec"];
+  let h=""; for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)
+    h+='<i style="--dl:'+Math.round(Math.abs(c-(COLS-1)/2)*45+(ROWS-1-r)*60)+'ms;--s:'+(.6+r*.1).toFixed(2)+'"></i>';
+  crowd.innerHTML=h;
+  const dots=[...crowd.children];
+  const LV=[{n:"Level 1 · Warm up",beat:900,k:8},{n:"Level 2 · Full energy",beat:720,k:10},{n:"Level 3 · Legendary show",beat:580,k:12}];
+  const TOTAL=LV.reduce((a,l)=>a+l.k,0);
+  let L=0, t0=0, tapped=new Set(), lit=0, perfect=0, phase="idle", order=[];
+  const shuffle=()=>{ order=dots.map((_,i)=>i).sort(()=>Math.random()-.5); };
+  const paint=()=>{ const m=Math.min(lit,D);
+    for(let j=0;j<m;j++){ const d=dots[order[j]]; if(!d.classList.contains("on")){ d.style.setProperty("--c",PAL[j%PAL.length]); d.classList.add("on"); } }
+    litN.textContent="огни "+Math.round(m/D*100)+"%"; hall.style.setProperty("--heat",(m/D).toFixed(2)); };
+  const say=(t,c)=>{ hit.textContent=t; hit.className="bgl-ls-hit"; void hit.offsetWidth; hit.className="bgl-ls-hit show "+c; };
+  const wave=()=>{ crowd.classList.remove("wave"); void crowd.offsetWidth; crowd.classList.add("wave"); };
   const frame=()=>{
-    if(!running||!$("#bglStage"))return;
-    const e=performance.now()-t0, k=Math.floor(e/BEAT);
-    if(k>=N){ if(e>N*BEAT+250)return finish(); ring.style.opacity="0"; }
-    else{ const p=(e-k*BEAT)/BEAT; ring.style.transform="scale("+(2.6-1.6*p).toFixed(3)+")"; ring.style.opacity=(.3+.7*p).toFixed(2); }
+    if(phase!=="beats"||!$("#bglHall"))return;
+    const lv=LV[L], e=performance.now()-t0, k=Math.floor(e/lv.beat);
+    if(k>=lv.k){ ring.style.opacity="0"; if(e>lv.k*lv.beat+220){ next(); return; } }
+    else{ const p=(e-k*lv.beat)/lv.beat; ring.style.transform="scale("+(2.7-1.7*p).toFixed(3)+")"; ring.style.opacity=(.25+.75*p).toFixed(2); }
     BGL_RAF=requestAnimationFrame(frame);
   };
+  const level=()=>{
+    const lv=LV[L]; lvlN.textContent=lv.n; tapped=new Set(); phase="banner";
+    lvlB.textContent=lv.n; lvlB.classList.remove("show"); void lvlB.offsetWidth; lvlB.classList.add("show");
+    bglT(()=>{ if(phase!=="banner")return; phase="beats"; t0=performance.now(); BGL_RAF=requestAnimationFrame(frame); },1300);
+  };
+  const next=()=>{ ring.style.opacity="0"; if(BGL_RAF)cancelAnimationFrame(BGL_RAF); BGL_RAF=null; L++; if(L<LV.length)level(); else finale(); };
+  const finale=()=>{
+    phase="done"; BGL_GAME.on=false;
+    dots.forEach(d=>d.classList.add("on")); crowd.classList.add("gold"); hall.classList.add("gold"); hall.style.setProperty("--heat","1");
+    msg.hidden=false; litN.textContent="огни 100%"; lvlN.textContent="Legendary show";
+    if(res)res.textContent="точно в такт: "+perfect+" из "+TOTAL;
+    go.textContent="↻ Ещё раз"; go.disabled=false;
+    bglSfx("ok"); bglAt(hall,100); bglRain(4000);
+  };
   const tap=()=>{
-    if(!running)return;
-    pad.classList.add("hit"); BGL_T.push(setTimeout(()=>pad.classList.remove("hit"),90));
-    const e=performance.now()-t0, j=Math.round(e/BEAT)-1;      /* ближайшее совпадение: такт j кончается в (j+1)·BEAT */
-    if(j<0||j>=N||tapped.has(j))return say("мимо","miss");
-    const d=Math.abs(e-(j+1)*BEAT); tapped.add(j);
-    if(d<=90){ score+=2; say("точно ✦",""); const r=pad.getBoundingClientRect(); hbBurst(r.left+r.width/2,r.top+r.height/2,12); }
-    else if(d<=190){ score+=1; say("есть","good"); }
-    else say("мимо","miss");
-    light();
+    if(phase!=="beats")return;
+    stick.classList.remove("hit"); void stick.offsetWidth; stick.classList.add("hit");
+    const lv=LV[L], e=performance.now()-t0, j=Math.round(e/lv.beat)-1;     /* ближайшее совпадение: такт j кончается в (j+1)·beat */
+    if(j<0||j>=lv.k||tapped.has(j)){ say("мимо","ms"); return; }
+    tapped.add(j);
+    const d=Math.abs(e-(j+1)*lv.beat);
+    if(d<=100){ perfect++; lit+=3; say("perfect",""); bglAt(stick,14); bglSfx("tick"); }
+    else if(d<=200){ lit+=2; say("good","gd"); }
+    else{ lit+=1; say("почти","ms"); }
+    paint(); wave();
   };
-  stage.addEventListener("pointerdown",e=>{ if(running){ e.preventDefault(); tap(); } });
-  BGL_KEY=e=>{ if(running&&(e.key===" "||e.key==="Enter")){ e.preventDefault(); tap(); } };
-  addEventListener("keydown",BGL_KEY);
+  const stop=()=>{
+    if(BGL_RAF)cancelAnimationFrame(BGL_RAF); BGL_RAF=null;
+    phase="idle"; BGL_GAME.on=false; ring.style.opacity="0"; lvlB.classList.remove("show");
+    go.disabled=false; go.textContent="▶ Начать шоу"; lvlN.textContent="3 уровня · "+TOTAL+" тактов";
+  };
+  const down=e=>{ if(phase==="beats"){ e.preventDefault(); tap(); } };
+  pad.addEventListener("pointerdown",down); hall.addEventListener("pointerdown",down);
   go.onclick=()=>{
-    dots.forEach(d=>d.classList.remove("on")); order.sort(()=>Math.random()-.5);
-    score=0; tapped=new Set(); msg.innerHTML=""; go.disabled=true; go.textContent="играем…";
-    running=true; t0=performance.now(); BGL_RAF=requestAnimationFrame(frame);
+    dots.forEach(d=>d.classList.remove("on")); crowd.classList.remove("gold","wave"); hall.classList.remove("gold"); msg.hidden=true;
+    shuffle(); L=0; lit=0; perfect=0; if(res)res.textContent=""; paint();
+    go.disabled=true; go.textContent="Шоу идёт…"; BGL_GAME.on=true; level();
+    pad.scrollIntoView({block:"nearest",behavior:bglRM()?"auto":"smooth"});   /* на невысоком экране лайтстик мог остаться под панелью */
   };
+  BGL_GAME={on:false,tap,stop};
+  shuffle();
 }
-/* Бис: бойз-бэнд скандирует имя по букве — каждый подпрыгивает со своей табличкой */
+/* 07 · бойз-бэнд: выход под прожекторы, фан-чант по букве, финал хором */
+BGL_ENTER.band=(s,first)=>{ if(!first||bglRM())return; s.classList.add("play"); bglT(()=>s.classList.remove("play"),2900); };
 function bglBand(){
   const b=$("#bglChant"), band=$("#bglBand"), out=$("#bglChantT"); if(!b||!band||!out)return;
-  const ms=[...band.querySelectorAll(".bgl-m")]; let busy=false;
+  const ms=[...band.querySelectorAll(".bgl-m2")]; let busy=false;
   ms.forEach(m=>m.addEventListener("animationend",e=>{ if(e.animationName==="bglJump")m.classList.remove("jump"); }));
+  const jump=m=>{ m.classList.remove("jump"); void m.offsetWidth; m.classList.add("jump"); };
   b.onclick=()=>{
-    if(busy)return; busy=true; let s="";
-    ms.forEach((m,i)=>BGL_T.push(setTimeout(()=>{
-      m.classList.remove("jump"); void m.offsetWidth; m.classList.add("jump");
-      s+=(i?"-":"")+(m.dataset.l||""); out.textContent=s+(i===ms.length-1?"! ♥":"");
-      const r=m.getBoundingClientRect(); hbBurst(r.left+r.width/2,r.top+10,10);
-      if(i===ms.length-1){ busy=false; bglParty(3); }
-    },i*280)));
+    if(busy)return; busy=true; let s=""; out.classList.remove("all");
+    ms.forEach((m,i)=>bglT(()=>{
+      jump(m); m.classList.add("lit");
+      s+=(i?"-":"")+(m.dataset.l||""); out.textContent=s;
+      bglSfx("blip",i); bglAt(m,8);
+      if(i===ms.length-1)bglT(()=>{
+        out.innerHTML="<small>все вместе</small>"+esc(s)+"!"; out.classList.add("all");
+        ms.forEach(jump); bglRain(3000); bglSfx("ok"); busy=false;
+      },520);
+    },i*320));
   };
 }
+/* 08 · письмо: свет приглушён, конверт открывается нажатием */
+function bglLetter(){
+  const env=$("#bglEnv"), l=$("#bglLetter"), h=$("#bglEnvHint"); if(!env||!l)return;
+  env.onclick=()=>{
+    if(env.classList.contains("open"))return;
+    env.classList.add("open"); bglSfx("chime");
+    bglT(()=>{ env.hidden=true; if(h)h.hidden=true; l.hidden=false; l.classList.add("in"); },bglRM()?0:900);
+  };
+}
+/* 09 · финал: салют и дождь конфетти при каждом входе */
+BGL_ENTER.encore=()=>{ bglT(()=>{ hbBurst(innerWidth/2,innerHeight*.3,140); bglRain(6000); },350); };
 function hbLoad(cfg){
   return new Promise(res=>{
     if(cfg.data())return res(true);
@@ -14486,7 +14528,7 @@ function hbShow(html){
 function hbReveal(html){
   $("#hbIn").innerHTML=html;
   HBROOM.wire();
-  hbConfetti();
+  hbConfetti(HBROOM.quiet);
 }
 function hbWireBd(){
   const cp=$("#hbCopy"), num=$("#hbNum");
@@ -14513,7 +14555,7 @@ function hbWireBd(){
   if(mic)mic.onclick=e=>{ e.stopPropagation(); hbMicStart(mic,blow); };
 }
 /* ---- конфетти ---- */
-function hbConfetti(){
+function hbConfetti(quiet){                           /* quiet: канвас готов для салютов, но без стартового дождя */
   const cv=$("#hbCv"); if(!cv||HB)return;
   if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
   const ctx=cv.getContext("2d"), dpr=Math.min(2,devicePixelRatio||1);
@@ -14522,8 +14564,8 @@ function hbConfetti(){
   /* Праздник длится 14 секунд, дальше цикл засыпает: раньше канвас во весь экран
      перерисовывался бесконечно и жёг батарею всё время, пока открыта комната.
      Салют по клику будит его обратно. */
-  HB={p:[],raf:0,fit,t:0,until:performance.now()+14000,step:null};
-  for(let i=0;i<110;i++)hbAdd(Math.random()*innerWidth,-Math.random()*innerHeight,3,1);
+  HB={p:[],raf:0,fit,t:0,until:performance.now()+(quiet?0:14000),step:null};
+  if(!quiet)for(let i=0;i<110;i++)hbAdd(Math.random()*innerWidth,-Math.random()*innerHeight,3,1);
   const step=()=>{
     if(!HB)return;
     if(!HB.p.length&&performance.now()>HB.until){    /* всё осыпалось и подсыпать больше нечего */
